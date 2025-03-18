@@ -1,26 +1,28 @@
-[tool.poetry]
+[project]
 name = "t0"
 version = "0.1.0"
 description = ""
-authors = ["fedenanni <nanni.federico@gmail.com>"]
+authors = [
+    { name = "fedenanni", email = "nanni.federico@gmail.com" }
+]
 readme = "README.md"
+requires-python = ">=3.9"
 
-[tool.poetry.dependencies]
-python = "^3.09"
-openai = "1.56.1"
-torch = "2.5.1"
-torchvision = "0.20.1"
-torchaudio = "2.5.1"
-transformers = "4.46.1"
-wandb = "0.17.3"
-datasets = "3.1.0"
-accelerate = "1.0.1"
-vllm = "0.6.4.post1"
-ipykernel = "6.28.0"
-gradio = "4.44.0"
-trl = "0.12.0"
-
+dependencies = [
+    "openai==1.56.1",
+    "torch==2.5.1",
+    "torchvision==0.20.1",
+    "torchaudio==2.5.1",
+    "transformers==4.46.1",
+    "wandb==0.17.3",
+    "datasets==3.1.0",
+    "accelerate==1.0.1",
+    "vllm==0.6.4.post1",
+    "ipykernel==6.28.0",
+    "gradio==4.44.0",
+    "trl==0.12.0"
+]
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
