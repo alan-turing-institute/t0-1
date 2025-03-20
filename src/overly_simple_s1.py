@@ -9,14 +9,16 @@ import logging
 warnings.filterwarnings("ignore", category=FutureWarning)
 
 logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(asctime)s - %(message)s"
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
 
 @dataclass
 class TrainingConfig:
-    model_name: str = "Qwen/Qwen2.5-1.5B-Instruct"
-    block_size: int = 2048  # Reduce from 4096 to 2048
+    model_name: str = (
+        "Qwen/Qwen2.5-1.5B-Instruct"  # original: "Qwen/Qwen2.5-32B-Instruct"
+    )
+    block_size: int = 2048  # Original: 32768
     dagger: bool = False
     small_sample: bool = True  # Flag to train on a small sample
     train_file_path: str = "simplescaling/s1K_tokenized"
@@ -39,16 +41,11 @@ def train():
         "use_cache": False,  # Avoid caching for training
     }
 
-    # Additional optimizations for specific models
-    if "70B" in config.model_name:
-        kwargs["attn_implementation"] = "flash_attention_2"
-
     model = transformers.AutoModelForCausalLM.from_pretrained(
         config.model_name, **kwargs
     )
 
-    # Enable gradient checkpointing
-    model.gradient_checkpointing_enable()
+    model.gradient_checkpointing_enable()  # Original didn't have this
 
     dataset = load_dataset(config.train_file_path)
 
@@ -81,7 +78,7 @@ def train():
     )
     args.dataset_text_field = "text"
     args.max_seq_length = config.block_size
-    args.per_device_train_batch_size = 1  # Reduce batch size to 1
+    args.per_device_train_batch_size = 1  # Original didn't have this
 
     trainer = trl.SFTTrainer(
         model,
