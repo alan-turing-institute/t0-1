@@ -1,7 +1,8 @@
 .PHONY: all
 
+# -w 3 adds a 3 second delay between each request
 all: all-conditions.txt
-	wget -P conditions -x -nH --cut-dirs=1 -i $<
+	wget -P conditions -x -nH --cut-dirs=1 -w 3 -i $<
 
 # xidel extracts part of the HTML identified by an XPath locator 
 all-conditions.txt: www_nhs_uk-conditions.html add-url.awk
