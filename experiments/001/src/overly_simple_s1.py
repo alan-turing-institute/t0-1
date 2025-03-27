@@ -5,6 +5,7 @@ from datasets import load_dataset
 import transformers
 import trl
 import logging
+import torch
 
 warnings.filterwarnings("ignore", category=FutureWarning)
 
@@ -34,10 +35,10 @@ def train():
     log_config = {**asdict(config), **asdict(args)}
     logging.info(f"Training config: {log_config}")
 
-    # Loading model with auto device mapping
+    # Loading model with auto device mapping and specifying FP16 precision
     kwargs = {
         "device_map": "auto",
-        "torch_dtype": "auto",
+        "torch_dtype": torch.float16,  # Explicitly set the dtype to FP16
         "use_cache": False,  # Avoid caching for training
     }
 
@@ -79,6 +80,7 @@ def train():
     args.dataset_text_field = "text"
     args.max_seq_length = config.block_size
     args.per_device_train_batch_size = 1  # Original didn't have this
+    args.save_total_limit = 1  # Keeps only the last checkpoint
 
     trainer = trl.SFTTrainer(
         model,
