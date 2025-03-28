@@ -1,6 +1,6 @@
 # 001 s1 Replication
 
-Plan:
+## Plan
 
 1. Fine-tune a base model on the given training data (which was
    produced by running a reasoning model on the s1k dataset).
