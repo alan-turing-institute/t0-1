@@ -13,3 +13,16 @@
 
 1. Create a new `ND96amsr_A100_v4` in `UK South, Zone 3` and select as image `NVIDIA GPU-Optimized VMI`
 2. When running, SSH into it as that would allow the machine to complete the final part of the installation of the drivers
+
+## Environment setup
+`uv venv`
+
+`uv pip install -r pyproject.toml`
+
+`source .venv/bin/activate`
+
+## Running the code
+
+`cd src`
+
+`python overly_simple_s1.py --output_dir="fine_tuned_model"`
