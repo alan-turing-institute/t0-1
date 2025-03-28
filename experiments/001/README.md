@@ -9,3 +9,7 @@ Plan:
    datasets (which we think contain three sets of evaluation data).
    
    
+## Azure VM Setup
+
+1. Create a new `ND96amsr_A100_v4` in `UK South, Zone 3` and select as image `NVIDIA GPU-Optimized VMI`
+2. When running, SSH into it as that would allow the machine to complete the final part of the installation of the drivers
