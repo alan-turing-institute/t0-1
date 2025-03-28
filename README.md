@@ -4,8 +4,14 @@
 
 ```
 src/                 -- Common code
-use-cases/           -- Documentation and code for compiling use cases
+
+use-cases/           -- Documentation and code for generating use cases
+  |
   +-- nhs-conditions/
+
 experiments/         -- Fine-tuning and evaluation
+  |
   +-- 001/
+  
+planning/            -- Sprint planning
 ```
