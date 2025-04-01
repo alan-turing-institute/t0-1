@@ -10,6 +10,8 @@ dependencies = [
     "langchain>=0.3.22",
     "langchain-huggingface>=0.1.2",
     "beautifulsoup4>=4.13.3",
+    "chromadb>=0.6.3",
+    "ollama>=0.4.7",
 ]
 
 [build-system]
