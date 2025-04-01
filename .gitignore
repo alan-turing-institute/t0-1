@@ -180,3 +180,4 @@ experiments/001/src/fp32_fine_tuned_model/*
 use-cases/nhs-conditions/nhs-use-case/conditions/*
 experiments/000/src/fine_tuned_model/*
 experiments/000/src/fp32_fine_tuned_model/*
+experiments/001/nhs-use-case/
