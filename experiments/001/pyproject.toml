@@ -1,12 +1,19 @@
 [project]
 name = "001"
 version = "0.1.0"
-description = "Add your description here"
+description = "t0-001"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.11"
 dependencies = [
-    "bs4>=0.0.2",
+    "transformers>=4.50.3",
+    "torch>=2.6.0",
+    "langchain>=0.3.22",
+    "langchain-huggingface>=0.1.2",
+    "beautifulsoup4>=4.13.3",
     "chromadb>=0.6.3",
-    "ipykernel>=6.29.5",
     "ollama>=0.4.7",
 ]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
