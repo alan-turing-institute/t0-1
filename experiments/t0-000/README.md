@@ -7,8 +7,8 @@
 
 2. Evaluate the resulting Level 1 model on Stanford's evaluation
    datasets (which we think contain three sets of evaluation data).
-   
-   
+
+
 ## Azure VM Setup
 
 1. Create a new `ND96amsr_A100_v4` in `UK South, Zone 3` and select as image `NVIDIA GPU-Optimized VMI`
