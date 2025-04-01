@@ -1,0 +1,57 @@
+Generate a synthetic NHS 111 request based on the following details:
+
+### Request Type:
+* "basic": Based on a single condition page, mentioning relevant symptoms.
+* "cluster": Based on multiple condition pages, mentioning symptoms plausibly drawn from across them, aligning with the target severity.
+* "hypochondriac": Based on a single condition page, mentioning relevant symptoms plus 1-2 unrelated complaints or expressions of excessive anxiety.
+* "unspecified": The request is vague regarding key details (e.g., duration, exact nature), making assessment very difficult, even if loosely related to the condition topic.
+
+### Condition(s) Content Source:
+* The primary textual content extracted from the relevant NHS condition web page(s).
+
+### Severity Level:
+* **Not urgent**: Monitor at home
+* **Medium**: Go to the GP
+* **Medium urgent**: Get an urgent GP appointment
+* **Urgent**: Call 999
+
+### Required JSON Output:
+Return the request in the following structured JSON format:
+
+```json
+{
+  "general_demographics": {
+    "age": [Realistic adult age, e.g., 20-80],
+    "gender": "[Male/Female/Other]",
+    "occupation": "[A common occupation]",
+    "medical_history": "[Usually 'No known issues' or 'None relevant'. Only include a specific condition if highly relevant or commonly co-occurs, otherwise keep simple.]"
+  },
+  "symptoms_description": "[Generate a natural-sounding, first-person request (using 'I', 'my') as if a patient is describing their symptoms to NHS 111. Ensure the described symptoms are primarily drawn from or plausibly related to the condition(s) content AND strongly align with the specified severity_level. Select/adapt details from condition(s) content justifying the target severity (e.g., 'red flag' symptoms for Urgent; milder symptoms for Not urgent). Ensure consistency with the request_type. Vary tone (e.g., anxious, calm) and sentence structure for realism.]"
+}
+```
+
+Ensure the text is realistic, clear, and varied to simulate real-world requests.
+
+If the provided conditions content lacks sufficient symptom information or actionable guidance to construct a plausible scenario for the requested severity_level, please return:
+{"error": "Insufficient symptom information in provided content to match requested severity"}
+
+Example Output (Medium Urgent, Basic Request for Headache):
+
+```json
+{
+  "general_demographics": {
+    "age": 35,
+    "gender": "Female",
+    "occupation": "Teacher",
+    "medical_history": "No known chronic conditions"
+  },
+  "symptoms_description": "I’ve had a severe headache for the past three days that won’t go away, even with painkillers. It feels like a tight band around my head, and I’m also feeling slightly nauseous. My vision is a bit blurry when I stand up too quickly. I don’t normally get headaches this bad, and I’m starting to feel concerned."
+}
+```
+
+Reply only with the JSON output, without any additional text or explanation
+
+Generate a request based on the given details:
+Request Type: {request_type}
+Severity Level: {severity_level}
+Condition(s) web page content: {conditions_content}
