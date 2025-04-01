@@ -12,6 +12,6 @@ use-cases/           -- Documentation and code for generating use cases
 experiments/         -- Fine-tuning and evaluation
   |
   +-- 001/
-  
+
 planning/            -- Sprint planning
 ```
