@@ -14,6 +14,7 @@ dependencies = [
     "ollama>=0.4.7",
     "ipykernel>=6.29.5",
     "tiktoken>=0.9.0",
+    "pre-commit>=4.2.0",
 ]
 
 [build-system]

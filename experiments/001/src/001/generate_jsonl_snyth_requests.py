@@ -1,10 +1,11 @@
-from bs4 import BeautifulSoup
-import ollama
-import random
-import os
-import re
 import json
+import os
+import random
+import re
+
+import ollama
 import tqdm
+from bs4 import BeautifulSoup
 
 
 # basic function to prompt the model
@@ -13,7 +14,7 @@ def get_response_from_model(prompt, model="gemma3:1b"):
     return response["response"]
 
 
-template = open("../templates/synthetic_data.txt", "r").read()
+template = open("../../templates/synthetic_data.txt", "r").read()
 
 
 def fill_template(template, data):
@@ -26,12 +27,14 @@ def fill_template(template, data):
 
 # write jsonl file
 model = "gemma3:1b"
-n_requests = 100
+n_requests = 10
+location = "../../data/synthetic_requests/"
+if not os.path.exists(location):
+    os.makedirs(location)
 filename = f"{model}_{n_requests}_synthetic_requests.jsonl"
 
 
-with open(filename, "w") as f:
-
+with open(os.path.join(location, filename), "w") as f:
     for i in tqdm.tqdm(range(n_requests)):
         # random pick
         request_type = random.choice(
@@ -41,7 +44,9 @@ with open(filename, "w") as f:
             ["Not urgent", "Medium", "Medium urgent", "Urgent"]
         )
 
-        conditions_folder = "../../../use-cases/nhs-conditions/nhs-use-case/conditions/"
+        conditions_folder = (
+            "../../../../use-cases/nhs-conditions/nhs-use-case/conditions/"
+        )
 
         # loop a few times and pick something meaningful for now (some "conditions" are not really conditions!)
         selected_condition = random.choice(os.listdir(conditions_folder))
