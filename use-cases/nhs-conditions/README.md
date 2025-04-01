@@ -13,8 +13,3 @@ License](https://www.nationalarchives.gov.uk/doc/open-government-licence/version
 A list of directories, named by the condition, possibly containing
 nested subdirectories. Each directory and subdirectory contains an
 html file, `index.html`, describing the condition.
-
-
-
-
-
