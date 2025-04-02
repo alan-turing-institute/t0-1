@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 import random
 import re
@@ -42,6 +43,8 @@ def generate_synthetic_queries(
     model : str, optional
         The name of the model to use, by default "gpt-4o". If "gpt-4o", it uses the Azure OpenAI API. Otherwise, it uses the Ollama API.
     """
+    logging.getLogger(__name__)
+
     # define template path relative to this file
     with open(template_path, "r") as f:
         template = f.read()
@@ -55,6 +58,7 @@ def generate_synthetic_queries(
 
     # write the jsonl file
     with open(os.path.join(save_path, filename), "w") as f:
+        logging.info(f"Saving to {os.path.join(save_path, filename)}")
         for _ in tqdm.tqdm(range(n_queries)):
             # random pick
             query_type = random.choice(
@@ -86,13 +90,18 @@ def generate_synthetic_queries(
             prompt = fill_template(template, data)
 
             # Get the response from the model
-
             if model == "gpt-4o":
+                logging.info("Using GPT-4o model via Azure OpenAI.")
                 client = set_up_azure_client()
                 response = get_response_from_azure_model(client=client, prompt=prompt)
             else:
                 # assume otherwise it's ollama
+                logging.info(f"Using Ollama {model} model.")
                 response = get_response_from_ollama_model(prompt=prompt, model=model)
+
+            if response is None:
+                print("Response is None. Skipping this response.")
+                continue
 
             try:
                 # just a bit of cleaning up of the response

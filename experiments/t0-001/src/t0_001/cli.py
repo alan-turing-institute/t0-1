@@ -13,6 +13,7 @@ cli = typer.Typer(context_settings={"help_option_names": ["-h", "--help"]})
 
 
 def set_up_logging_config(level: int = 20) -> None:
+    logging.getLogger(__name__)
     logging.basicConfig(
         datefmt=r"%Y-%m-%d %H:%M:%S",
         format="%(asctime)s [%(levelname)8s] %(message)s",
@@ -151,12 +152,6 @@ def generate_synth_queries(
     """
     set_up_logging_config()
     logging.info("Generating synthetic queries...")
-
-    if model == "gpt-4o":
-        logging.info("Using GPT-4o model via Azure OpenAI.")
-    else:
-        logging.info("Using Ollama model.")
-
     generate_synthetic_queries(
         n_queries=n_queries,
         template_path=template_path,

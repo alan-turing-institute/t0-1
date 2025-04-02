@@ -1,3 +1,4 @@
+import logging
 import os
 
 from azure.ai.inference import ChatCompletionsClient
@@ -48,7 +49,13 @@ def get_response_from_azure_model(client: ChatCompletionsClient, prompt: str):
     str
         The response from the model.
     """
+    logging.getLogger(__name__)
+
     response = client.complete(
         messages=[UserMessage(content=prompt)],
     )
-    return response["choices"][0]["message"]["content"]
+    try:
+        return response["choices"][0]["message"]["content"]
+    except [KeyError, IndexError]:
+        logging.error(f"Model returned an invalid response: {response}")
+        return None
