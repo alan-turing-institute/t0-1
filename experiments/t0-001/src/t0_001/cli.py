@@ -4,6 +4,7 @@ from typing import Annotated
 import requests
 import typer
 from t0_001.query_vector_store.endpoint import main as query_vector_store_main
+from t0_001.rag.endpoint import main as rag_main
 from t0_001.synth_data_generation.generate_jsonl_snyth_requests import (
     generate_synthetic_requests,
 )
@@ -23,7 +24,7 @@ def set_up_logging_config(level: int = 20) -> None:
 def serve_vector_store(
     data_folder: Annotated[
         str, typer.Option(help="Path to the data folder.")
-    ] = "nhs-use-case/conditions",
+    ] = "./nhs-use-case/conditions/",
     main_only: Annotated[
         bool,
         typer.Option(
@@ -57,6 +58,64 @@ def serve_vector_store(
 @cli.command()
 def query_vector_store(
     query: Annotated[str, typer.Argument(help="The query to search for.")],
+    host: Annotated[str, typer.Option(help="Host to listen on.")] = "0.0.0.0",
+    port: Annotated[int, typer.Option(help="Port to listen on.")] = 8000,
+):
+    """
+    Query the vector store.
+    """
+    set_up_logging_config()
+    logging.info("Querying vector store...")
+    logging.info(f"Query: {query}")
+    req = requests.get(f"http://{host}:{port}/query", params={"query": query})
+    if req.status_code != 200:
+        logging.error(f"Error querying vector store: {req.text}")
+        return
+    logging.info(f"Response: {req.json()}")
+
+
+@cli.command()
+def serve_rag(
+    data_folder: Annotated[
+        str, typer.Option(help="Path to the data folder.")
+    ] = "./nhs-use-case/conditions/",
+    main_only: Annotated[
+        bool,
+        typer.Option(
+            help="If True, only the main element of the HTML file is extracted."
+        ),
+    ] = True,
+    embedding_model_name: Annotated[
+        str, typer.Option(help="Name of the embedding model.")
+    ] = "sentence-transformers/all-mpnet-base-v2",
+    chunk_overlap: Annotated[
+        int, typer.Option(help="Chunk overlap for the text splitter.")
+    ] = 50,
+    llm_model_name: Annotated[
+        str, typer.Option(help="Name of the LLM model.")
+    ] = "Qwen/Qwen2.5-1.5B-Instruct",
+    host: Annotated[str, typer.Option(help="Host to listen on.")] = "0.0.0.0",
+    port: Annotated[int, typer.Option(help="Port to listen on.")] = 8000,
+):
+    """
+    Run the RAG server.
+    """
+    set_up_logging_config()
+    logging.info("Starting RAG server...")
+    rag_main(
+        conditions_folder=data_folder,
+        main_only=main_only,
+        embedding_model_name=embedding_model_name,
+        chunk_overlap=chunk_overlap,
+        llm_model_name=llm_model_name,
+        host=host,
+        port=port,
+    )
+
+
+@cli.command()
+def query_rag(
+    query: Annotated[str, typer.Argument(help="The query for the RAG model.")],
     host: Annotated[str, typer.Option(help="Host to listen on.")] = "0.0.0.0",
     port: Annotated[int, typer.Option(help="Port to listen on.")] = 8000,
 ):
