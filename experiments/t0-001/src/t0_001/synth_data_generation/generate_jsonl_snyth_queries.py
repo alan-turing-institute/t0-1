@@ -20,23 +20,23 @@ def fill_template(template, data):
     return template
 
 
-def generate_synthetic_requests(
-    n_requests=10,
+def generate_synthetic_queries(
+    n_queries=10,
     template_path="./templates/synthetic_data.txt",
-    save_path="./data/synthetic_requests/",
+    save_path="./data/synthetic_queries/",
     conditions_path="./nhs-use-case/conditions/",
     model="gpt-4o",
 ):
-    """Generate synthetic requests for the NHS use case and save them to a file.
+    """Generate synthetic queries for the NHS use case and save them to a file.
 
     Parameters
     ----------
-    n_requests : int, optional
-        Number of requests to generate, by default 10
+    n_queries : int, optional
+        Number of queries to generate, by default 10
     template_path : str, optional
         The path to the synthetic data template, by default "./templates/synthetic_data.txt"
     save_path : str, optional
-        The path to save the outputs, by default "./data/synthetic_requests/"
+        The path to save the outputs, by default "./data/synthetic_queries/"
     conditions_path : str, optional
         The path the NHS conditions data, by default "./nhs-use-case/conditions/"
     model : str, optional
@@ -51,13 +51,13 @@ def generate_synthetic_requests(
     save_path = save_path
     if not os.path.exists(save_path):
         os.makedirs(save_path)
-    filename = f"{model}_{n_requests}_synthetic_requests.jsonl"
+    filename = f"{model}_{n_queries}_synthetic_queries.jsonl"
 
     # write the jsonl file
     with open(os.path.join(save_path, filename), "w") as f:
-        for _ in tqdm.tqdm(range(n_requests)):
+        for _ in tqdm.tqdm(range(n_queries)):
             # random pick
-            request_type = random.choice(
+            query_type = random.choice(
                 ["basic", "cluster", "hypochondriac", "unspecified"]
             )
             severity_level = random.choice(
@@ -77,7 +77,7 @@ def generate_synthetic_requests(
             conditions_content = main_element.get_text(separator="\n", strip=True)
 
             data = {
-                "request_type": request_type,
+                "query_type": query_type,
                 "severity_level": severity_level,
                 "conditions_content": conditions_content,
                 "conditions_title": selected_condition,
@@ -102,7 +102,7 @@ def generate_synthetic_requests(
                     "general_demographics" in json_object
                     and "symptoms_description" in json_object
                 ):
-                    json_object["request_type"] = request_type
+                    json_object["query_type"] = query_type
                     json_object["severity_level"] = severity_level
                     json_object["conditions_title"] = selected_condition
 
@@ -119,4 +119,4 @@ def generate_synthetic_requests(
 
 
 if __name__ == "__main__":
-    generate_synthetic_requests()
+    generate_synthetic_queries()
