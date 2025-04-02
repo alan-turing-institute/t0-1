@@ -82,7 +82,7 @@ def generate_synth_requests(
     ] = "../../data/synthetic_requests/",
     conditions_path: Annotated[
         str, typer.Option(help="Path to the NHS conditions folder.")
-    ] = "../../../../use-cases/nhs-conditions/nhs-use-case/conditions/",
+    ] = "./nhs-use-case/conditions/",
 ):
     """
     Generate synthetic requests for the NHS use case and save them to a file.

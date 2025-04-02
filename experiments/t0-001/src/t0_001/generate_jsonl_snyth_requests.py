@@ -55,7 +55,7 @@ def generate_synthetic_requests(
     n_requests=10, 
     template_path="../../templates/synthetic_data.txt",
     save_path="../../data/synthetic_requests/",
-    conditions_path="../../../../use-cases/nhs-conditions/nhs-use-case/conditions/",
+    conditions_path="./nhs-use-case/conditions/",
     ):
 
     """Generate synthetic requests for the NHS use case using the OpenAI API (GPT-4o).
@@ -64,7 +64,7 @@ def generate_synthetic_requests(
         n_requests (int): Number of requests to generate. Default is 10.
         template_path (str): Path to the template file. Default is "../../templates/synthetic_data.txt".
         save_path (str): Path to save the generated requests. Default is "../../data/synthetic_requests/".
-        conditions_path (str): Path to the NHS conditions folder. Default is "../../../../use-cases/nhs-conditions/nhs-use-case/conditions/".
+        conditions_path (str): Path to the NHS conditions folder. Default is "./nhs-use-case/conditions/".
     """
     # define template path relative to this file
     with open(template_path, "r") as f:
