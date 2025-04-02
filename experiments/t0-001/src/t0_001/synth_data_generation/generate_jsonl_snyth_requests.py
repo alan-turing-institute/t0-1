@@ -27,14 +27,20 @@ def generate_synthetic_requests(
     conditions_path="./nhs-use-case/conditions/",
     model="gpt-4o",
 ):
-    """Generate synthetic requests for the NHS use case.
+    """Generate synthetic requests for the NHS use case and save them to a file.
 
-    Args:
-        n_requests (int): Number of requests to generate. Default is 10.
-        template_path (str): Path to the template file. Default is "../../templates/synthetic_data.txt".
-        save_path (str): Path to save the generated requests. Default is "../../data/synthetic_requests/".
-        conditions_path (str): Path to the NHS conditions folder. Default is "./nhs-use-case/conditions/".
-        model (str): Model to use for generating the requests. Default is "gpt-4o" (using Azure OpenAI) or otherwise can be an ollama model.
+    Parameters
+    ----------
+    n_requests : int, optional
+        Number of requests to generate, by default 10
+    template_path : str, optional
+        The path to the synthetic data template, by default "./templates/synthetic_data.txt"
+    save_path : str, optional
+        The path to save the outputs, by default "./data/synthetic_requests/"
+    conditions_path : str, optional
+        The path the NHS conditions data, by default "./nhs-use-case/conditions/"
+    model : str, optional
+        The name of the model to use, by default "gpt-4o". If "gpt-4o", it uses the Azure OpenAI API. Otherwise, it uses the Ollama API.
     """
     # define template path relative to this file
     with open(template_path, "r") as f:
