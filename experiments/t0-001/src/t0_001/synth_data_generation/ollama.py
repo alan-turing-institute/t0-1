@@ -1,3 +1,5 @@
+import logging
+
 import ollama
 
 
@@ -18,5 +20,11 @@ def get_response_from_ollama_model(prompt: str, model: str = "gemma3:1b"):
     str
         The response from the model.
     """
+    logging.getLogger(__name__)
+
     response = ollama.generate(model=model, prompt=prompt)
-    return response["response"]
+    try:
+        return response["response"]
+    except KeyError:
+        logging.error(f"Model returned an invalid response: {response}")
+        return None
