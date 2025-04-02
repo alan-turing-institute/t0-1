@@ -7,6 +7,7 @@ from langchain_core.vectorstores import VectorStore
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_text_splitters import SentenceTransformersTokenTextSplitter
 from langchain_text_splitters.base import TextSplitter
+from t0_001.query_vector_store.utils import load_conditions
 
 
 def setup_embedding_model(
@@ -55,7 +56,27 @@ def setup_text_splitter(
     )
 
 
-class DataIndexCreator:
+def create_vector_store(
+    conditions_folder: str,
+    main_only: bool = True,
+    embedding_model_name: str = "sentence-transformers/all-mpnet-base-v2",
+    chunk_overlap: int = 50,
+    db_choice: str = "chroma",
+):
+    conditions = load_conditions(conditions_folder, main_only)
+    embedding_model = setup_embedding_model(embedding_model_name)
+    text_splitter = setup_text_splitter(embedding_model_name, chunk_overlap)
+    index_creator = VectorStoreCreator(embedding_model, text_splitter)
+    index_creator.create_index(
+        db=db_choice,
+        documents=list(conditions.values()),
+        metadatas=[{"source": k} for k in conditions.keys()],
+    )
+
+    return index_creator.db
+
+
+class VectorStoreCreator:
     def __init__(
         self,
         embedding_model: Embeddings,

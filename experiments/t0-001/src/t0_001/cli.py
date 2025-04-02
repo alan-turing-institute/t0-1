@@ -1,13 +1,21 @@
 import logging
+from enum import Enum
 from typing import Annotated
 
 import requests
 import typer
 from t0_001.query_vector_store.endpoint import main as query_vector_store_main
+from t0_001.rag.chat_interact import run_chat_interact
 from t0_001.rag.endpoint import main as rag_main
 from t0_001.synth_data_generation.generate_jsonl_snyth_requests import (
     generate_synthetic_requests,
 )
+
+
+class DBChoice(str, Enum):
+    chroma = "chroma"
+    faiss = "faiss"
+
 
 cli = typer.Typer(context_settings={"help_option_names": ["-h", "--help"]})
 
@@ -37,6 +45,9 @@ def serve_vector_store(
     chunk_overlap: Annotated[
         int, typer.Option(help="Chunk overlap for the text splitter.")
     ] = 50,
+    db_choice: Annotated[
+        DBChoice, typer.Option(help="Database choice.")
+    ] = DBChoice.chroma,
     host: Annotated[str, typer.Option(help="Host to listen on.")] = "0.0.0.0",
     port: Annotated[int, typer.Option(help="Port to listen on.")] = 8000,
 ):
@@ -50,6 +61,7 @@ def serve_vector_store(
         main_only=main_only,
         embedding_model_name=embedding_model_name,
         chunk_overlap=chunk_overlap,
+        db_choice=db_choice,
         host=host,
         port=port,
     )
@@ -91,6 +103,9 @@ def serve_rag(
     chunk_overlap: Annotated[
         int, typer.Option(help="Chunk overlap for the text splitter.")
     ] = 50,
+    db_choice: Annotated[
+        DBChoice, typer.Option(help="Database choice.")
+    ] = DBChoice.chroma,
     llm_model_name: Annotated[
         str, typer.Option(help="Name of the LLM model.")
     ] = "Qwen/Qwen2.5-1.5B-Instruct",
@@ -107,6 +122,7 @@ def serve_rag(
         main_only=main_only,
         embedding_model_name=embedding_model_name,
         chunk_overlap=chunk_overlap,
+        db_choice=db_choice,
         llm_model_name=llm_model_name,
         host=host,
         port=port,
@@ -165,3 +181,42 @@ def generate_synth_requests(
         model=model,
     )
     logging.info("Synthetic requests generated.")
+
+
+@cli.command()
+def rag_chat(
+    conditions_folder: Annotated[
+        str, typer.Option(help="Path to the data folder.")
+    ] = "./nhs-use-case/conditions/",
+    main_only: Annotated[
+        bool,
+        typer.Option(
+            help="If True, only the main element of the HTML file is extracted."
+        ),
+    ] = True,
+    embedding_model_name: Annotated[
+        str, typer.Option(help="Name of the embedding model.")
+    ] = "sentence-transformers/all-mpnet-base-v2",
+    chunk_overlap: Annotated[
+        int, typer.Option(help="Chunk overlap for the text splitter.")
+    ] = 50,
+    db_choice: Annotated[
+        DBChoice, typer.Option(help="Database choice.")
+    ] = DBChoice.chroma,
+    llm_model_name: Annotated[
+        str, typer.Option(help="Name of the LLM model.")
+    ] = "Qwen/Qwen2.5-1.5B-Instruct",
+):
+    """
+    Interact with the RAG model in a command line interface.
+    """
+    set_up_logging_config()
+    logging.info("Starting RAG chat interact...")
+    run_chat_interact(
+        conditions_folder=conditions_folder,
+        main_only=main_only,
+        embedding_model_name=embedding_model_name,
+        chunk_overlap=chunk_overlap,
+        db_choice=db_choice,
+        llm_model_name=llm_model_name,
+    )
