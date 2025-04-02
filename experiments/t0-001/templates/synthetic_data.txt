@@ -1,9 +1,9 @@
-Generate a synthetic NHS 111 request based on the following details:
+Generate a synthetic NHS 111 query based on the following details:
 
-### Request Type:
+### Query Type:
 * "basic": Based on a single condition page, mentioning relevant symptoms.
 * "cluster": Based on multiple condition pages, mentioning symptoms plausibly drawn from across them, aligning with the target severity.
-* "hypochondriac": Based on a single condition page, mentioning relevant symptoms plus 1-2 unrelated complaints or expressions of excessive anxiety.
+* "hypochondriac": Based on a single condition page, mentioning relevant symptoms plus 1-2 unrelated complaints and expressions of excessive anxiety.
 * "unspecified": The request is vague regarding key details (e.g., duration, exact nature), making assessment very difficult, even if loosely related to the condition topic.
 
 ### Condition(s) Content Source:
@@ -21,12 +21,13 @@ Return the request in the following structured JSON format:
 ```json
 {
   "general_demographics": {
-    "age": [Realistic adult age, e.g., 20-80],
-    "gender": "[Male/Female/Other]",
+    "age": [Realistic adult age, e.g., 20-80, for anyone above 80 use 'above 80'],
+    "sex": "[Male/Female]",
     "occupation": "[A common occupation]",
-    "medical_history": "[Usually 'No known issues' or 'None relevant'. Only include a specific condition if highly relevant or commonly co-occurs, otherwise keep simple.]"
-  },
-  "symptoms_description": "[Generate a natural-sounding, first-person request (using 'I', 'my') as if a patient is describing their symptoms to NHS 111. Ensure the described symptoms are primarily drawn from or plausibly related to the condition(s) content AND strongly align with the specified severity_level. Select/adapt details from condition(s) content justifying the target severity (e.g., 'red flag' symptoms for Urgent; milder symptoms for Not urgent). Ensure consistency with the request_type. Vary tone (e.g., anxious, calm) and sentence structure for realism.]"
+    "social_support": "[Specify if the patient has a social support network, such as a partner, family member, or living carer. If applicable, include details like the carer’s role (e.g., 'My partner is here to help me' or 'I live with my daughter who is my carer'). If no support network is present, state 'No support network.']"
+"medical_history":
+"[Include any relevant comorbidities, such as diabetes, asthma, neurodegenerative conditions (e.g., Alzheimer's, Parkinson's), allergies (e.g., to medications, food, or environmental triggers), or other significant pre-existing health conditions. If the person is on regular medications (e.g., insulin for diabetes, inhalers for asthma, antihistamines for allergies, etc.), list them as well. If there are no significant conditions, medications, or allergies, keep it simple (e.g., 'No known issues' or 'None relevant'). Only include specific conditions, medications, or allergies if they are highly relevant to the current case or commonly co-occur with the condition in question."],
+ "symptoms_description": "[Generate a natural-sounding, first-person request (using 'I', 'my') as if a patient is describing their symptoms to NHS 111. Ensure the described symptoms are primarily drawn from or plausibly related to the condition(s) content AND strongly align with the specified severity_level. Select/adapt details from condition(s) content justifying the target severity (e.g., 'red flag' symptoms for Urgent; milder symptoms for Not urgent). Ensure consistency with the request_type. Vary tone (e.g., anxious, calm) and sentence structure for realism. Occasionally include precise details, such as temperature readings or numbers from previous exams (e.g., 'My temperature is 39°C or 102°F'). At other times, be vague when describing symptoms (e.g., 'I have a high temperature'). Numbers can be in either US or UK format, depending on the context.]"
 }
 ```
 
