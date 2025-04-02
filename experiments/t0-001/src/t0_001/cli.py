@@ -76,10 +76,10 @@ def generate_synth_requests(
     n_requests: Annotated[int, typer.Option(help="Number of requests to generate.")],
     template_path: Annotated[
         str, typer.Option(help="Path to the template file.")
-    ] = "../../templates/synthetic_data.txt",
+    ] = "./templates/synthetic_data.txt",
     save_path: Annotated[
         str, typer.Option(help="Path to save the generated requests.")
-    ] = "../../data/synthetic_requests/",
+    ] = "./data/synthetic_requests/",
     conditions_path: Annotated[
         str, typer.Option(help="Path to the NHS conditions folder.")
     ] = "./nhs-use-case/conditions/",

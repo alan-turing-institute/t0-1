@@ -20,8 +20,8 @@ def fill_template(template, data):
 
 def generate_synthetic_requests(
     n_requests=10, 
-    template_path="../../templates/synthetic_data.txt",
-    save_path="../../data/synthetic_requests/",
+    template_path="./templates/synthetic_data.txt",
+    save_path="./data/synthetic_requests/",
     conditions_path="./nhs-use-case/conditions/",
     model="gpt-4o",
     ):
