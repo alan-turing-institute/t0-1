@@ -5,8 +5,10 @@ import re
 
 import tqdm
 from bs4 import BeautifulSoup
-
-from t0_001.synth_data_generation.azure import get_response_from_azure_model, set_up_azure_client
+from t0_001.synth_data_generation.azure import (
+    get_response_from_azure_model,
+    set_up_azure_client,
+)
 from t0_001.synth_data_generation.ollama import get_response_from_ollama_model
 
 
@@ -19,13 +21,12 @@ def fill_template(template, data):
 
 
 def generate_synthetic_requests(
-    n_requests=10, 
+    n_requests=10,
     template_path="./templates/synthetic_data.txt",
     save_path="./data/synthetic_requests/",
     conditions_path="./nhs-use-case/conditions/",
     model="gpt-4o",
-    ):
-
+):
     """Generate synthetic requests for the NHS use case.
 
     Args:
@@ -45,7 +46,7 @@ def generate_synthetic_requests(
     if not os.path.exists(save_path):
         os.makedirs(save_path)
     filename = f"{model}_{n_requests}_synthetic_requests.jsonl"
-    
+
     # write the jsonl file
     with open(os.path.join(save_path, filename), "w") as f:
         for _ in tqdm.tqdm(range(n_requests)):
