@@ -26,7 +26,7 @@ def setup_embedding_model(
         An instance of HuggingFaceEmbeddings.
     """
     logging.info(f"Setting up embedding model: {model_name}")
-    logging.info("Loading model...")
+    logging.info("Loading embeddding model...")
     return HuggingFaceEmbeddings(model_name=model_name)
 
 
