@@ -2,45 +2,12 @@ import json
 import os
 import random
 import re
-import pathlib
 
 import tqdm
 from bs4 import BeautifulSoup
 
-from azure.ai.inference import ChatCompletionsClient
-from azure.core.credentials import AzureKeyCredential
-from azure.ai.inference.models import UserMessage
-
-
-def set_up_client():
-    """Set up the Azure OpenAI client.
-    """
-    # set up the environment
-    try:
-        endpoint = os.environ["AZURE_OPENAI_CHAT_ENDPOINT"]
-    except KeyError:
-        raise KeyError("Please set the AZURE_OPENAI_CHAT_ENDPOINT environment variable.")
-    
-    try:
-        key = os.environ["AZURE_OPENAI_CHAT_KEY"]
-    except KeyError:
-        raise KeyError("Please set the AZURE_OPENAI_CHAT_KEY environment variable.")
-
-    # set up the client
-    return ChatCompletionsClient(
-        endpoint=endpoint,
-        credential=AzureKeyCredential(key),
-        api_version="2025-01-01-preview",
-    )
-
-
-def get_response_from_model(client, user_prompt):
-    response = client.complete(
-        messages=[
-            UserMessage(content=user_prompt)
-        ],
-    )
-    return response["choices"][0]["message"]["content"]
+from t0_001.synth_data_generation.azure import get_response_from_azure_model, set_up_azure_client
+from t0_001.synth_data_generation.ollama import get_response_from_ollama_model
 
 
 def fill_template(template, data):
@@ -56,27 +23,29 @@ def generate_synthetic_requests(
     template_path="../../templates/synthetic_data.txt",
     save_path="../../data/synthetic_requests/",
     conditions_path="./nhs-use-case/conditions/",
+    model="gpt-4o",
     ):
 
-    """Generate synthetic requests for the NHS use case using the OpenAI API (GPT-4o).
+    """Generate synthetic requests for the NHS use case.
 
     Args:
         n_requests (int): Number of requests to generate. Default is 10.
         template_path (str): Path to the template file. Default is "../../templates/synthetic_data.txt".
         save_path (str): Path to save the generated requests. Default is "../../data/synthetic_requests/".
         conditions_path (str): Path to the NHS conditions folder. Default is "./nhs-use-case/conditions/".
+        model (str): Model to use for generating the requests. Default is "gpt-4o" (using Azure OpenAI) or otherwise can be an ollama model.
     """
     # define template path relative to this file
     with open(template_path, "r") as f:
         template = f.read()
 
     # define jsonl file
-    model = "gpt-4o"
+    model = model
     save_path = save_path
     if not os.path.exists(save_path):
         os.makedirs(save_path)
     filename = f"{model}_{n_requests}_synthetic_requests.jsonl"
-
+    
     # write the jsonl file
     with open(os.path.join(save_path, filename), "w") as f:
         for _ in tqdm.tqdm(range(n_requests)):
@@ -110,8 +79,13 @@ def generate_synthetic_requests(
             prompt = fill_template(template, data)
 
             # Get the response from the model
-            client = set_up_client()
-            response = get_response_from_model(client=client, user_prompt=prompt)
+
+            if model == "gpt-4o":
+                client = set_up_azure_client()
+                response = get_response_from_azure_model(client=client, prompt=prompt)
+            else:
+                # assume otherwise it's ollama
+                response = get_response_from_ollama_model(prompt=prompt, model=model)
 
             try:
                 # just a bit of cleaning up of the response
