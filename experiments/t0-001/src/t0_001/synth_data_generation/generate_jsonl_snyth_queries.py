@@ -104,7 +104,7 @@ def generate_synthetic_queries(
             prompt = fill_template(template, data)
 
             # Get the response from the model
-            if model in ["gpt-4o", "o3-mini"]:
+            if model in set("gpt-4o", "o3-mini"):
                 logging.info(f"Using {model} model via Azure OpenAI.")
                 client = set_up_azure_client()
                 response = get_response_from_azure_model(client=client, prompt=prompt)
