@@ -10,6 +10,8 @@ def run_chat_interact(
     embedding_model_name: str = "sentence-transformers/all-mpnet-base-v2",
     chunk_overlap: int = 50,
     db_choice: str = "chroma",
+    k: int = 4,
+    with_score: bool = False,
     llm_model_name: str = "Qwen/Qwen2.5-1.5B-Instruct",
 ):
     rag = build_rag(
@@ -18,6 +20,8 @@ def run_chat_interact(
         embedding_model_name=embedding_model_name,
         chunk_overlap=chunk_overlap,
         db_choice=db_choice,
+        k=k,
+        with_score=with_score,
         llm_model_name=llm_model_name,
     )
     user_id = "command_line_chat"
