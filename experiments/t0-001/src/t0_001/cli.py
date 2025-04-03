@@ -71,6 +71,11 @@ def serve_vector_store(
 @cli.command()
 def query_vector_store(
     query: Annotated[str, typer.Argument(help="The query to search for.")],
+    k: Annotated[int, typer.Option(help="Number of results to return.")] = 4,
+    with_score: Annotated[
+        bool,
+        typer.Option(help="If True, return the score of the similarity search."),
+    ] = False,
     host: Annotated[str, typer.Option(help="Host to listen on.")] = "0.0.0.0",
     port: Annotated[int, typer.Option(help="Port to listen on.")] = 8000,
 ):
@@ -80,7 +85,10 @@ def query_vector_store(
     set_up_logging_config()
     logging.info("Querying vector store...")
     logging.info(f"Query: {query}")
-    req = requests.get(f"http://{host}:{port}/query", params={"query": query})
+    req = requests.get(
+        f"http://{host}:{port}/query",
+        params={"query": query, "k": k, "with_score": with_score},
+    )
     if req.status_code != 200:
         logging.error(f"Error querying vector store: {req.text}")
         return
@@ -110,6 +118,11 @@ def serve_rag(
     llm_model_name: Annotated[
         str, typer.Option(help="Name of the LLM model.")
     ] = "Qwen/Qwen2.5-1.5B-Instruct",
+    k: Annotated[int, typer.Option(help="Number of results to return.")] = 4,
+    with_score: Annotated[
+        bool,
+        typer.Option(help="If True, return the score of the similarity search."),
+    ] = False,
     host: Annotated[str, typer.Option(help="Host to listen on.")] = "0.0.0.0",
     port: Annotated[int, typer.Option(help="Port to listen on.")] = 8000,
 ):
@@ -124,6 +137,8 @@ def serve_rag(
         embedding_model_name=embedding_model_name,
         chunk_overlap=chunk_overlap,
         db_choice=db_choice,
+        k=k,
+        with_score=with_score,
         llm_model_name=llm_model_name,
         host=host,
         port=port,
@@ -200,6 +215,11 @@ def rag_chat(
     db_choice: Annotated[
         DBChoice, typer.Option(help="Database choice.")
     ] = DBChoice.chroma,
+    k: Annotated[int, typer.Option(help="Number of results to return.")] = 4,
+    with_score: Annotated[
+        bool,
+        typer.Option(help="If True, return the score of the similarity search."),
+    ] = False,
     llm_model_name: Annotated[
         str, typer.Option(help="Name of the LLM model.")
     ] = "Qwen/Qwen2.5-1.5B-Instruct",
@@ -215,5 +235,7 @@ def rag_chat(
         embedding_model_name=embedding_model_name,
         chunk_overlap=chunk_overlap,
         db_choice=db_choice,
+        k=k,
+        with_score=with_score,
         llm_model_name=llm_model_name,
     )

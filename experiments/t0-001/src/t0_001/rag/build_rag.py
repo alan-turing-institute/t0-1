@@ -22,6 +22,8 @@ def build_rag(
     embedding_model_name: str = "sentence-transformers/all-mpnet-base-v2",
     chunk_overlap: int = 50,
     db_choice: str = "chroma",
+    k: int = 4,
+    with_score: bool = False,
     llm_model_name: str = "Qwen/Qwen2.5-1.5B-Instruct",
 ):
     db = create_vector_store(
@@ -36,21 +38,39 @@ def build_rag(
         vector_store=db,
         prompt=hub.pull("rlm/rag-prompt"),
         llm=llm,
+        k=k,
+        with_score=with_score,
     )
 
     return rag
 
 
 class RAG:
-    def __init__(self, vector_store: VectorStore, prompt: PromptTemplate, llm: LLM):
+    def __init__(
+        self,
+        vector_store: VectorStore,
+        prompt: PromptTemplate,
+        llm: LLM,
+        k: int = 4,
+        with_score: bool = False,
+    ):
         self.vector_store: VectorStore = vector_store
+        self.k: int = k
+        self.with_score: bool = with_score
         self.prompt: PromptTemplate = prompt
         self.llm: LLM = llm
         self.memory: MemorySaver = MemorySaver()
         self.graph: CompiledStateGraph = self.build_graph()
 
     def retrieve(self, state: State) -> dict[str, List[Document]]:
-        retrieved_docs = self.vector_store.similarity_search(state["question"])
+        if self.with_score:
+            retrieved_docs = self.vector_store.similarity_search_with_score(
+                query=state["question"], k=self.k
+            )
+        else:
+            retrieved_docs = self.vector_store.similarity_search(
+                query=state["question"], k=self.k
+            )
         return {"context": retrieved_docs}
 
     def generate(self, state: State) -> dict[str, str]:
