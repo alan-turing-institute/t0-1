@@ -27,6 +27,7 @@ def generate_synthetic_queries(
     save_path="./data/synthetic_queries/",
     conditions_path="./nhs-use-case/conditions/",
     model="gpt-4o",
+    overwrite=False,
 ):
     """Generate synthetic queries for the NHS use case and save them to a file.
 
@@ -42,6 +43,8 @@ def generate_synthetic_queries(
         The path the NHS conditions data, by default "./nhs-use-case/conditions/"
     model : str, optional
         The name of the model to use, by default "gpt-4o". If "gpt-4o", it uses the Azure OpenAI API. Otherwise, it uses the Ollama API.
+    overwrite : bool, optional
+        Whether to overwrite the existing file, by default False.
     """
     logging.getLogger(__name__)
 
@@ -55,6 +58,17 @@ def generate_synthetic_queries(
     if not os.path.exists(save_path):
         os.makedirs(save_path)
     filename = f"{model}_{n_queries}_synthetic_queries.jsonl"
+
+    if os.path.exists(os.path.join(save_path, filename)):
+        if overwrite:
+            logging.warning(
+                f"File {os.path.join(save_path, filename)} already exists. Overwriting."
+            )
+        else:
+            logging.error(f"File {os.path.join(save_path, filename)} already exists.")
+            raise FileExistsError(
+                f"File {os.path.join(save_path, filename)} already exists."
+            )
 
     # write the jsonl file
     with open(os.path.join(save_path, filename), "w") as f:
