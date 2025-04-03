@@ -148,6 +148,7 @@ def serve_rag(
 @cli.command()
 def query_rag(
     query: Annotated[str, typer.Argument(help="The query for the RAG model.")],
+    k: Annotated[int | None, typer.Option(help="Number of results to return.")] = None,
     host: Annotated[str, typer.Option(help="Host to listen on.")] = "0.0.0.0",
     port: Annotated[int, typer.Option(help="Port to listen on.")] = 8000,
 ):
@@ -155,11 +156,11 @@ def query_rag(
     Query the vector store.
     """
     set_up_logging_config()
-    logging.info("Querying vector store...")
+    logging.info("Querying RAG model...")
     logging.info(f"Query: {query}")
-    req = requests.get(f"http://{host}:{port}/query", params={"query": query})
+    req = requests.get(f"http://{host}:{port}/query", params={"query": query, "k": k})
     if req.status_code != 200:
-        logging.error(f"Error querying vector store: {req.text}")
+        logging.error(f"Error RAG model: {req.text}")
         return
     logging.info(f"Response: {req.json()}")
 
