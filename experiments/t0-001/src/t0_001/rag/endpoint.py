@@ -1,3 +1,5 @@
+import logging
+
 import uvicorn
 from fastapi import FastAPI
 from t0_001.rag.build_rag import RAG, build_rag
@@ -12,12 +14,12 @@ def create_rag_app(rag: RAG) -> FastAPI:
 
     @app.get("/query")
     async def query_endpoint(
-        query: str, k: int | None = None, with_score: bool | None = None
+        query: str,
+        k: int | None = None,
     ):
-        if k is not None:
+        if k is not None and k != rag.k:
+            logging.info(f"Setting k={k}")
             rag.k = k
-        if with_score is not None:
-            rag.with_score = with_score
         response = rag.query(query)
         return {"response": response}
 
