@@ -106,7 +106,10 @@ def evaluate_query_store(
             "target_document_field": target_document_field,
             "k": k,
             "retrieved_documents": [doc.page_content for doc, _ in retrieved_docs],
-            "retrieved_documents_scores": [score for _, score in retrieved_docs],
+            "retrieved_documents_scores": [
+                float(score) if hasattr(score, "item") else score
+                for _, score in retrieved_docs
+            ],
             "retrieved_document_sources": [
                 doc.metadata["source"] for doc, _ in retrieved_docs
             ],
