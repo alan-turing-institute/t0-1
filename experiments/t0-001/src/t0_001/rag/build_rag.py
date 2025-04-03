@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from langchain import hub
 from langchain_core.documents import Document
 from langchain_core.language_models.llms import LLM
@@ -5,7 +7,7 @@ from langchain_core.prompts import PromptTemplate
 from langchain_core.vectorstores import VectorStore
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph.state import START, CompiledStateGraph, StateGraph
-from t0_001.query_vector_store.build_index import create_vector_store
+from t0_001.query_vector_store.build_index import get_vector_store
 from t0_001.rag.chat_model import get_huggingface_chat_model
 from typing_extensions import List, TypedDict
 
@@ -22,16 +24,22 @@ def build_rag(
     embedding_model_name: str = "sentence-transformers/all-mpnet-base-v2",
     chunk_overlap: int = 50,
     db_choice: str = "chroma",
+    persist_directory: str | Path = None,
+    force_create: bool = False,
+    trust_source: bool = False,
     k: int = 4,
     with_score: bool = False,
     llm_model_name: str = "Qwen/Qwen2.5-1.5B-Instruct",
 ):
-    db = create_vector_store(
+    db = get_vector_store(
         conditions_folder=conditions_folder,
         main_only=main_only,
         embedding_model_name=embedding_model_name,
         chunk_overlap=chunk_overlap,
         db_choice=db_choice,
+        persist_directory=persist_directory,
+        force_create=force_create,
+        trust_source=trust_source,
     )
     llm = get_huggingface_chat_model(method="pipeline", model_name=llm_model_name)
     rag = RAG(
