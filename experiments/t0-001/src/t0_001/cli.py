@@ -146,6 +146,7 @@ def generate_synth_queries(
         str, typer.Option(help="Path to the NHS conditions folder.")
     ] = "./nhs-use-case/conditions/",
     model: Annotated[str, typer.Option(help="Model to use for generation.")] = "gpt-4o",
+    overwrite: Annotated[bool, typer.Option(help="Overwrite existing files.")] = False,
 ):
     """
     Generate synthetic queries for the NHS use case and save them to a file.
@@ -158,5 +159,6 @@ def generate_synth_queries(
         save_path=save_path,
         conditions_path=conditions_path,
         model=model,
+        overwrite=overwrite,
     )
     logging.info("Synthetic queries generated.")
