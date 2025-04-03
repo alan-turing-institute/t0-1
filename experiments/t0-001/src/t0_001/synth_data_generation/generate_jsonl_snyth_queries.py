@@ -42,7 +42,7 @@ def generate_synthetic_queries(
     conditions_path : str, optional
         The path the NHS conditions data, by default "./nhs-use-case/conditions/"
     model : str, optional
-        The name of the model to use, by default "gpt-4o". If "gpt-4o", it uses the Azure OpenAI API. Otherwise, it uses the Ollama API.
+        The name of the model to use, by default "gpt-4o". If "gpt-4o" or "o3-mini", it uses the Azure OpenAI API. Otherwise, it uses the Ollama API.
     overwrite : bool, optional
         Whether to overwrite the existing file, by default False.
     """
@@ -104,8 +104,8 @@ def generate_synthetic_queries(
             prompt = fill_template(template, data)
 
             # Get the response from the model
-            if model == "gpt-4o":
-                logging.info("Using GPT-4o model via Azure OpenAI.")
+            if model in set("gpt-4o", "o3-mini"):
+                logging.info(f"Using {model} model via Azure OpenAI.")
                 client = set_up_azure_client()
                 response = get_response_from_azure_model(client=client, prompt=prompt)
             else:
