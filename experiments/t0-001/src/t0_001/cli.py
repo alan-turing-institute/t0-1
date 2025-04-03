@@ -168,6 +168,12 @@ def evaluate_vector_store(
             help="If True, force the creation of the database even if it already exists."
         ),
     ] = False,
+    trust_source: Annotated[
+        bool,
+        typer.Option(
+            help="If True, trust the source of the data index. This is needed for loading in FAISS databases."
+        ),
+    ] = False,
     k: Annotated[int, typer.Option(help="Number of results to return.")] = 4,
 ):
     """
@@ -187,6 +193,7 @@ def evaluate_vector_store(
         db_choice=db_choice,
         persist_directory=persist_directory,
         force_create=force_create,
+        trust_source=trust_source,
         k=k,
     )
 
