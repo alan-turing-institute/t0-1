@@ -49,6 +49,30 @@ def serve_vector_store(
     db_choice: Annotated[
         DBChoice, typer.Option(help="Database choice.")
     ] = DBChoice.chroma,
+    persist_directory: Annotated[
+        str | None,
+        typer.Option(
+            help="Path to the directory where the database is (or will be) stored."
+        ),
+    ] = None,
+    force_create: Annotated[
+        bool,
+        typer.Option(
+            help="If True, force the creation of the database even if it already exists."
+        ),
+    ] = False,
+    trust_source: Annotated[
+        bool,
+        typer.Option(
+            help="If True, trust the source of the data index. This is needed for loading in FAISS databases."
+        ),
+    ] = False,
+    serve: Annotated[
+        bool,
+        typer.Option(
+            help="If True, serve the vector store as a FastAPI app. If False, make sure that persist_directory must be passed."
+        ),
+    ] = True,
     host: Annotated[str, typer.Option(help="Host to listen on.")] = "0.0.0.0",
     port: Annotated[int, typer.Option(help="Port to listen on.")] = 8000,
 ):
@@ -56,13 +80,18 @@ def serve_vector_store(
     Run the query vector store server.
     """
     set_up_logging_config()
-    logging.info("Starting query vector store server...")
+    if serve:
+        logging.info("Starting query vector store server...")
     query_vector_store_main(
         conditions_folder=data_folder,
         main_only=main_only,
         embedding_model_name=embedding_model_name,
         chunk_overlap=chunk_overlap,
         db_choice=db_choice,
+        persist_directory=persist_directory,
+        force_create=force_create,
+        trust_source=trust_source,
+        serve=serve,
         host=host,
         port=port,
     )
@@ -71,6 +100,11 @@ def serve_vector_store(
 @cli.command()
 def query_vector_store(
     query: Annotated[str, typer.Argument(help="The query to search for.")],
+    k: Annotated[int, typer.Option(help="Number of results to return.")] = 4,
+    with_score: Annotated[
+        bool,
+        typer.Option(help="If True, return the score of the similarity search."),
+    ] = False,
     host: Annotated[str, typer.Option(help="Host to listen on.")] = "0.0.0.0",
     port: Annotated[int, typer.Option(help="Port to listen on.")] = 8000,
 ):
@@ -80,7 +114,10 @@ def query_vector_store(
     set_up_logging_config()
     logging.info("Querying vector store...")
     logging.info(f"Query: {query}")
-    req = requests.get(f"http://{host}:{port}/query", params={"query": query})
+    req = requests.get(
+        f"http://{host}:{port}/query",
+        params={"query": query, "k": k, "with_score": with_score},
+    )
     if req.status_code != 200:
         logging.error(f"Error querying vector store: {req.text}")
         return
@@ -107,9 +144,32 @@ def serve_rag(
     db_choice: Annotated[
         DBChoice, typer.Option(help="Database choice.")
     ] = DBChoice.chroma,
+    persist_directory: Annotated[
+        str | None,
+        typer.Option(
+            help="Path to the directory where the database is (or will be) stored."
+        ),
+    ] = None,
+    force_create: Annotated[
+        bool,
+        typer.Option(
+            help="If True, force the creation of the database even if it already exists."
+        ),
+    ] = False,
+    trust_source: Annotated[
+        bool,
+        typer.Option(
+            help="If True, trust the source of the data index. This is needed for loading in FAISS databases."
+        ),
+    ] = False,
     llm_model_name: Annotated[
         str, typer.Option(help="Name of the LLM model.")
     ] = "Qwen/Qwen2.5-1.5B-Instruct",
+    k: Annotated[int, typer.Option(help="Number of results to return.")] = 4,
+    with_score: Annotated[
+        bool,
+        typer.Option(help="If True, return the score of the similarity search."),
+    ] = False,
     host: Annotated[str, typer.Option(help="Host to listen on.")] = "0.0.0.0",
     port: Annotated[int, typer.Option(help="Port to listen on.")] = 8000,
 ):
@@ -124,6 +184,11 @@ def serve_rag(
         embedding_model_name=embedding_model_name,
         chunk_overlap=chunk_overlap,
         db_choice=db_choice,
+        persist_directory=persist_directory,
+        force_create=force_create,
+        trust_source=trust_source,
+        k=k,
+        with_score=with_score,
         llm_model_name=llm_model_name,
         host=host,
         port=port,
@@ -133,6 +198,7 @@ def serve_rag(
 @cli.command()
 def query_rag(
     query: Annotated[str, typer.Argument(help="The query for the RAG model.")],
+    k: Annotated[int | None, typer.Option(help="Number of results to return.")] = None,
     host: Annotated[str, typer.Option(help="Host to listen on.")] = "0.0.0.0",
     port: Annotated[int, typer.Option(help="Port to listen on.")] = 8000,
 ):
@@ -140,11 +206,11 @@ def query_rag(
     Query the vector store.
     """
     set_up_logging_config()
-    logging.info("Querying vector store...")
+    logging.info("Querying RAG model...")
     logging.info(f"Query: {query}")
-    req = requests.get(f"http://{host}:{port}/query", params={"query": query})
+    req = requests.get(f"http://{host}:{port}/query", params={"query": query, "k": k})
     if req.status_code != 200:
-        logging.error(f"Error querying vector store: {req.text}")
+        logging.error(f"Error RAG model: {req.text}")
         return
     logging.info(f"Response: {req.json()}")
 
@@ -200,6 +266,29 @@ def rag_chat(
     db_choice: Annotated[
         DBChoice, typer.Option(help="Database choice.")
     ] = DBChoice.chroma,
+    persist_directory: Annotated[
+        str | None,
+        typer.Option(
+            help="Path to the directory where the database is (or will be) stored."
+        ),
+    ] = None,
+    force_create: Annotated[
+        bool,
+        typer.Option(
+            help="If True, force the creation of the database even if it already exists."
+        ),
+    ] = False,
+    trust_source: Annotated[
+        bool,
+        typer.Option(
+            help="If True, trust the source of the data index. This is needed for loading in FAISS databases."
+        ),
+    ] = False,
+    k: Annotated[int, typer.Option(help="Number of results to return.")] = 4,
+    with_score: Annotated[
+        bool,
+        typer.Option(help="If True, return the score of the similarity search."),
+    ] = False,
     llm_model_name: Annotated[
         str, typer.Option(help="Name of the LLM model.")
     ] = "Qwen/Qwen2.5-1.5B-Instruct",
@@ -208,12 +297,17 @@ def rag_chat(
     Interact with the RAG model in a command line interface.
     """
     set_up_logging_config()
-    logging.info("Starting RAG chat interact...")
+    logging.info("Starting RAG chat interaction...")
     run_chat_interact(
         conditions_folder=conditions_folder,
         main_only=main_only,
         embedding_model_name=embedding_model_name,
         chunk_overlap=chunk_overlap,
         db_choice=db_choice,
+        persist_directory=persist_directory,
+        force_create=force_create,
+        trust_source=trust_source,
+        k=k,
+        with_score=with_score,
         llm_model_name=llm_model_name,
     )
