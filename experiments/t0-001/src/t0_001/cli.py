@@ -5,6 +5,7 @@ from typing import Annotated
 import requests
 import typer
 from t0_001.query_vector_store.endpoint import main as query_vector_store_main
+from t0_001.query_vector_store.evaluate import main as evaluate_vector_store_main
 from t0_001.rag.chat_interact import run_chat_interact
 from t0_001.rag.endpoint import main as rag_main
 from t0_001.synth_data_generation.generate_jsonl_snyth_queries import (
@@ -122,6 +123,79 @@ def query_vector_store(
         logging.error(f"Error querying vector store: {req.text}")
         return
     logging.info(f"Response: {req.json()}")
+
+
+@cli.command()
+def evaluate_vector_store(
+    input_file: Annotated[str, typer.Argument(help="Path to the input file.")],
+    output_file: Annotated[
+        str, typer.Option(help="Path to the output file.")
+    ] = "./data/evaluation_results.jsonl",
+    query_field: Annotated[
+        str, typer.Option(help="Field name for the query in the input file.")
+    ] = "symptoms_description",
+    target_document_field: Annotated[
+        str,
+        typer.Option(help="Field name for the target document in the input file."),
+    ] = "conditions_title",
+    conditions_folder: Annotated[
+        str, typer.Option(help="Path to the data folder.")
+    ] = "./nhs-use-case/conditions/",
+    main_only: Annotated[
+        bool,
+        typer.Option(
+            help="If True, only the main element of the HTML file is extracted."
+        ),
+    ] = True,
+    embedding_model_name: Annotated[
+        str, typer.Option(help="Name of the embedding model.")
+    ] = "sentence-transformers/all-mpnet-base-v2",
+    chunk_overlap: Annotated[
+        int, typer.Option(help="Chunk overlap for the text splitter.")
+    ] = 50,
+    db_choice: Annotated[
+        DBChoice, typer.Option(help="Database choice.")
+    ] = DBChoice.chroma,
+    persist_directory: Annotated[
+        str | None,
+        typer.Option(
+            help="Path to the directory where the database is (or will be) stored."
+        ),
+    ] = None,
+    force_create: Annotated[
+        bool,
+        typer.Option(
+            help="If True, force the creation of the database even if it already exists."
+        ),
+    ] = False,
+    trust_source: Annotated[
+        bool,
+        typer.Option(
+            help="If True, trust the source of the data index. This is needed for loading in FAISS databases."
+        ),
+    ] = False,
+    k: Annotated[int, typer.Option(help="Number of results to return.")] = 4,
+):
+    """
+    Evaluate the vector store.
+    """
+    set_up_logging_config()
+    logging.info("Evaluating vector store...")
+    evaluate_vector_store_main(
+        input_file=input_file,
+        output_file=output_file,
+        query_field=query_field,
+        target_document_field=target_document_field,
+        conditions_folder=conditions_folder,
+        main_only=main_only,
+        embedding_model_name=embedding_model_name,
+        chunk_overlap=chunk_overlap,
+        db_choice=db_choice,
+        persist_directory=persist_directory,
+        force_create=force_create,
+        trust_source=trust_source,
+        k=k,
+    )
 
 
 @cli.command()
