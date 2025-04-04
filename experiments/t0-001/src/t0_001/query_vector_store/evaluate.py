@@ -110,13 +110,13 @@ def evaluate_query_store(
                 float(score) if hasattr(score, "item") else score
                 for _, score in retrieved_docs
             ],
-            "retrieved_document_sources": [
+            "retrieved_documents_sources": [
                 doc.metadata["source"] for doc, _ in retrieved_docs
             ],
         }
 
         # check for match between the source of the retrieved documents and the target document source
-        res["match"] = target_document in res["retrieved_document_sources"]
+        res["match"] = target_document in res["retrieved_documents_sources"]
         sum += res["match"]
 
         # write the results to the output file
