@@ -6,17 +6,13 @@ from azure.core.credentials import AzureKeyCredential
 
 def get_azure_client(model: str = "o3") -> ChatCompletionsClient:
     """Get Azure OpenAI client for a specific model.
-
     The model should be available in the Azure OpenAI service.
     The endpoint and key should be set in the environment variables:
     AZURE_OPENAI_CHAT_ENDPOINT_<model> and AZURE_OPENAI_CHAT_KEY.
-
     Parameters
     ----------
     model : str
         The model to use. This should be the name of the model, e.g. "gpt-35-turbo".
-
-
     Returns
     -------
     ChatCompletionsClient

@@ -3,10 +3,9 @@ import os
 
 from azure.ai.inference.models import UserMessage
 from dotenv import load_dotenv
+from t0_001.llm.client import get_azure_client
+from t0_001.utils import load_conditions
 from tqdm import tqdm
-
-from t0.llm.client import get_azure_client
-from t0.utils import load_conditions
 
 
 def create_summary(client, document):
