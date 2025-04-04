@@ -82,7 +82,11 @@ class RAG:
         return {"context": retrieved_docs}
 
     def generate(self, state: State) -> dict[str, str]:
-        docs_content = "\n\n".join(doc.page_content for doc in state["context"])
+        if self.with_score:
+            retrieved_docs = [doc.page_content for doc, _ in state["context"]]
+        else:
+            retrieved_docs = [doc.page_content for doc in state["context"]]
+        docs_content = "\n\n".join(retrieved_docs)
         messages = self.prompt.invoke(
             {"question": state["question"], "context": docs_content}
         )
@@ -109,7 +113,12 @@ class RAG:
     def query_with_sources(self, question: str, user_id: str = "0") -> str:
         response = self._query(question=question, user_id=user_id)
         # extract the sources of the documents used in the context
-        pulled_context = [doc.metadata["source"] for doc in response["context"]]
+        if self.with_score:
+            pulled_context = [
+                (doc.metadata["source"], score) for doc, score in response["context"]
+            ]
+        else:
+            pulled_context = [doc.metadata["source"] for doc in response["context"]]
         # compose response with the context and answer
         response_with_context = "\n".join(
             [
@@ -123,10 +132,16 @@ class RAG:
     def query_with_context(self, question: str, user_id: str = "0") -> str:
         response = self._query(question=question, user_id=user_id)
         # extract the sources and contents of the documents used in the context
-        pulled_context = [
-            f"Source: {doc.metadata['source']}\nContent:\n{doc.page_content}"
-            for doc in response["context"]
-        ]
+        if self.with_score:
+            pulled_context = [
+                f"Source: {doc.metadata['source']} (score: {score})\nContent:\n{doc.page_content}"
+                for doc, score in response["context"]
+            ]
+        else:
+            pulled_context = [
+                f"Source: {doc.metadata['source']}\nContent:\n{doc.page_content}"
+                for doc in response["context"]
+            ]
         # compose response with the context and answer
         response_with_context = "\n".join(
             [
