@@ -4,7 +4,7 @@ import os
 from azure.ai.inference.models import UserMessage
 from dotenv import load_dotenv
 from t0_001.llm.client import get_azure_client
-from t0_001.utils import load_conditions
+from t0_001.query_vector_store.utils import load_conditions
 from tqdm import tqdm
 
 
