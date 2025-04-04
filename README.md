@@ -15,3 +15,9 @@ experiments/         -- Fine-tuning and evaluation
 
 planning/            -- Sprint planning
 ```
+
+## Environment set-up
+
+Install `uv` for Python dependency management.
+
+Copy the `.env.example` to `.env` and populate the environment variables within the `.env` file.
