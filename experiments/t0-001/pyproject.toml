@@ -5,11 +5,15 @@ description = "t0-001"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "transformers>=4.50.3",
-    "torch>=2.6.0",
-    "langchain>=0.3.22",
-    "langchain-huggingface>=0.1.2",
     "beautifulsoup4>=4.13.3",
+    "ipykernel>=6.29.5",
+    "azure-ai-inference>=1.0.0b9",
+    "python-dotenv>=1.1.0",
+    "tqdm>=4.67.1",
+]
+
+[dependency-groups]
+rag = [
     "chromadb>=0.6.3",
     "ollama>=0.4.7",
     "langchain-chroma>=0.2.2",
@@ -17,12 +21,19 @@ dependencies = [
     "fastapi>=0.115.12",
     "faiss-cpu>=1.10.0",
     "langchain-community>=0.3.20",
-    "ipykernel>=6.29.5",
+    "transformers>=4.50.3",
+    "torch>=2.6.0",
+    "langchain>=0.3.22",
+    "langchain-huggingface>=0.1.2",
     "tiktoken>=0.9.0",
-    "pre-commit>=4.2.0",
     "langgraph>=0.3.22",
-    "azure-ai-inference>=1.0.0b9"
 ]
+dev = [
+  "pre-commit>=4.2.0"
+]
+
+[tool.uv]
+default-groups = ["rag", "dev"]
 
 [project.scripts]
 t0-001 = "t0_001.cli:cli"

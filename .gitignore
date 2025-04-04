@@ -173,7 +173,11 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 .DS_Store
+
+# Not production code, I assume we can keep lockfiles out of version control for now...
 poetry.lock
+uv.lock
+# Project-related ignores.
 src/fine_tuned_model/*
 experiments/t0-001/src/fine_tuned_model/*
 experiments/t0-001/src/fp32_fine_tuned_model/*
