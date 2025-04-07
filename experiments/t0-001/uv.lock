@@ -2902,6 +2902,7 @@ name = "t0-001"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
+    { name = "aiohttp" },
     { name = "azure-ai-inference" },
     { name = "beautifulsoup4" },
     { name = "ipykernel" },
@@ -2931,6 +2932,7 @@ rag = [
 
 [package.metadata]
 requires-dist = [
+    { name = "aiohttp", specifier = ">=3.11.15" },
     { name = "azure-ai-inference", specifier = ">=1.0.0b9" },
     { name = "beautifulsoup4", specifier = ">=4.13.3" },
     { name = "ipykernel", specifier = ">=6.29.5" },
