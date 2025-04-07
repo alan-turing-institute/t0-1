@@ -2902,7 +2902,10 @@ name = "t0-001"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
+<<<<<<< HEAD
     { name = "aiohttp" },
+=======
+>>>>>>> f265dd45954127450f5683f4de3d014e4aa2d9b4
     { name = "azure-ai-inference" },
     { name = "beautifulsoup4" },
     { name = "ipykernel" },
