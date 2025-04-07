@@ -2,21 +2,23 @@
 
 ## Directory structure
 
+This repository contains subfolders for different parts of the `t0` project:
 ```
-src/                 -- Common code
+experiments/         -- Fine-tuning and evaluation
+  |
+  +-- t0-000/        -- s1 replication work
+  +-- t0-001/        -- Retrieval + Reasoning demonstration work
 
 use-cases/           -- Documentation and code for generating use cases
   |
   +-- nhs-conditions/
 
-experiments/         -- Fine-tuning and evaluation
-  |
-  +-- 001/
-
 planning/            -- Sprint planning
 ```
 
 ## Environment set-up
+
+Each subfolder should have it's own environment.
 
 Install `uv` for Python dependency management.
 
