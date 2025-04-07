@@ -56,7 +56,7 @@ def main():
 
     ground_truths = []
     recommendations = []
-    for patient_json in tqdm(data[25:27]):
+    for patient_json in tqdm(data):
         severity_level = patient_json[SEVERITY_LEVEL]
         condition = patient_json["conditions_title"]
         ground_truth = {SEVERITY_LEVEL: severity_level, CONDITION: condition}
