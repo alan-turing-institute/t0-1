@@ -7,7 +7,9 @@ from tqdm import tqdm
 
 
 def load_conditions(
-    conditions_folder: str | Path, main_only: bool = True
+    conditions_folder: str | Path,
+    main_only: bool = True,
+    max_conditions: int | None = None,
 ) -> dict[str, str]:
     """
     Load the conditions from the folder and extract the text from the HTML files
@@ -25,6 +27,10 @@ def load_conditions(
     main_only : bool, optional
         If True, only the main element of the HTML file is extracted with class "nhsuk-main-wrapper".
         If False, the whole HTML file is extracted. The default is True.
+
+    max_conditions : int | None, optional
+        The maximum number of conditions to load. If None, all conditions are loaded.
+        The default is None.
 
     Returns
     -------
@@ -50,22 +56,30 @@ def load_conditions(
 
     # read all conditions and put them in a list
     conditions = {}
-    for condition in tqdm(os.listdir(conditions_folder)):
+    max_conditions = max_conditions or len(os.listdir(conditions_folder))
+    for condition in tqdm(os.listdir(conditions_folder)[:max_conditions]):
         try:
             content = open(
                 os.path.join(conditions_folder, condition, "index.html"), "r"
             ).read()
-            soup = BeautifulSoup(content, "html.parser")
-            if main_only:
-                # extract the main element
-                main_element = soup.find("main", class_="nhsuk-main-wrapper")
-                # extract the text from the main element
-                text = main_element.get_text(separator="\n", strip=True)
-            else:
-                text = soup.get_text(separator="\n", strip=True)
-            conditions[condition] = text
+            conditions[condition] = parse_condition_html_page(
+                content=content, main_only=main_only
+            )
         except Exception as e:
             print(f"Error reading condition {condition}: {e}")
             continue
 
     return conditions
+
+
+def parse_condition_html_page(content: str, main_only: bool = True) -> str:
+    """TODO: Make this more robust."""
+    soup = BeautifulSoup(content, "html.parser")
+    if main_only:
+        # extract the main element
+        main_element = soup.find("main", class_="nhsuk-main-wrapper")
+        # extract the text from the main element
+        text = main_element.get_text(separator="\n", strip=True)
+    else:
+        text = soup.get_text(separator="\n", strip=True)
+    return text
