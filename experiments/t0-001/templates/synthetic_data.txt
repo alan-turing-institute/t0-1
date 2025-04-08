@@ -1,10 +1,11 @@
 Generate a synthetic NHS 111 query based on the following details:
 
 ### Query Type:
-* "basic": Based on a single condition page, mentioning relevant symptoms.
-* "cluster": Based on multiple condition pages, mentioning symptoms plausibly drawn from across them, aligning with the target severity.
-* "hypochondriac": Based on a single condition page, mentioning relevant symptoms plus 1-2 unrelated complaints and expressions of excessive anxiety.
-* "unspecified": The query is vague regarding key details (e.g., duration, exact nature), making assessment very difficult, even if loosely related to the condition topic.
+* "basic": Based on a single condition page, the query mentions relevant symptoms.
+* "cluster": Based on a main condition page, the query also mentions symptoms plausibly drawn from other unrelated conditions, aligning the main condition with the target severity.
+* "hypochondriac": Based on a single condition page, the query mentions relevant symptoms plus other unrelated complaints and expressions of excessive anxiety.
+* "vague": The query is vague regarding key details (e.g., duration, exact nature) or cut short, making assessment very difficult, even if loosely related to the condition topic.
+* "downplay": Based on a single condition page, the query downplays the severity of the symptoms.
 
 ### Condition(s) Content Source:
 * The primary textual content extracted from the relevant NHS condition web page(s).
@@ -21,8 +22,8 @@ Return the query in the following structured JSON format:
 ```json
 {
   "general_demographics": {
-    "age": [Realistic adult age, e.g., 20-80, for anyone above 80 use 'above 80'],
-    "sex": "[Male/Female]",
+    "age": [Realistic adult age given symptoms and severity, e.g., 20-80, for anyone above 80 use 'above 80'],
+    "sex": "{sex}",
     "occupation": "[A common occupation]",
     "social_support": "[Specify if the patient has a social support network, such as a partner, family member, or living carer. If applicable, include details like the carer’s role (e.g., 'My partner is here to help me' or 'I live with my daughter who is my carer'). If no support network is present, state 'No support network.']"
 "medical_history":
@@ -55,4 +56,5 @@ Reply only with the JSON output, without any additional text or explanation
 Generate a query based on the given details:
 Query Type: {query_type}
 Severity Level: {severity_level}
+Sex: {sex}
 Condition(s) web page content: {conditions_content}
