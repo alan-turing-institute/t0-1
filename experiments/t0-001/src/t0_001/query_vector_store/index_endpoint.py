@@ -27,10 +27,7 @@ def create_db_app(db: VectorStore) -> FastAPI:
                 query=query, k=k
             )
             # if the scores are numpy floats, convert them to floats
-            response = [
-                (doc, float(score)) if hasattr(score, "item") else (doc, score)
-                for doc, score in response
-            ]
+            response = [(doc, float(score)) for doc, score in response]
         else:
             response: list[Document] = db.similarity_search(query=query, k=k)
         return {"response": response}
