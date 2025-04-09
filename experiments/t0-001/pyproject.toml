@@ -10,6 +10,7 @@ dependencies = [
     "azure-ai-inference>=1.0.0b9",
     "python-dotenv>=1.1.0",
     "tqdm>=4.67.1",
+    "aiohttp>=3.11.15",
 ]
 
 [dependency-groups]
