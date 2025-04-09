@@ -13,17 +13,6 @@ class CustomParentDocumentRetriever(ParentDocumentRetriever):
     https://python.langchain.com/v0.3/docs/how_to/add_scores_retriever/).
     """
 
-    def __init__(
-        self,
-        with_scores: bool = False,
-        **kwargs,
-    ):
-        """
-        Initialize the CustomParentDocumentRetriever.
-        """
-        super().__init__(**kwargs)
-        self.with_scores = with_scores
-
     def _get_relevant_documents(
         self, query: str, *, run_manager: CallbackManagerForRetrieverRun
     ) -> list[Document]:
@@ -57,7 +46,7 @@ class CustomParentDocumentRetriever(ParentDocumentRetriever):
         for doc, score in sub_docs:
             doc_id = doc.metadata.get("doc_id")
             if doc_id:
-                doc.metadata["score"] = score
+                doc.metadata["score"] = float(score)
                 id_to_doc[doc_id].append(doc)
 
         # Fetch documents corresponding to doc_ids, retaining sub_docs in metadata

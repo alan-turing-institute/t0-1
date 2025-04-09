@@ -14,24 +14,19 @@ HELP_TEXT = {
     "chunk_overlap": "Chunk overlap for the text splitter.",
     "db_choice": "Database choice.",
     "persist_directory": "Path to the directory where the database is (or will be) stored.",
+    "local_file_store": "Path to the directory where the local file store (or will be) stored.",
+    "search_type": "Type of search to perform for retriever.",
     "force_create": "If True, force the creation of the database even if it already exists.",
     "trust_source": "If True, trust the source of the data index. This is needed for loading in FAISS databases.",
+    "query": "The query to search for.",
+    "k": "Number of results to return.",
+    "with_score": "If True, return the score of the similarity search.",
+    "llm_model_name": "Name of the LLM model.",
     "serve": "If True, serve the vector store as a FastAPI app. If False, make sure that persist_directory must be passed.",
     "host_serve": "Host to listen on.",
     "port_serve": "Port to listen on.",
     "host_query": "Host to query.",
     "port_query": "Port to query.",
-    "query": "The query to search for.",
-    "k": "Number of results to return.",
-    "with_score": "If True, return the score of the similarity search.",
-    "input_file": "Path to the input file.",
-    "output_file": "Path to the output file.",
-    "query_field": "Field name for the query in the input file.",
-    "target_document_field": "Field name for the target document in the input file.",
-    "n_queries": "Number of queries to generate.",
-    "template_path": "Path to the template file.",
-    "save_path": "Path to save the generated queries.",
-    "llm_model_name": "Name of the LLM model.",
 }
 
 
@@ -208,6 +203,108 @@ def evaluate_vector_store(
         trust_source=trust_source,
         k=k,
     )
+
+
+@cli.command()
+def serve_retriever(
+    data_folder: Annotated[
+        str, typer.Option(envvar="T0_DATA_FOLDER", help=HELP_TEXT["data_folder"])
+    ] = CONDITIONS_FOLDER,
+    main_only: Annotated[
+        bool,
+        typer.Option(help=HELP_TEXT["main_only"]),
+    ] = DEFAULTS["main_only"],
+    embedding_model_name: Annotated[
+        str, typer.Option(help=HELP_TEXT["embedding_model_name"])
+    ] = DEFAULTS["embedding_model_name"],
+    chunk_overlap: Annotated[
+        int, typer.Option(help=HELP_TEXT["chunk_overlap"])
+    ] = DEFAULTS["chunk_overlap"],
+    db_choice: Annotated[
+        DBChoice, typer.Option(help=HELP_TEXT["db_choice"])
+    ] = DEFAULTS["db_choice"],
+    persist_directory: Annotated[
+        str | None,
+        typer.Option(help=HELP_TEXT["persist_directory"]),
+    ] = DEFAULTS["persist_directory"],
+    local_file_store: Annotated[
+        str | None,
+        typer.Option(help=HELP_TEXT["local_file_store"]),
+    ] = DEFAULTS["local_file_store"],
+    search_type: Annotated[str, typer.Option(help=HELP_TEXT["search_type"])] = DEFAULTS[
+        "search_type"
+    ],
+    k: Annotated[int, typer.Option(help=HELP_TEXT["k"])] = DEFAULTS["k"],
+    force_create: Annotated[
+        bool,
+        typer.Option(help=HELP_TEXT["force_create"]),
+    ] = DEFAULTS["force_create"],
+    trust_source: Annotated[
+        bool,
+        typer.Option(help=HELP_TEXT["trust_source"]),
+    ] = DEFAULTS["trust_source"],
+    serve: Annotated[
+        bool,
+        typer.Option(help=HELP_TEXT["serve"]),
+    ] = DEFAULTS["serve"],
+    host: Annotated[str, typer.Option(help=HELP_TEXT["host_serve"])] = DEFAULTS["host"],
+    port: Annotated[int, typer.Option(help=HELP_TEXT["port_serve"])] = DEFAULTS["port"],
+):
+    """
+    Run the retriever server.
+    """
+    set_up_logging_config()
+    logging.info("Starting retriever server...")
+
+    from t0_001.query_vector_store.build_retriever import RetrieverConfig
+    from t0_001.query_vector_store.retriever_endpoint import main
+
+    main(
+        conditions_folder=data_folder,
+        main_only=main_only,
+        config=RetrieverConfig(
+            embedding_model_name=embedding_model_name,
+            chunk_overlap=chunk_overlap,
+            db_choice=db_choice,
+            persist_directory=persist_directory,
+            local_file_store=local_file_store,
+            search_type=search_type,
+            k=k,
+            search_kwargs={},
+        ),
+        force_create=force_create,
+        trust_source=trust_source,
+        serve=serve,
+        host=host,
+        port=port,
+    )
+
+
+@cli.command()
+def query_retriever(
+    query: Annotated[
+        str,
+        typer.Argument(
+            help=HELP_TEXT["query"],
+        ),
+    ],
+    host: Annotated[str, typer.Option(help=HELP_TEXT["host_query"])] = DEFAULTS["host"],
+    port: Annotated[int, typer.Option(help=HELP_TEXT["port_query"])] = DEFAULTS["port"],
+):
+    """
+    Query the retriever.
+    """
+    set_up_logging_config()
+    logging.info("Querying retriever...")
+    logging.info(f"Query: {query}")
+
+    req = requests.get(f"http://{host}:{port}/query", params={"query": query})
+
+    if req.status_code != 200:
+        logging.error(f"Error querying retriever: {req.text}")
+        return
+
+    logging.info(f"Response: {req.json()}")
 
 
 @cli.command()

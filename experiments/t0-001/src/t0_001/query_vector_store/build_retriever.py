@@ -20,7 +20,7 @@ from t0_001.query_vector_store.custom_parent_document_retriever import (
 
 @dataclass
 class RetrieverConfig(VectorStoreConfig):
-    local_file_store: str | Path | None = None
+    local_file_store: str | Path | None
     search_type: str
     k: int
     search_kwargs: dict
@@ -115,9 +115,12 @@ def load_parent_doc_retriever(
         f"Loading retriever with {config.db_choice} database at {config.persist_directory} and {config.local_file_store}..."
     )
     embedding_model = setup_embedding_model(config.embedding_model_name)
+    text_splitter = setup_text_splitter(
+        config.embedding_model_name, config.chunk_overlap
+    )
     retriever_creator = ParentDocumentRetrieverCreator(
         embedding_model=embedding_model,
-        text_splitter=None,
+        text_splitter=text_splitter,
     )
     retriever = retriever_creator.load_retriever(
         config=config,
@@ -258,6 +261,12 @@ class ParentDocumentRetrieverCreator:
         ]
         logging.info(f"Number of documents created: {len(self.documents)}")
 
+        if config.local_file_store is None:
+            store = InMemoryStore()
+        else:
+            fs = LocalFileStore(config.local_file_store)
+            store = create_kv_docstore(fs)
+
         self.db_choice: str = config.db_choice
         if self.db_choice == "chroma":
             from langchain_chroma import Chroma
@@ -273,17 +282,18 @@ class ParentDocumentRetrieverCreator:
                 persist_directory=config.persist_directory,
             )
         elif self.db_choice == "faiss":
+            from faiss import IndexFlatL2
+            from langchain_community.docstore.in_memory import InMemoryDocstore
             from langchain_community.vectorstores import FAISS
 
-            vectorstore = FAISS(embedding_function=self.embedding_model)
+            vectorstore = FAISS(
+                embedding_function=self.embedding_model,
+                index=IndexFlatL2(len(self.embedding_model.embed_query("d"))),
+                docstore=InMemoryDocstore(),
+                index_to_docstore_id={},
+            )
         else:
             raise ValueError(f"Unsupported database type: {self.db_choice}")
-
-        if config.local_file_store is None:
-            store = InMemoryStore()
-        else:
-            fs = LocalFileStore(config.local_file_store)
-            store = create_kv_docstore(fs)
 
         retriever = CustomParentDocumentRetriever(
             vectorstore=vectorstore,
@@ -295,7 +305,7 @@ class ParentDocumentRetrieverCreator:
 
         retriever.add_documents(self.documents)
 
-        if config.persist_directory is not None:
+        if self.db_choice == "faiss" and config.persist_directory is not None:
             logging.info(f"Persisting FAISS database to '{config.persist_directory}'")
             retriever.vectorstore.save_local(folder_path=config.persist_directory)
 
