@@ -104,12 +104,7 @@ def serve_vector_store(
 
 @cli.command()
 def query_vector_store(
-    query: Annotated[
-        str,
-        typer.Argument(
-            help=HELP_TEXT["query"],
-        ),
-    ],
+    query: Annotated[str, typer.Argument(help=HELP_TEXT["query"])],
     k: Annotated[int, typer.Option(help=HELP_TEXT["k"])] = DEFAULTS["k"],
     with_score: Annotated[
         bool,
@@ -282,12 +277,7 @@ def serve_retriever(
 
 @cli.command()
 def query_retriever(
-    query: Annotated[
-        str,
-        typer.Argument(
-            help=HELP_TEXT["query"],
-        ),
-    ],
+    query: Annotated[str, typer.Argument(help=HELP_TEXT["query"])],
     host: Annotated[str, typer.Option(help=HELP_TEXT["host_query"])] = DEFAULTS["host"],
     port: Annotated[int, typer.Option(help=HELP_TEXT["port_query"])] = DEFAULTS["port"],
 ):
@@ -329,6 +319,14 @@ def serve_rag(
         str | None,
         typer.Option(help=HELP_TEXT["persist_directory"]),
     ] = DEFAULTS["persist_directory"],
+    local_file_store: Annotated[
+        str | None,
+        typer.Option(help=HELP_TEXT["local_file_store"]),
+    ] = DEFAULTS["local_file_store"],
+    search_type: Annotated[str, typer.Option(help=HELP_TEXT["search_type"])] = DEFAULTS[
+        "search_type"
+    ],
+    k: Annotated[int, typer.Option(help=HELP_TEXT["k"])] = DEFAULTS["k"],
     force_create: Annotated[
         bool,
         typer.Option(help=HELP_TEXT["force_create"]),
@@ -340,11 +338,6 @@ def serve_rag(
     llm_model_name: Annotated[
         str, typer.Option(help=HELP_TEXT["llm_model_name"])
     ] = DEFAULTS["llm_model_name"],
-    k: Annotated[int, typer.Option(help=HELP_TEXT["k"])] = DEFAULTS["k"],
-    with_score: Annotated[
-        bool,
-        typer.Option(help=HELP_TEXT["with_score"]),
-    ] = DEFAULTS["with_score"],
     host: Annotated[str, typer.Option(help=HELP_TEXT["host_serve"])] = DEFAULTS["host"],
     port: Annotated[int, typer.Option(help=HELP_TEXT["port_serve"])] = DEFAULTS["port"],
 ):
@@ -354,19 +347,24 @@ def serve_rag(
     set_up_logging_config()
     logging.info("Starting RAG server...")
 
-    from t0_001.rag.endpoint import main
+    from t0_001.query_vector_store.build_retriever import RetrieverConfig
+    from t0_001.rag.rag_endpoint import main
 
     main(
         conditions_folder=data_folder,
         main_only=main_only,
-        embedding_model_name=embedding_model_name,
-        chunk_overlap=chunk_overlap,
-        db_choice=db_choice,
-        persist_directory=persist_directory,
+        config=RetrieverConfig(
+            embedding_model_name=embedding_model_name,
+            chunk_overlap=chunk_overlap,
+            db_choice=db_choice,
+            persist_directory=persist_directory,
+            local_file_store=local_file_store,
+            search_type=search_type,
+            k=k,
+            search_kwargs={},
+        ),
         force_create=force_create,
         trust_source=trust_source,
-        k=k,
-        with_score=with_score,
         llm_model_name=llm_model_name,
         host=host,
         port=port,
@@ -375,18 +373,7 @@ def serve_rag(
 
 @cli.command()
 def query_rag(
-    query: Annotated[
-        str,
-        typer.Argument(
-            help=HELP_TEXT["query"],
-        ),
-    ],
-    k: Annotated[
-        int | None,
-        typer.Option(
-            help=f"{HELP_TEXT['k']} If None, uses the current k set on the server."
-        ),
-    ] = None,
+    query: Annotated[str, typer.Argument(help=HELP_TEXT["query"])],
     host: Annotated[str, typer.Option(help=HELP_TEXT["host_query"])] = DEFAULTS["host"],
     port: Annotated[int, typer.Option(help=HELP_TEXT["port_query"])] = DEFAULTS["port"],
 ):
@@ -396,10 +383,13 @@ def query_rag(
     set_up_logging_config()
     logging.info("Querying RAG model...")
     logging.info(f"Query: {query}")
-    req = requests.get(f"http://{host}:{port}/query", params={"query": query, "k": k})
+
+    req = requests.get(f"http://{host}:{port}/query", params={"query": query})
+
     if req.status_code != 200:
         logging.error(f"Error RAG model: {req.text}")
         return
+
     logging.info(f"Response: {req.json()}")
 
 
@@ -461,6 +451,14 @@ def rag_chat(
         str | None,
         typer.Option(help=HELP_TEXT["persist_directory"]),
     ] = DEFAULTS["persist_directory"],
+    local_file_store: Annotated[
+        str | None,
+        typer.Option(help=HELP_TEXT["local_file_store"]),
+    ] = DEFAULTS["local_file_store"],
+    search_type: Annotated[str, typer.Option(help=HELP_TEXT["search_type"])] = DEFAULTS[
+        "search_type"
+    ],
+    k: Annotated[int, typer.Option(help=HELP_TEXT["k"])] = DEFAULTS["k"],
     force_create: Annotated[
         bool,
         typer.Option(help=HELP_TEXT["force_create"]),
@@ -469,11 +467,6 @@ def rag_chat(
         bool,
         typer.Option(help=HELP_TEXT["trust_source"]),
     ] = DEFAULTS["trust_source"],
-    k: Annotated[int, typer.Option(help=HELP_TEXT["k"])] = DEFAULTS["k"],
-    with_score: Annotated[
-        bool,
-        typer.Option(help=HELP_TEXT["with_score"]),
-    ] = DEFAULTS["with_score"],
     llm_model_name: Annotated[
         str, typer.Option(help=HELP_TEXT["llm_model_name"])
     ] = DEFAULTS["llm_model_name"],
@@ -484,18 +477,23 @@ def rag_chat(
     set_up_logging_config()
     logging.info("Starting RAG chat interaction...")
 
+    from t0_001.query_vector_store.build_retriever import RetrieverConfig
     from t0_001.rag.chat_interact import run_chat_interact
 
     run_chat_interact(
         conditions_folder=conditions_folder,
         main_only=main_only,
-        embedding_model_name=embedding_model_name,
-        chunk_overlap=chunk_overlap,
-        db_choice=db_choice,
-        persist_directory=persist_directory,
+        config=RetrieverConfig(
+            embedding_model_name=embedding_model_name,
+            chunk_overlap=chunk_overlap,
+            db_choice=db_choice,
+            persist_directory=persist_directory,
+            local_file_store=local_file_store,
+            search_type=search_type,
+            k=k,
+            search_kwargs={},
+        ),
         force_create=force_create,
         trust_source=trust_source,
-        k=k,
-        with_score=with_score,
         llm_model_name=llm_model_name,
     )
