@@ -138,7 +138,7 @@ def main(
     embedding_model_name: str = "sentence-transformers/all-mpnet-base-v2",
     chunk_overlap: int = 50,
     db_choice: str = "chroma",
-    persist_directory: str | Path = None,
+    persist_directory: str | Path | None = None,
     force_create: bool = False,
     trust_source: bool = False,
     k: int = 4,
