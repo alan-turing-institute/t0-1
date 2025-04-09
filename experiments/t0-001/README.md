@@ -1,4 +1,4 @@
-x# 001
+# 001
 
 ## Setup
 
@@ -60,7 +60,7 @@ Note for loading a `faiss` vector store: you must use the `--trust-source` optio
 
 Lastly, you can decide to not serve and just build the vector store by using the `--no-serve` option. This will build the vector store and save it to the provided path, but will not start the FastAPI server.
 
-All of these options have default arguments (see `t0-001 serve-vector-store --help`), so you can just run the command as is. But to svae and load the vector store, you need to provide the `--persist-directory` option:
+All of these options have default arguments (see `t0-001 serve-vector-store --help`), so you can just run the command as is. But to save and load the vector store, you need to provide the `--persist-directory` option:
 ```bash
 t0-001 serve-vector-store --persist-directory ./nhs-use-case-db
 ```
