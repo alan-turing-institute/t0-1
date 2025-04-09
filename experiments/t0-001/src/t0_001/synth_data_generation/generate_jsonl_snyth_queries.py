@@ -76,11 +76,18 @@ def generate_synthetic_queries(
         for _ in tqdm.tqdm(range(n_queries)):
             # random pick
             query_type = random.choice(
-                ["basic", "cluster", "hypochondriac", "unspecified"]
+                ["basic", "cluster", "hypochondriac", "vague", "downplay"]
             )
             severity_level = random.choice(
-                ["Not urgent", "Medium", "Medium urgent", "Urgent"]
+                [
+                    "Ambulance",
+                    "A&E",
+                    "Urgent Primary Care",
+                    "Routine GP appointment",
+                    "Self-care",
+                ]
             )
+            sex = random.choice(["Male", "Female"])
 
             # loop a few times and pick something meaningful for now (some "conditions" are not really conditions!)
             selected_condition = random.choice(os.listdir(conditions_path))
@@ -99,12 +106,13 @@ def generate_synthetic_queries(
                 "severity_level": severity_level,
                 "conditions_content": conditions_content,
                 "conditions_title": selected_condition,
+                "sex": sex,
             }
 
             prompt = fill_template(template, data)
 
             # Get the response from the model
-            if model in set("gpt-4o", "o3-mini"):
+            if model in {"gpt-4o", "o3-mini"}:
                 logging.info(f"Using {model} model via Azure OpenAI.")
                 client = set_up_azure_client()
                 response = get_response_from_azure_model(client=client, prompt=prompt)

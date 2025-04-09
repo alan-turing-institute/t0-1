@@ -1,6 +1,4 @@
-from pathlib import Path
-
-from t0_001.rag.build_rag import build_rag
+from t0_001.rag.build_rag import DEFAULT_RETRIEVER_CONFIG, RetrieverConfig, build_rag
 
 INPUT_PROMPT: str = ">>> "
 EXIT_STRS: set[str] = {"exit", "exit()", "quit()", "bye"}
@@ -9,27 +7,17 @@ EXIT_STRS: set[str] = {"exit", "exit()", "quit()", "bye"}
 def run_chat_interact(
     conditions_folder: str,
     main_only: bool = True,
-    embedding_model_name: str = "sentence-transformers/all-mpnet-base-v2",
-    chunk_overlap: int = 50,
-    db_choice: str = "chroma",
-    persist_directory: str | Path = None,
+    config: RetrieverConfig = DEFAULT_RETRIEVER_CONFIG,
     force_create: bool = False,
     trust_source: bool = False,
-    k: int = 4,
-    with_score: bool = False,
     llm_model_name: str = "Qwen/Qwen2.5-1.5B-Instruct",
 ):
     rag = build_rag(
         conditions_folder=conditions_folder,
         main_only=main_only,
-        embedding_model_name=embedding_model_name,
-        chunk_overlap=chunk_overlap,
-        db_choice=db_choice,
-        persist_directory=persist_directory,
+        config=config,
         force_create=force_create,
         trust_source=trust_source,
-        k=k,
-        with_score=with_score,
         llm_model_name=llm_model_name,
     )
     user_id = "command_line_chat"
