@@ -21,7 +21,7 @@ def create_db_app(db: VectorStore) -> FastAPI:
         with_score: bool = False,
     ):
         if with_score:
-            response: list[tuple[float, Document]] = db.similarity_search_with_score(
+            response: list[tuple[Document, float]] = db.similarity_search_with_score(
                 query=query, k=k
             )
             # if the scores are numpy floats, convert them to floats
