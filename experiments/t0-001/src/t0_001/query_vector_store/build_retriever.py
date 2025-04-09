@@ -165,9 +165,12 @@ def get_parent_doc_retriever(
     if (
         not force_create
         and config.persist_directory is not None
+        and config.local_file_store is not None
         and os.path.exists(config.persist_directory)
+        and os.path.exists(config.local_file_store)
     ):
-        # only load if force_create=True, persist_directory is passed and the directory exists
+        # only load if force_create=True, persist_directory and local_file_store
+        # are passed and the directories exist
         retriever = load_parent_doc_retriever(
             config=config,
             trust_source=trust_source,
