@@ -65,6 +65,34 @@ def create_vector_store(
     db_choice: str = "chroma",
     persist_directory: str | Path = None,
 ) -> VectorStore:
+    """
+    Create a vector store using the specified database and conditions.
+    This function loads the conditions from the specified folder,
+    sets up the embedding model and text splitter, and creates the index.
+
+    Parameters
+    ----------
+    conditions_folder : str
+        The folder containing the conditions to be indexed.
+    main_only : bool, optional
+        If True, only the main conditions will be loaded. Default is True.
+    embedding_model_name : str, optional
+        The name of the embedding model to use.
+        Default is "sentence-transformers/all-mpnet-base-v2".
+    chunk_overlap : int, optional
+        The chunk overlap size for the text splitter. Default is 50.
+    db_choice : str, optional
+        The type of database to use. Supported options are "chroma" and "faiss".
+        Default is "chroma".
+    persist_directory : str | Path, optional
+        The directory where the index will be persisted. Default is None.
+        If None, the index will not be persisted.
+
+    Returns
+    -------
+    VectorStore
+        The created vector store instance.
+    """
     logging.info(f"Creating vector store with {db_choice} database...")
     conditions = load_conditions(conditions_folder, main_only)
     embedding_model = setup_embedding_model(embedding_model_name)
@@ -86,6 +114,27 @@ def load_vector_store(
     embedding_model_name: str = "sentence-transformers/all-mpnet-base-v2",
     trust_source: bool = False,
 ) -> VectorStore:
+    """
+    Load the vector store from the specified path.
+
+    Parameters
+    ----------
+    db_choice : str
+        The type of database to load from. Supported options are "chroma" and "faiss".
+    index_path : str | Path
+        The path where the index is stored.
+    embedding_model_name : str, optional
+        The name of the embedding model to use.
+        Default is "sentence-transformers/all-mpnet-base-v2".
+    trust_source : bool, optional
+        If True, trust the source of the data index. This is needed for loading in FAISS databases.
+        Default is False.
+
+    Returns
+    -------
+    VectorStore
+        The loaded vector store instance.
+    """
     logging.info(f"Loading vector store with {db_choice} database at '{index_path}'...")
     embedding_model = setup_embedding_model(embedding_model_name)
     index_creator = VectorStoreCreator(embedding_model, text_splitter=None)
@@ -104,6 +153,42 @@ def get_vector_store(
     force_create: bool = False,
     trust_source: bool = False,
 ) -> VectorStore:
+    """
+    Get the vector store from the specified conditions folder.
+    This function checks if the vector store already exists in the specified
+    persist directory. If it does, it loads the vector store from there.
+    If it doesn't exist or if force_create is True, it creates a new vector store.
+
+    Parameters
+    ----------
+    conditions_folder : str
+        The folder containing the conditions to be indexed.
+    main_only : bool, optional
+        If True, only the main conditions will be loaded. Default is True.
+    embedding_model_name : str, optional
+        The name of the embedding model to use.
+        Default is "sentence-transformers/all-mpnet-base-v2".
+    chunk_overlap : int, optional
+        The chunk overlap size for the text splitter. Default is 50.
+    db_choice : str, optional
+        The type of database to use. Supported options are "chroma" and "faiss".
+        Default is "chroma".
+    persist_directory : str | Path, optional
+        The directory where the index will be persisted or loaded from. Default is None.
+        If None, the index will not be persisted.
+    force_create : bool, optional
+        If True, force the creation of a new vector store even if it already exists.
+        Default is False.
+    trust_source : bool, optional
+        If True, trust the source of the data index. This is needed for loading in FAISS databases.
+        Default is False.
+
+    Returns
+    -------
+    VectorStore
+        The vector store instance. If the vector store already exists, it will be loaded.
+        If it doesn't exist or if force_create is True, a new vector store will be created.
+    """
     if (
         not force_create
         and persist_directory is not None
@@ -135,6 +220,17 @@ class VectorStoreCreator:
         embedding_model: Embeddings,
         text_splitter: TextSplitter | None,
     ):
+        """
+        Initialise the VectorStoreCreator with the specified embedding model and text splitter.
+
+        Parameters
+        ----------
+        embedding_model : Embeddings
+            The embedding model to use for creating the index.
+        text_splitter : TextSplitter | None
+            The text splitter to use for splitting the documents into chunks.
+            If loading an existing index, this can be None.
+        """
         self.embedding_model: Embeddings = embedding_model
         self.text_splitter: TextSplitter | None = text_splitter
         self.documents: list[Document] = []
