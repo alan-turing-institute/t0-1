@@ -146,7 +146,7 @@ def evaluate_vector_store(
         typer.Option(help="Field name for the target document in the input file."),
     ] = "conditions_title",
     conditions_folder: Annotated[
-        str, typer.Option(help=HELP_TEXT["data_folder"])
+        str, typer.Option(envvar="T0_DATA_FOLDER", help=HELP_TEXT["data_folder"])
     ] = CONDITIONS_FOLDER,
     main_only: Annotated[
         bool,
@@ -432,7 +432,7 @@ def generate_synth_queries(
 @cli.command()
 def rag_chat(
     conditions_folder: Annotated[
-        str, typer.Option(help=HELP_TEXT["data_folder"])
+        str, typer.Option(envvar="T0_DATA_FOLDER", help=HELP_TEXT["data_folder"])
     ] = CONDITIONS_FOLDER,
     main_only: Annotated[
         bool,
