@@ -1,4 +1,5 @@
 import logging
+import os
 from typing import Annotated
 
 import requests
@@ -179,9 +180,12 @@ def evaluate_vector_store(
     Evaluate the vector store.
     """
     set_up_logging_config()
+    if not os.path.exists(input_file):
+        raise FileNotFoundError(f"Input file {input_file} does not exist.")
+
     logging.info("Evaluating vector store...")
 
-    from t0_001.query_vector_store.evaluate import main
+    from t0_001.query_vector_store.evaluate import VectorStoreConfig, main
 
     main(
         input_file=input_file,
@@ -190,10 +194,12 @@ def evaluate_vector_store(
         target_document_field=target_document_field,
         conditions_folder=conditions_folder,
         main_only=main_only,
-        embedding_model_name=embedding_model_name,
-        chunk_overlap=chunk_overlap,
-        db_choice=db_choice,
-        persist_directory=persist_directory,
+        config=VectorStoreConfig(
+            embedding_model_name=embedding_model_name,
+            chunk_overlap=chunk_overlap,
+            db_choice=db_choice,
+            persist_directory=persist_directory,
+        ),
         force_create=force_create,
         trust_source=trust_source,
         k=k,
