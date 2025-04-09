@@ -53,8 +53,8 @@ def main():
     html_folder = os.path.join(conditions_folder, "html")
     parsed_folder = os.path.join(conditions_folder, "parsed")
     os.makedirs(parsed_folder, exist_ok=True)
-    conditions = load_conditions(html_folder, max_conditions=None)
-    for name_raw, content in tqdm(conditions.items()):
+
+    def process_page(name_raw, content):
         response = create_summary(client, content)
         page_json = json.loads(
             response.choices[0].message.tool_calls[0].function.arguments
@@ -64,6 +64,14 @@ def main():
         output_fp = os.path.join(parsed_folder, f"{name_raw}.json")
         with open(output_fp, "w") as f:
             json.dump(page_json, f, indent=4)
+
+    conditions = load_conditions(html_folder, max_conditions=None)
+    for name_raw, content in tqdm(conditions.items()):
+        try:
+            process_page(name_raw, content)
+        except Exception as e:
+            print(f"Error processing {name_raw}: {e}")
+            continue
 
 
 if __name__ == "__main__":

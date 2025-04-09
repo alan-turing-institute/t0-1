@@ -1,19 +1,21 @@
 Generate a synthetic NHS 111 query based on the following details:
 
 ### Query Type:
-* "basic": Based on a single condition page, mentioning relevant symptoms.
-* "cluster": Based on multiple condition pages, mentioning symptoms plausibly drawn from across them, aligning with the target severity.
-* "hypochondriac": Based on a single condition page, mentioning relevant symptoms plus 1-2 unrelated complaints and expressions of excessive anxiety.
-* "unspecified": The query is vague regarding key details (e.g., duration, exact nature), making assessment very difficult, even if loosely related to the condition topic.
+* "basic": Based on a single condition page, the query mentions relevant symptoms.
+* "cluster": Based on a main condition page, the query also mentions symptoms plausibly drawn from other unrelated conditions, aligning the main condition with the target severity.
+* "hypochondriac": Based on a single condition page, the query mentions relevant symptoms plus other unrelated complaints and expressions of excessive anxiety.
+* "vague": The query is vague regarding key details (e.g., duration, exact nature) or cut short, making assessment very difficult, even if loosely related to the condition topic.
+* "downplay": Based on a single condition page, the query downplays the severity of the symptoms.
 
 ### Condition(s) Content Source:
 * The primary textual content extracted from the relevant NHS condition web page(s).
 
 ### Severity Level:
-* **Not urgent**: Monitor at home
-* **Medium**: Go to the GP
-* **Medium urgent**: Get an urgent GP appointment
-* **Urgent**: Call 999
+* Ambulance:  Immediate life-threatening danger; treatment needed en route to the hospital
+* A&E: Emergency hospital treatment required
+* Urgent Primary Care: patient should be seen today, by a GP, urgent care centre, or similar
+* Routine GP appointment: patient should be seen at some point, but this can wait for several days
+* Self-care: issue can be handled at home and/or with over-the-counter medication.
 
 ### Required JSON Output:
 Return the query in the following structured JSON format:
@@ -21,8 +23,8 @@ Return the query in the following structured JSON format:
 ```json
 {
   "general_demographics": {
-    "age": [Realistic adult age, e.g., 20-80, for anyone above 80 use 'above 80'],
-    "sex": "[Male/Female]",
+    "age": [Realistic adult age given symptoms and severity, e.g., 20-80, for anyone above 80 use 'above 80'],
+    "sex": "{sex}",
     "occupation": "[A common occupation]",
     "social_support": "[Specify if the patient has a social support network, such as a partner, family member, or living carer. If applicable, include details like the carer’s role (e.g., 'My partner is here to help me' or 'I live with my daughter who is my carer'). If no support network is present, state 'No support network.']"
 "medical_history":
@@ -36,13 +38,13 @@ Ensure the text is realistic, clear, and varied to simulate real-world queries.
 If the provided conditions content lacks sufficient symptom information or actionable guidance to construct a plausible scenario for the requested severity_level, please return:
 {"error": "Insufficient symptom information in provided content to match requested severity"}
 
-Example Output (Medium Urgent, Basic Query for Headache):
+Example Output (Urgent Primary Care, Basic Query for Headache):
 
 ```json
 {
   "general_demographics": {
     "age": 35,
-    "gender": "Female",
+    "sex": "Female",
     "occupation": "Teacher",
     "medical_history": "No known chronic conditions"
   },
@@ -55,4 +57,5 @@ Reply only with the JSON output, without any additional text or explanation
 Generate a query based on the given details:
 Query Type: {query_type}
 Severity Level: {severity_level}
+Sex: {sex}
 Condition(s) web page content: {conditions_content}
