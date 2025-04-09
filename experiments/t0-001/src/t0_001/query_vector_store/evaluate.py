@@ -5,7 +5,11 @@ from datetime import datetime
 from pathlib import Path
 
 from langchain_core.vectorstores import VectorStore
-from t0_001.query_vector_store.build_index import get_vector_store
+from t0_001.query_vector_store.build_index import (
+    DEFAULT_VECTOR_STORE_CONFIG,
+    VectorStoreConfig,
+    get_vector_store,
+)
 from tqdm import tqdm
 
 
@@ -135,10 +139,7 @@ def main(
     query_field: str,
     target_document_field: str,
     main_only: bool = True,
-    embedding_model_name: str = "sentence-transformers/all-mpnet-base-v2",
-    chunk_overlap: int = 50,
-    db_choice: str = "chroma",
-    persist_directory: str | Path | None = None,
+    config: VectorStoreConfig = DEFAULT_VECTOR_STORE_CONFIG,
     force_create: bool = False,
     trust_source: bool = False,
     k: int = 4,
@@ -146,10 +147,7 @@ def main(
     vector_store = get_vector_store(
         conditions_folder=conditions_folder,
         main_only=main_only,
-        embedding_model_name=embedding_model_name,
-        chunk_overlap=chunk_overlap,
-        db_choice=db_choice,
-        persist_directory=persist_directory,
+        config=config,
         force_create=force_create,
         trust_source=trust_source,
     )
