@@ -10,6 +10,23 @@ from langchain_huggingface import (
 def get_huggingface_chat_model(
     method: str, model_name: str, task: str = "text-generation", **kwargs
 ) -> ChatHuggingFace:
+    """
+    Get a HuggingFace chat model based on the specified method and model name.
+
+    Parameters
+    ----------
+    method : str
+        The method to use for loading the model. Can be either "pipeline" or "endpoint".
+    model_name : str
+        The name of the model to load.
+    task : str, optional
+        The task to perform with the model. Default is "text-generation".
+
+    Returns
+    -------
+    ChatHuggingFace
+        The loaded HuggingFace chat model.
+    """
     if method == "pipeline":
         logging.info(f"Using HuggingFace pipeline for model: {model_name}")
         logging.info("Loading language model...")

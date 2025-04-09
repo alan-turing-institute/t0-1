@@ -11,10 +11,11 @@ Generate a synthetic NHS 111 query based on the following details:
 * The primary textual content extracted from the relevant NHS condition web page(s).
 
 ### Severity Level:
-* **Not urgent**: Monitor at home
-* **Medium**: Go to the GP
-* **Medium urgent**: Get an urgent GP appointment
-* **Urgent**: Call 999
+* Ambulance:  Immediate life-threatening danger; treatment needed en route to the hospital
+* A&E: Emergency hospital treatment required
+* Urgent Primary Care: patient should be seen today, by a GP, urgent care centre, or similar
+* Routine GP appointment: patient should be seen at some point, but this can wait for several days
+* Self-care: issue can be handled at home and/or with over-the-counter medication.
 
 ### Required JSON Output:
 Return the query in the following structured JSON format:
@@ -37,13 +38,13 @@ Ensure the text is realistic, clear, and varied to simulate real-world queries.
 If the provided conditions content lacks sufficient symptom information or actionable guidance to construct a plausible scenario for the requested severity_level, please return:
 {"error": "Insufficient symptom information in provided content to match requested severity"}
 
-Example Output (Medium Urgent, Basic Query for Headache):
+Example Output (Urgent Primary Care, Basic Query for Headache):
 
 ```json
 {
   "general_demographics": {
     "age": 35,
-    "gender": "Female",
+    "sex": "Female",
     "occupation": "Teacher",
     "medical_history": "No known chronic conditions"
   },
