@@ -190,6 +190,7 @@ experiments/t0-001/nhs-use-case/
 experiments/t0-001/notebooks/nhs_use_case_db/
 *~
 experiments/t0-001/nhs-use-case-db*
+experiments/t0-001/nhs-use-case-fs*
 experiments/t0-001/data/evaluation_results_*
 *_synthetic_queries.jsonl
 experiments/t0-001/scripts/gpt-4o_*
