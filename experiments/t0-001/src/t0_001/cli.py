@@ -1,24 +1,34 @@
 import logging
-from enum import Enum
+import os
 from typing import Annotated
 
 import requests
 import typer
-from t0_001.query_vector_store.endpoint import main as query_vector_store_main
-from t0_001.query_vector_store.evaluate import main as evaluate_vector_store_main
-from t0_001.rag.chat_interact import run_chat_interact
-from t0_001.rag.endpoint import main as rag_main
-from t0_001.synth_data_generation.generate_jsonl_snyth_queries import (
-    generate_synthetic_queries,
-)
-
-
-class DBChoice(str, Enum):
-    chroma = "chroma"
-    faiss = "faiss"
-
+from t0_001.defaults import CONDITIONS_FOLDER, DEFAULTS, DBChoice
 
 cli = typer.Typer(context_settings={"help_option_names": ["-h", "--help"]})
+
+HELP_TEXT = {
+    "data_folder": "Path to the data folder.",
+    "main_only": "If True, only the main element of the HTML file is extracted.",
+    "embedding_model_name": "Name of the embedding model.",
+    "chunk_overlap": "Chunk overlap for the text splitter.",
+    "db_choice": "Database choice.",
+    "persist_directory": "Path to the directory where the database is (or will be) stored.",
+    "local_file_store": "Path to the directory where the local file store (or will be) stored.",
+    "search_type": "Type of search to perform for retriever.",
+    "force_create": "If True, force the creation of the database even if it already exists.",
+    "trust_source": "If True, trust the source of the data index. This is needed for loading in FAISS databases.",
+    "query": "The query to search for.",
+    "k": "Number of results to return.",
+    "with_score": "If True, return the score of the similarity search.",
+    "llm_model_name": "Name of the LLM model.",
+    "serve": "If True, serve the vector store as a FastAPI app. If False, make sure that persist_directory must be passed.",
+    "host_serve": "Host to listen on.",
+    "port_serve": "Port to listen on.",
+    "host_query": "Host to query.",
+    "port_query": "Port to query.",
+}
 
 
 def set_up_logging_config(level: int = 20) -> None:
@@ -33,49 +43,39 @@ def set_up_logging_config(level: int = 20) -> None:
 @cli.command()
 def serve_vector_store(
     data_folder: Annotated[
-        str, typer.Option(help="Path to the data folder.")
-    ] = "./nhs-use-case/conditions/",
+        str, typer.Option(envvar="T0_DATA_FOLDER", help=HELP_TEXT["data_folder"])
+    ] = CONDITIONS_FOLDER,
     main_only: Annotated[
         bool,
-        typer.Option(
-            help="If True, only the main element of the HTML file is extracted."
-        ),
-    ] = True,
+        typer.Option(help=HELP_TEXT["main_only"]),
+    ] = DEFAULTS["main_only"],
     embedding_model_name: Annotated[
-        str, typer.Option(help="Name of the embedding model.")
-    ] = "sentence-transformers/all-mpnet-base-v2",
+        str, typer.Option(help=HELP_TEXT["embedding_model_name"])
+    ] = DEFAULTS["embedding_model_name"],
     chunk_overlap: Annotated[
-        int, typer.Option(help="Chunk overlap for the text splitter.")
-    ] = 50,
+        int, typer.Option(help=HELP_TEXT["chunk_overlap"])
+    ] = DEFAULTS["chunk_overlap"],
     db_choice: Annotated[
-        DBChoice, typer.Option(help="Database choice.")
-    ] = DBChoice.chroma,
+        DBChoice, typer.Option(help=HELP_TEXT["db_choice"])
+    ] = DEFAULTS["db_choice"],
     persist_directory: Annotated[
         str | None,
-        typer.Option(
-            help="Path to the directory where the database is (or will be) stored."
-        ),
-    ] = None,
+        typer.Option(help=HELP_TEXT["persist_directory"]),
+    ] = DEFAULTS["persist_directory"],
     force_create: Annotated[
         bool,
-        typer.Option(
-            help="If True, force the creation of the database even if it already exists."
-        ),
-    ] = False,
+        typer.Option(help=HELP_TEXT["force_create"]),
+    ] = DEFAULTS["force_create"],
     trust_source: Annotated[
         bool,
-        typer.Option(
-            help="If True, trust the source of the data index. This is needed for loading in FAISS databases."
-        ),
-    ] = False,
+        typer.Option(help=HELP_TEXT["trust_source"]),
+    ] = DEFAULTS["trust_source"],
     serve: Annotated[
         bool,
-        typer.Option(
-            help="If True, serve the vector store as a FastAPI app. If False, make sure that persist_directory must be passed."
-        ),
-    ] = True,
-    host: Annotated[str, typer.Option(help="Host to listen on.")] = "0.0.0.0",
-    port: Annotated[int, typer.Option(help="Port to listen on.")] = 8000,
+        typer.Option(help=HELP_TEXT["serve"]),
+    ] = DEFAULTS["serve"],
+    host: Annotated[str, typer.Option(help=HELP_TEXT["host_serve"])] = DEFAULTS["host"],
+    port: Annotated[int, typer.Option(help=HELP_TEXT["port_serve"])] = DEFAULTS["port"],
 ):
     """
     Run the query vector store server.
@@ -83,13 +83,18 @@ def serve_vector_store(
     set_up_logging_config()
     if serve:
         logging.info("Starting query vector store server...")
-    query_vector_store_main(
+
+    from t0_001.query_vector_store.index_endpoint import VectorStoreConfig, main
+
+    main(
         conditions_folder=data_folder,
         main_only=main_only,
-        embedding_model_name=embedding_model_name,
-        chunk_overlap=chunk_overlap,
-        db_choice=db_choice,
-        persist_directory=persist_directory,
+        config=VectorStoreConfig(
+            embedding_model_name=embedding_model_name,
+            chunk_overlap=chunk_overlap,
+            db_choice=db_choice,
+            persist_directory=persist_directory,
+        ),
         force_create=force_create,
         trust_source=trust_source,
         serve=serve,
@@ -100,14 +105,14 @@ def serve_vector_store(
 
 @cli.command()
 def query_vector_store(
-    query: Annotated[str, typer.Argument(help="The query to search for.")],
-    k: Annotated[int, typer.Option(help="Number of results to return.")] = 4,
+    query: Annotated[str, typer.Argument(help=HELP_TEXT["query"])],
+    k: Annotated[int, typer.Option(help=HELP_TEXT["k"])] = DEFAULTS["k"],
     with_score: Annotated[
         bool,
-        typer.Option(help="If True, return the score of the similarity search."),
-    ] = False,
-    host: Annotated[str, typer.Option(help="Host to listen on.")] = "0.0.0.0",
-    port: Annotated[int, typer.Option(help="Port to listen on.")] = 8000,
+        typer.Option(help=HELP_TEXT["with_score"]),
+    ] = DEFAULTS["with_score"],
+    host: Annotated[str, typer.Option(help=HELP_TEXT["host_query"])] = DEFAULTS["host"],
+    port: Annotated[int, typer.Option(help=HELP_TEXT["port_query"])] = DEFAULTS["port"],
 ):
     """
     Query the vector store.
@@ -115,13 +120,16 @@ def query_vector_store(
     set_up_logging_config()
     logging.info("Querying vector store...")
     logging.info(f"Query: {query}")
+
     req = requests.get(
         f"http://{host}:{port}/query",
         params={"query": query, "k": k, "with_score": with_score},
     )
+
     if req.status_code != 200:
         logging.error(f"Error querying vector store: {req.text}")
         return
+
     logging.info(f"Response: {req.json()}")
 
 
@@ -139,59 +147,59 @@ def evaluate_vector_store(
         typer.Option(help="Field name for the target document in the input file."),
     ] = "conditions_title",
     conditions_folder: Annotated[
-        str, typer.Option(help="Path to the data folder.")
-    ] = "./nhs-use-case/conditions/",
+        str, typer.Option(envvar="T0_DATA_FOLDER", help=HELP_TEXT["data_folder"])
+    ] = CONDITIONS_FOLDER,
     main_only: Annotated[
         bool,
-        typer.Option(
-            help="If True, only the main element of the HTML file is extracted."
-        ),
-    ] = True,
+        typer.Option(help=HELP_TEXT["main_only"]),
+    ] = DEFAULTS["main_only"],
     embedding_model_name: Annotated[
-        str, typer.Option(help="Name of the embedding model.")
-    ] = "sentence-transformers/all-mpnet-base-v2",
+        str, typer.Option(help=HELP_TEXT["embedding_model_name"])
+    ] = DEFAULTS["embedding_model_name"],
     chunk_overlap: Annotated[
-        int, typer.Option(help="Chunk overlap for the text splitter.")
-    ] = 50,
+        int, typer.Option(help=HELP_TEXT["chunk_overlap"])
+    ] = DEFAULTS["chunk_overlap"],
     db_choice: Annotated[
-        DBChoice, typer.Option(help="Database choice.")
-    ] = DBChoice.chroma,
+        DBChoice, typer.Option(help=HELP_TEXT["db_choice"])
+    ] = DEFAULTS["db_choice"],
     persist_directory: Annotated[
         str | None,
-        typer.Option(
-            help="Path to the directory where the database is (or will be) stored."
-        ),
-    ] = None,
+        typer.Option(help=HELP_TEXT["persist_directory"]),
+    ] = DEFAULTS["persist_directory"],
     force_create: Annotated[
         bool,
-        typer.Option(
-            help="If True, force the creation of the database even if it already exists."
-        ),
-    ] = False,
+        typer.Option(help=HELP_TEXT["force_create"]),
+    ] = DEFAULTS["force_create"],
     trust_source: Annotated[
         bool,
-        typer.Option(
-            help="If True, trust the source of the data index. This is needed for loading in FAISS databases."
-        ),
-    ] = False,
-    k: Annotated[int, typer.Option(help="Number of results to return.")] = 4,
+        typer.Option(help=HELP_TEXT["trust_source"]),
+    ] = DEFAULTS["trust_source"],
+    k: Annotated[int, typer.Option(help=HELP_TEXT["k"])] = DEFAULTS["k"],
 ):
     """
     Evaluate the vector store.
     """
     set_up_logging_config()
+    if not os.path.exists(input_file):
+        raise FileNotFoundError(f"Input file {input_file} does not exist.")
+
     logging.info("Evaluating vector store...")
-    evaluate_vector_store_main(
+
+    from t0_001.query_vector_store.evaluate import VectorStoreConfig, main
+
+    main(
         input_file=input_file,
         output_file=output_file,
         query_field=query_field,
         target_document_field=target_document_field,
         conditions_folder=conditions_folder,
         main_only=main_only,
-        embedding_model_name=embedding_model_name,
-        chunk_overlap=chunk_overlap,
-        db_choice=db_choice,
-        persist_directory=persist_directory,
+        config=VectorStoreConfig(
+            embedding_model_name=embedding_model_name,
+            chunk_overlap=chunk_overlap,
+            db_choice=db_choice,
+            persist_directory=persist_directory,
+        ),
         force_create=force_create,
         trust_source=trust_source,
         k=k,
@@ -199,70 +207,170 @@ def evaluate_vector_store(
 
 
 @cli.command()
-def serve_rag(
+def serve_retriever(
     data_folder: Annotated[
-        str, typer.Option(help="Path to the data folder.")
-    ] = "./nhs-use-case/conditions/",
+        str, typer.Option(envvar="T0_DATA_FOLDER", help=HELP_TEXT["data_folder"])
+    ] = CONDITIONS_FOLDER,
     main_only: Annotated[
         bool,
-        typer.Option(
-            help="If True, only the main element of the HTML file is extracted."
-        ),
-    ] = True,
+        typer.Option(help=HELP_TEXT["main_only"]),
+    ] = DEFAULTS["main_only"],
     embedding_model_name: Annotated[
-        str, typer.Option(help="Name of the embedding model.")
-    ] = "sentence-transformers/all-mpnet-base-v2",
+        str, typer.Option(help=HELP_TEXT["embedding_model_name"])
+    ] = DEFAULTS["embedding_model_name"],
     chunk_overlap: Annotated[
-        int, typer.Option(help="Chunk overlap for the text splitter.")
-    ] = 50,
+        int, typer.Option(help=HELP_TEXT["chunk_overlap"])
+    ] = DEFAULTS["chunk_overlap"],
     db_choice: Annotated[
-        DBChoice, typer.Option(help="Database choice.")
-    ] = DBChoice.chroma,
+        DBChoice, typer.Option(help=HELP_TEXT["db_choice"])
+    ] = DEFAULTS["db_choice"],
     persist_directory: Annotated[
         str | None,
-        typer.Option(
-            help="Path to the directory where the database is (or will be) stored."
-        ),
-    ] = None,
+        typer.Option(help=HELP_TEXT["persist_directory"]),
+    ] = DEFAULTS["persist_directory"],
+    local_file_store: Annotated[
+        str | None,
+        typer.Option(help=HELP_TEXT["local_file_store"]),
+    ] = DEFAULTS["local_file_store"],
+    search_type: Annotated[str, typer.Option(help=HELP_TEXT["search_type"])] = DEFAULTS[
+        "search_type"
+    ],
+    k: Annotated[int, typer.Option(help=HELP_TEXT["k"])] = DEFAULTS["k"],
     force_create: Annotated[
         bool,
-        typer.Option(
-            help="If True, force the creation of the database even if it already exists."
-        ),
-    ] = False,
+        typer.Option(help=HELP_TEXT["force_create"]),
+    ] = DEFAULTS["force_create"],
     trust_source: Annotated[
         bool,
-        typer.Option(
-            help="If True, trust the source of the data index. This is needed for loading in FAISS databases."
-        ),
-    ] = False,
-    llm_model_name: Annotated[
-        str, typer.Option(help="Name of the LLM model.")
-    ] = "Qwen/Qwen2.5-1.5B-Instruct",
-    k: Annotated[int, typer.Option(help="Number of results to return.")] = 4,
-    with_score: Annotated[
+        typer.Option(help=HELP_TEXT["trust_source"]),
+    ] = DEFAULTS["trust_source"],
+    serve: Annotated[
         bool,
-        typer.Option(help="If True, return the score of the similarity search."),
-    ] = False,
-    host: Annotated[str, typer.Option(help="Host to listen on.")] = "0.0.0.0",
-    port: Annotated[int, typer.Option(help="Port to listen on.")] = 8000,
+        typer.Option(help=HELP_TEXT["serve"]),
+    ] = DEFAULTS["serve"],
+    host: Annotated[str, typer.Option(help=HELP_TEXT["host_serve"])] = DEFAULTS["host"],
+    port: Annotated[int, typer.Option(help=HELP_TEXT["port_serve"])] = DEFAULTS["port"],
+):
+    """
+    Run the retriever server.
+    """
+    set_up_logging_config()
+    logging.info("Starting retriever server...")
+
+    from t0_001.query_vector_store.build_retriever import RetrieverConfig
+    from t0_001.query_vector_store.retriever_endpoint import main
+
+    main(
+        conditions_folder=data_folder,
+        main_only=main_only,
+        config=RetrieverConfig(
+            embedding_model_name=embedding_model_name,
+            chunk_overlap=chunk_overlap,
+            db_choice=db_choice,
+            persist_directory=persist_directory,
+            local_file_store=local_file_store,
+            search_type=search_type,
+            k=k,
+            search_kwargs={},
+        ),
+        force_create=force_create,
+        trust_source=trust_source,
+        serve=serve,
+        host=host,
+        port=port,
+    )
+
+
+@cli.command()
+def query_retriever(
+    query: Annotated[str, typer.Argument(help=HELP_TEXT["query"])],
+    host: Annotated[str, typer.Option(help=HELP_TEXT["host_query"])] = DEFAULTS["host"],
+    port: Annotated[int, typer.Option(help=HELP_TEXT["port_query"])] = DEFAULTS["port"],
+):
+    """
+    Query the retriever.
+    """
+    set_up_logging_config()
+    logging.info("Querying retriever...")
+    logging.info(f"Query: {query}")
+
+    req = requests.get(f"http://{host}:{port}/query", params={"query": query})
+
+    if req.status_code != 200:
+        logging.error(f"Error querying retriever: {req.text}")
+        return
+
+    logging.info(f"Response: {req.json()}")
+
+
+@cli.command()
+def serve_rag(
+    data_folder: Annotated[
+        str, typer.Option(envvar="T0_DATA_FOLDER", help=HELP_TEXT["data_folder"])
+    ] = CONDITIONS_FOLDER,
+    main_only: Annotated[
+        bool,
+        typer.Option(help=HELP_TEXT["main_only"]),
+    ] = DEFAULTS["main_only"],
+    embedding_model_name: Annotated[
+        str, typer.Option(help=HELP_TEXT["embedding_model_name"])
+    ] = DEFAULTS["embedding_model_name"],
+    chunk_overlap: Annotated[
+        int, typer.Option(help=HELP_TEXT["chunk_overlap"])
+    ] = DEFAULTS["chunk_overlap"],
+    db_choice: Annotated[
+        DBChoice, typer.Option(help=HELP_TEXT["db_choice"])
+    ] = DEFAULTS["db_choice"],
+    persist_directory: Annotated[
+        str | None,
+        typer.Option(help=HELP_TEXT["persist_directory"]),
+    ] = DEFAULTS["persist_directory"],
+    local_file_store: Annotated[
+        str | None,
+        typer.Option(help=HELP_TEXT["local_file_store"]),
+    ] = DEFAULTS["local_file_store"],
+    search_type: Annotated[str, typer.Option(help=HELP_TEXT["search_type"])] = DEFAULTS[
+        "search_type"
+    ],
+    k: Annotated[int, typer.Option(help=HELP_TEXT["k"])] = DEFAULTS["k"],
+    force_create: Annotated[
+        bool,
+        typer.Option(help=HELP_TEXT["force_create"]),
+    ] = DEFAULTS["force_create"],
+    trust_source: Annotated[
+        bool,
+        typer.Option(help=HELP_TEXT["trust_source"]),
+    ] = DEFAULTS["trust_source"],
+    llm_model_name: Annotated[
+        str, typer.Option(help=HELP_TEXT["llm_model_name"])
+    ] = DEFAULTS["llm_model_name"],
+    host: Annotated[str, typer.Option(help=HELP_TEXT["host_serve"])] = DEFAULTS["host"],
+    port: Annotated[int, typer.Option(help=HELP_TEXT["port_serve"])] = DEFAULTS["port"],
 ):
     """
     Run the RAG server.
     """
     set_up_logging_config()
     logging.info("Starting RAG server...")
-    rag_main(
+
+    from t0_001.query_vector_store.build_retriever import RetrieverConfig
+    from t0_001.rag.rag_endpoint import main
+
+    main(
         conditions_folder=data_folder,
         main_only=main_only,
-        embedding_model_name=embedding_model_name,
-        chunk_overlap=chunk_overlap,
-        db_choice=db_choice,
-        persist_directory=persist_directory,
+        config=RetrieverConfig(
+            embedding_model_name=embedding_model_name,
+            chunk_overlap=chunk_overlap,
+            db_choice=db_choice,
+            persist_directory=persist_directory,
+            local_file_store=local_file_store,
+            search_type=search_type,
+            k=k,
+            search_kwargs={},
+        ),
         force_create=force_create,
         trust_source=trust_source,
-        k=k,
-        with_score=with_score,
         llm_model_name=llm_model_name,
         host=host,
         port=port,
@@ -271,10 +379,9 @@ def serve_rag(
 
 @cli.command()
 def query_rag(
-    query: Annotated[str, typer.Argument(help="The query for the RAG model.")],
-    k: Annotated[int | None, typer.Option(help="Number of results to return.")] = None,
-    host: Annotated[str, typer.Option(help="Host to listen on.")] = "0.0.0.0",
-    port: Annotated[int, typer.Option(help="Port to listen on.")] = 8000,
+    query: Annotated[str, typer.Argument(help=HELP_TEXT["query"])],
+    host: Annotated[str, typer.Option(help=HELP_TEXT["host_query"])] = DEFAULTS["host"],
+    port: Annotated[int, typer.Option(help=HELP_TEXT["port_query"])] = DEFAULTS["port"],
 ):
     """
     Query the vector store.
@@ -282,10 +389,13 @@ def query_rag(
     set_up_logging_config()
     logging.info("Querying RAG model...")
     logging.info(f"Query: {query}")
-    req = requests.get(f"http://{host}:{port}/query", params={"query": query, "k": k})
+
+    req = requests.get(f"http://{host}:{port}/query", params={"query": query})
+
     if req.status_code != 200:
         logging.error(f"Error RAG model: {req.text}")
         return
+
     logging.info(f"Response: {req.json()}")
 
 
@@ -300,7 +410,7 @@ def generate_synth_queries(
     ] = "./data/synthetic_queries/",
     conditions_path: Annotated[
         str, typer.Option(help="Path to the NHS conditions folder.")
-    ] = "./nhs-use-case/conditions/",
+    ] = CONDITIONS_FOLDER,
     model: Annotated[str, typer.Option(help="Model to use for generation.")] = "gpt-4o",
     overwrite: Annotated[bool, typer.Option(help="Overwrite existing files.")] = False,
 ):
@@ -309,6 +419,11 @@ def generate_synth_queries(
     """
     set_up_logging_config()
     logging.info("Generating synthetic queries...")
+
+    from t0_001.synth_data_generation.generate_jsonl_snyth_queries import (
+        generate_synthetic_queries,
+    )
+
     generate_synthetic_queries(
         n_queries=n_queries,
         template_path=template_path,
@@ -323,65 +438,68 @@ def generate_synth_queries(
 @cli.command()
 def rag_chat(
     conditions_folder: Annotated[
-        str, typer.Option(help="Path to the data folder.")
-    ] = "./nhs-use-case/conditions/",
+        str, typer.Option(envvar="T0_DATA_FOLDER", help=HELP_TEXT["data_folder"])
+    ] = CONDITIONS_FOLDER,
     main_only: Annotated[
         bool,
-        typer.Option(
-            help="If True, only the main element of the HTML file is extracted."
-        ),
-    ] = True,
+        typer.Option(help=HELP_TEXT["main_only"]),
+    ] = DEFAULTS["main_only"],
     embedding_model_name: Annotated[
-        str, typer.Option(help="Name of the embedding model.")
-    ] = "sentence-transformers/all-mpnet-base-v2",
+        str, typer.Option(help=HELP_TEXT["embedding_model_name"])
+    ] = DEFAULTS["embedding_model_name"],
     chunk_overlap: Annotated[
-        int, typer.Option(help="Chunk overlap for the text splitter.")
-    ] = 50,
+        int, typer.Option(help=HELP_TEXT["chunk_overlap"])
+    ] = DEFAULTS["chunk_overlap"],
     db_choice: Annotated[
-        DBChoice, typer.Option(help="Database choice.")
-    ] = DBChoice.chroma,
+        DBChoice, typer.Option(help=HELP_TEXT["db_choice"])
+    ] = DEFAULTS["db_choice"],
     persist_directory: Annotated[
         str | None,
-        typer.Option(
-            help="Path to the directory where the database is (or will be) stored."
-        ),
-    ] = None,
+        typer.Option(help=HELP_TEXT["persist_directory"]),
+    ] = DEFAULTS["persist_directory"],
+    local_file_store: Annotated[
+        str | None,
+        typer.Option(help=HELP_TEXT["local_file_store"]),
+    ] = DEFAULTS["local_file_store"],
+    search_type: Annotated[str, typer.Option(help=HELP_TEXT["search_type"])] = DEFAULTS[
+        "search_type"
+    ],
+    k: Annotated[int, typer.Option(help=HELP_TEXT["k"])] = DEFAULTS["k"],
     force_create: Annotated[
         bool,
-        typer.Option(
-            help="If True, force the creation of the database even if it already exists."
-        ),
-    ] = False,
+        typer.Option(help=HELP_TEXT["force_create"]),
+    ] = DEFAULTS["force_create"],
     trust_source: Annotated[
         bool,
-        typer.Option(
-            help="If True, trust the source of the data index. This is needed for loading in FAISS databases."
-        ),
-    ] = False,
-    k: Annotated[int, typer.Option(help="Number of results to return.")] = 4,
-    with_score: Annotated[
-        bool,
-        typer.Option(help="If True, return the score of the similarity search."),
-    ] = False,
+        typer.Option(help=HELP_TEXT["trust_source"]),
+    ] = DEFAULTS["trust_source"],
     llm_model_name: Annotated[
-        str, typer.Option(help="Name of the LLM model.")
-    ] = "Qwen/Qwen2.5-1.5B-Instruct",
+        str, typer.Option(help=HELP_TEXT["llm_model_name"])
+    ] = DEFAULTS["llm_model_name"],
 ):
     """
     Interact with the RAG model in a command line interface.
     """
     set_up_logging_config()
     logging.info("Starting RAG chat interaction...")
+
+    from t0_001.query_vector_store.build_retriever import RetrieverConfig
+    from t0_001.rag.chat_interact import run_chat_interact
+
     run_chat_interact(
         conditions_folder=conditions_folder,
         main_only=main_only,
-        embedding_model_name=embedding_model_name,
-        chunk_overlap=chunk_overlap,
-        db_choice=db_choice,
-        persist_directory=persist_directory,
+        config=RetrieverConfig(
+            embedding_model_name=embedding_model_name,
+            chunk_overlap=chunk_overlap,
+            db_choice=db_choice,
+            persist_directory=persist_directory,
+            local_file_store=local_file_store,
+            search_type=search_type,
+            k=k,
+            search_kwargs={},
+        ),
         force_create=force_create,
         trust_source=trust_source,
-        k=k,
-        with_score=with_score,
         llm_model_name=llm_model_name,
     )

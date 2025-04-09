@@ -79,7 +79,13 @@ def generate_synthetic_queries(
                 ["basic", "cluster", "hypochondriac", "vague", "downplay"]
             )
             severity_level = random.choice(
-                ["Not urgent", "Medium", "Medium urgent", "Urgent"]
+                [
+                    "Ambulance",
+                    "A&E",
+                    "Urgent Primary Care",
+                    "Routine GP appointment",
+                    "Self-care",
+                ]
             )
             sex = random.choice(["Male", "Female"])
 

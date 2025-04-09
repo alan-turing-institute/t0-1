@@ -16,7 +16,7 @@ Comment from JG: Yes, but this is a proxy for knowledge retrieval.
 
 ### `undescended-testicles`
 
-Sure, makes sense. It's the sort of presentation you would get. 
+Sure, makes sense. It's the sort of presentation you would get.
 
 Demographics is not consistent with description -- probably wouldn't
 get undescended testicles coming in, in a 34-year old male. At this
@@ -28,7 +28,7 @@ a scare.
 This is very good. I can imagine a presentation like this.
 
 Note that patients who are often worried unnecessarily might need to
-be taken seriously conditional on their history. 
+be taken seriously conditional on their history.
 
 As a clinician, you always have to be safe. The best thing to be sure
 is to do an examination. Someone can always make something sound
@@ -40,7 +40,7 @@ urgent" we should remove those complaints that would raise red flags.
 
 ### `cluster`
 
-This one you'd refer urgently. 
+This one you'd refer urgently.
 
 Actually, these questions are rather like MRCP tests (where there's a
 little vignette and then a set of multiple-choice questions).
@@ -49,4 +49,3 @@ little vignette and then a set of multiple-choice questions).
 
 One thing that might be useful is past Med papers. It crowdsources
 these questions.
-
