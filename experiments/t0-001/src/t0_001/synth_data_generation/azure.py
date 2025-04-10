@@ -54,6 +54,6 @@ def get_response_from_azure_model(client: ChatCompletionsClient, prompt: str):
     )
     try:
         return response["choices"][0]["message"]["content"]
-    except [KeyError, IndexError]:
+    except (KeyError, IndexError):
         logging.error(f"Model returned an invalid response: {response}")
         return None
