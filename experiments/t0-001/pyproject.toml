@@ -15,7 +15,7 @@ dependencies = [
     "openai>=1.72.0",
 ]
 
-[dependency-groups]
+[project.optional-dependencies]
 rag = [
     "chromadb>=0.6.3",
     "ollama>=0.4.7",
