@@ -13,8 +13,6 @@ dependencies = [
     "aiohttp>=3.11.15",
     "azureopenai>=0.0.1",
     "openai>=1.72.0",
-    "transformers>=4.51.1",
-    "langchain-community>=0.3.21",
 ]
 
 [dependency-groups]

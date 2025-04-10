@@ -3383,11 +3383,9 @@ dependencies = [
     { name = "azureopenai" },
     { name = "beautifulsoup4" },
     { name = "ipykernel" },
-    { name = "langchain-community" },
     { name = "openai" },
     { name = "python-dotenv" },
     { name = "tqdm" },
-    { name = "transformers" },
 ]
 
 [package.dev-dependencies]
@@ -3419,11 +3417,9 @@ requires-dist = [
     { name = "azureopenai", specifier = ">=0.0.1" },
     { name = "beautifulsoup4", specifier = ">=4.13.3" },
     { name = "ipykernel", specifier = ">=6.29.5" },
-    { name = "langchain-community", specifier = ">=0.3.21" },
     { name = "openai", specifier = ">=1.72.0" },
     { name = "python-dotenv", specifier = ">=1.1.0" },
     { name = "tqdm", specifier = ">=4.67.1" },
-    { name = "transformers", specifier = ">=4.51.1" },
 ]
 
 [package.metadata.requires-dev]
