@@ -433,8 +433,8 @@ def generate_synth_queries(
     """
     Generate synthetic queries for the NHS use case and save them to a file.
     """
-    load_env_file(env_file)
     set_up_logging_config()
+    load_env_file(env_file)
     logging.info("Generating synthetic queries...")
 
     from t0_001.synth_data_generation.generate_jsonl_snyth_queries import (
