@@ -1,5 +1,6 @@
 import os
 import time
+
 from azure.ai.inference import ChatCompletionsClient
 from azure.ai.inference.models import SystemMessage, UserMessage
 from azure.core.credentials import AzureKeyCredential
@@ -54,7 +55,7 @@ for model in AVAILABLE_MODELS:
                 {
                     "role": "user",
                     "content": "I am going to Paris, what should I see?",
-                }
+                },
             ],
             max_completion_tokens=MAX_TOKENS,
             model=model,
@@ -79,7 +80,7 @@ for model in AVAILABLE_MODELS:
         response = client.complete(
             messages=[
                 SystemMessage(content="You are a helpful assistant."),
-                UserMessage(content="I am going to Paris, what should I see?")
+                UserMessage(content="I am going to Paris, what should I see?"),
             ],
             max_tokens=MAX_TOKENS,
             model=model_name,
