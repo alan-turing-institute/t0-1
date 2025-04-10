@@ -2,23 +2,22 @@ import json
 import logging
 from pathlib import Path
 
-from langchain_core.vectorstores import VectorStore
-from t0_001.query_vector_store.build_index import (
-    DEFAULT_VECTOR_STORE_CONFIG,
-    VectorStoreConfig,
-    get_vector_store,
+from t0_001.rag.build_rag import (
+    DEFAULT_RETRIEVER_CONFIG,
+    RAG,
+    RetrieverConfig,
+    build_rag,
 )
 from t0_001.utils import read_jsonl, timestamp_file_name
 from tqdm import tqdm
 
 
-def evaluate_query_store(
+def evaluate_rag(
     input_file: str | Path,
     output_file: str | Path,
     query_field: str,
     target_document_field: str,
-    vector_store: VectorStore,
-    k: int = 4,
+    rag: RAG,
 ) -> list[dict]:
     """
     Evaluate the query store by comparing the query results with the target documents.
@@ -31,20 +30,19 @@ def evaluate_query_store(
         The field name in the JSONL file that contains the query.
     target_document_field : str
         The field name in the JSONL file that contains the target document.
-    vector_store : VectorStore
-        The vector store to use for querying.
+    rag : RAG
+        The RAG model to use for querying.
 
     Returns
     -------
     list[dict]
-        A list of dictionaries containing the query, retrieved documents, and whether they match.
+        A list of dictionaries containing the query, retrieved documents, and the RAG responses
     """
     if not str(output_file).endswith(".jsonl"):
         raise ValueError(f"File {output_file} is not a JSONL file.")
 
     data = read_jsonl(input_file)
     results = []
-    sum = 0
     output_file = timestamp_file_name(output_file)
 
     logging.info(f"Writing results to {output_file}...")
@@ -53,26 +51,27 @@ def evaluate_query_store(
 
     for item in tqdm(data, desc="Evaluating Queries"):
         query = item[query_field]
-        target_document = item[target_document_field]
+        # comment out for now
+        # target_document = item[target_document_field]
 
         # obtain the top k documents from the vector store
-        retrieved_docs = vector_store.similarity_search_with_score(query=query, k=k)
+        response = rag._query(question=query)
 
         # create dictionary to store the results
         res = item | {
             "query_field": query_field,
             "target_document_field": target_document_field,
-            "k": k,
-            "retrieved_documents": [doc.page_content for doc, _ in retrieved_docs],
-            "retrieved_documents_scores": [float(score) for _, score in retrieved_docs],
-            "retrieved_documents_sources": [
-                doc.metadata["source"] for doc, _ in retrieved_docs
+            "retrieved_documents": [doc.page_content for doc in response["context"]],
+            "retrieved_documents_scores": [
+                float(doc.metadata["sub_docs"][-1].metadata["score"])
+                for doc in response["context"]
             ],
+            "retrieved_documents_sources": [
+                doc.metadata["source"] for doc in response["context"]
+            ],
+            "rag_message": response["messages"].messages[0].content,
+            "rag_answer": response["answer"].content,
         }
-
-        # check for match between the source of the retrieved documents and the target document source
-        res["match"] = target_document in res["retrieved_documents_sources"]
-        sum += res["match"]
 
         # write the results to the output file
         with open(output_file, "a") as f:
@@ -82,7 +81,6 @@ def evaluate_query_store(
         # append the result to the results list
         results.append(res)
 
-    logging.info(f"Proportion of matches: {sum}/{len(data)} = {sum / len(data):.2%}")
     return results
 
 
@@ -93,24 +91,30 @@ def main(
     target_document_field: str,
     conditions_folder: str,
     main_only: bool = True,
-    config: VectorStoreConfig = DEFAULT_VECTOR_STORE_CONFIG,
+    config: RetrieverConfig = DEFAULT_RETRIEVER_CONFIG,
     force_create: bool = False,
     trust_source: bool = False,
-    k: int = 4,
+    llm_provider: str = "huggingface",
+    llm_model_name: str = "Qwen/Qwen2.5-1.5B-Instruct",
+    prompt_template_path: str | None = None,
+    system_prompt_path: str | None = None,
 ):
-    vector_store = get_vector_store(
+    rag = build_rag(
         conditions_folder=conditions_folder,
         main_only=main_only,
         config=config,
         force_create=force_create,
         trust_source=trust_source,
+        llm_provider=llm_provider,
+        llm_model_name=llm_model_name,
+        prompt_template_path=prompt_template_path,
+        system_prompt_path=system_prompt_path,
     )
 
-    evaluate_query_store(
+    evaluate_rag(
         input_file=input_file,
         output_file=output_file,
         query_field=query_field,
         target_document_field=target_document_field,
-        vector_store=vector_store,
-        k=k,
+        rag=rag,
     )
