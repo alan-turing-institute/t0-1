@@ -5,6 +5,12 @@ from azure.ai.inference import ChatCompletionsClient
 from azure.ai.inference.models import SystemMessage, UserMessage
 from azure.core.credentials import AzureKeyCredential
 from openai import AzureOpenAI
+from dotenv import load_dotenv
+from pathlib import Path
+
+# Specify the path to your .env file
+dotenv_path = Path("../.env")
+load_dotenv(dotenv_path=dotenv_path)
 
 # Constants
 MAX_TOKENS = 2048
@@ -12,14 +18,14 @@ AZURE_OPENAI_API_VERSION = "2024-12-01-preview"
 
 # Models
 OPENAI_MODELS = [
-    "o3-mini",
-    # "gpt-4o",
+    #"o3-mini",
+     "gpt-4o",
     # "o1",
 ]
 
 DEEPSEEK_MODELS = [
-    "V3",
-    "R1",
+    "v3",
+    "r1",
 ]
 
 AVAILABLE_MODELS = OPENAI_MODELS + DEEPSEEK_MODELS
@@ -37,8 +43,8 @@ for model in AVAILABLE_MODELS:
     time.sleep(5)
 
     if model in OPENAI_MODELS:
-        endpoint = get_env_var("AZURE_OPENAI_ENDPOINT")
-        key = get_env_var("AZURE_OPENAI_KEY")
+        endpoint = get_env_var("AZURE_OPENAI_ENDPOINT_o3-mini")
+        key = get_env_var("AZURE_OPENAI_API_KEY")
 
         client = AzureOpenAI(
             api_version=AZURE_OPENAI_API_VERSION,
@@ -67,8 +73,8 @@ for model in AVAILABLE_MODELS:
         print(response.choices[0].message.content)
 
     elif model in DEEPSEEK_MODELS:
-        endpoint = get_env_var(f"AZURE_ENDPOINT_DEEPSEEK_{model.upper()}")
-        key = get_env_var(f"AZURE_API_KEY_DEEPSEEK_{model.upper()}")
+        endpoint = get_env_var(f"AZURE_ENDPOINT_deepseek-{model}")
+        key = get_env_var(f"AZURE_API_KEY_deepseek-{model}")
 
         client = ChatCompletionsClient(
             endpoint=endpoint,
