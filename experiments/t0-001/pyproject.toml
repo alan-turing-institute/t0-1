@@ -33,7 +33,7 @@ rag = [
     "tiktoken>=0.9.0",
     "langgraph>=0.3.22",
     "langchain-openai>=0.3.12",
-    "vllm>=0.8.2",
+    "langchain-azure-ai>=0.1.2",
 ]
 dev = [
   "pre-commit>=4.2.0"
