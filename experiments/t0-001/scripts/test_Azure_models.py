@@ -37,8 +37,8 @@ for model in AVAILABLE_MODELS:
     time.sleep(5)
 
     if model in OPENAI_MODELS:
-        endpoint = get_env_var("AZURE_OPENAI_CHAT_ENDPOINT")
-        key = get_env_var("AZURE_OPENAI_CHAT_KEY")
+        endpoint = get_env_var("AZURE_OPENAI_ENDPOINT")
+        key = get_env_var("AZURE_OPENAI_KEY")
 
         client = AzureOpenAI(
             api_version=AZURE_OPENAI_API_VERSION,
@@ -67,8 +67,8 @@ for model in AVAILABLE_MODELS:
         print(response.choices[0].message.content)
 
     elif model in DEEPSEEK_MODELS:
-        endpoint = get_env_var(f"AZURE_DEEPSEEK_CHAT_ENDPOINT_{model.upper()}")
-        key = get_env_var(f"AZURE_DEEPSEEK_CHAT_KEY_{model.upper()}")
+        endpoint = get_env_var(f"AZURE_ENDPOINT_DEEPSEEK_{model.upper()}")
+        key = get_env_var(f"AZURE_API_KEY_DEEPSEEK_{model.upper()}")
 
         client = ChatCompletionsClient(
             endpoint=endpoint,

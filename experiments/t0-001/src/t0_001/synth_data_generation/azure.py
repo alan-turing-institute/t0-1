@@ -16,16 +16,14 @@ def set_up_azure_client():
     """
     # set up the environment
     try:
-        endpoint = os.environ["AZURE_OPENAI_CHAT_ENDPOINT"]
+        endpoint = os.environ["AZURE_OPENAI_ENDPOINT"]
     except KeyError:
-        raise KeyError(
-            "Please set the AZURE_OPENAI_CHAT_ENDPOINT environment variable."
-        )
+        raise KeyError("Please set the AZURE_OPENAI_ENDPOINT environment variable.")
 
     try:
-        key = os.environ["AZURE_OPENAI_CHAT_KEY"]
+        key = os.environ["AZURE_OPENAI_KEY"]
     except KeyError:
-        raise KeyError("Please set the AZURE_OPENAI_CHAT_KEY environment variable.")
+        raise KeyError("Please set the AZURE_OPENAI_KEY environment variable.")
 
     # set up the client
     return ChatCompletionsClient(
