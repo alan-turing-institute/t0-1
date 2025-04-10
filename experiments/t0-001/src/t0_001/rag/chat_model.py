@@ -93,11 +93,6 @@ def get_azure_openai_chat_model(
         api_version=api_version,
     )
 
-    print(
-        llm.invoke(
-            input=[{"role": "user", "content": "What is the capital of France?"}],
-        )
-    )
     return llm
 
 
