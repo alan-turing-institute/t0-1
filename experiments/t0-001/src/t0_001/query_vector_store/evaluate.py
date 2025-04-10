@@ -83,6 +83,7 @@ def evaluate_query_store(
         results.append(res)
 
     logging.info(f"Proportion of matches: {sum}/{len(data)} = {sum / len(data):.2%}")
+
     return results
 
 

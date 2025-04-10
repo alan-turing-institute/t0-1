@@ -59,4 +59,7 @@ def read_prompt_template(
     else:
         messages = [message]
 
-    return ChatPromptTemplate.from_messages(messages)
+    cpt = ChatPromptTemplate.from_messages(messages)
+    logging.info(f"Loaded ChatPromptTemplate: {cpt}")
+
+    return cpt
