@@ -1,0 +1,6 @@
+A patient has given the following description of their symptoms: "{question}".
+
+Use the following pieces of retrieved context:
+{context}
+
+Using the sources, name the most likely condition that the patient is suffering from. If you are not sure, say "UNSURE", and classify the severity level of the question in the format "(condition, severity)".
