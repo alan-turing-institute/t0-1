@@ -4,7 +4,8 @@ from typing import Annotated
 
 import requests
 import typer
-from t0_001.defaults import CONDITIONS_FOLDER, DEFAULTS, DBChoice
+from t0_001.defaults import CONDITIONS_FOLDER, DEFAULTS, DBChoice, LLMProvider
+from t0_001.utils import load_env_file
 
 cli = typer.Typer(context_settings={"help_option_names": ["-h", "--help"]})
 
@@ -22,12 +23,14 @@ HELP_TEXT = {
     "query": "The query to search for.",
     "k": "Number of results to return.",
     "with_score": "If True, return the score of the similarity search.",
+    "llm_provider": "Service provider for the LLM.",
     "llm_model_name": "Name of the LLM model.",
     "serve": "If True, serve the vector store as a FastAPI app. If False, make sure that persist_directory must be passed.",
     "host_serve": "Host to listen on.",
     "port_serve": "Port to listen on.",
     "host_query": "Host to query.",
     "port_query": "Port to query.",
+    "env_file": "Path to the .env file.",
 }
 
 
@@ -341,9 +344,16 @@ def serve_rag(
         bool,
         typer.Option(help=HELP_TEXT["trust_source"]),
     ] = DEFAULTS["trust_source"],
+    llm_provider: Annotated[
+        LLMProvider, typer.Option(help=HELP_TEXT["llm_provider"])
+    ] = DEFAULTS["llm_provider"],
     llm_model_name: Annotated[
         str, typer.Option(help=HELP_TEXT["llm_model_name"])
     ] = DEFAULTS["llm_model_name"],
+    env_file: Annotated[
+        str | None,
+        typer.Option(help=HELP_TEXT["env_file"]),
+    ] = DEFAULTS["env_file"],
     host: Annotated[str, typer.Option(help=HELP_TEXT["host_serve"])] = DEFAULTS["host"],
     port: Annotated[int, typer.Option(help=HELP_TEXT["port_serve"])] = DEFAULTS["port"],
 ):
@@ -351,6 +361,7 @@ def serve_rag(
     Run the RAG server.
     """
     set_up_logging_config()
+    load_env_file(env_file)
     logging.info("Starting RAG server...")
 
     from t0_001.query_vector_store.build_retriever import RetrieverConfig
@@ -371,6 +382,7 @@ def serve_rag(
         ),
         force_create=force_create,
         trust_source=trust_source,
+        llm_provider=llm_provider,
         llm_model_name=llm_model_name,
         host=host,
         port=port,
@@ -413,10 +425,15 @@ def generate_synth_queries(
     ] = CONDITIONS_FOLDER,
     model: Annotated[str, typer.Option(help="Model to use for generation.")] = "gpt-4o",
     overwrite: Annotated[bool, typer.Option(help="Overwrite existing files.")] = False,
+    env_file: Annotated[
+        str | None,
+        typer.Option(help=HELP_TEXT["env_file"]),
+    ] = DEFAULTS["env_file"],
 ):
     """
     Generate synthetic queries for the NHS use case and save them to a file.
     """
+    load_env_file(env_file)
     set_up_logging_config()
     logging.info("Generating synthetic queries...")
 
@@ -473,14 +490,22 @@ def rag_chat(
         bool,
         typer.Option(help=HELP_TEXT["trust_source"]),
     ] = DEFAULTS["trust_source"],
+    llm_provider: Annotated[
+        LLMProvider, typer.Option(help=HELP_TEXT["llm_provider"])
+    ] = DEFAULTS["llm_provider"],
     llm_model_name: Annotated[
         str, typer.Option(help=HELP_TEXT["llm_model_name"])
     ] = DEFAULTS["llm_model_name"],
+    env_file: Annotated[
+        str | None,
+        typer.Option(help=HELP_TEXT["env_file"]),
+    ] = DEFAULTS["env_file"],
 ):
     """
     Interact with the RAG model in a command line interface.
     """
     set_up_logging_config()
+    load_env_file(env_file)
     logging.info("Starting RAG chat interaction...")
 
     from t0_001.query_vector_store.build_retriever import RetrieverConfig
@@ -501,5 +526,6 @@ def rag_chat(
         ),
         force_create=force_create,
         trust_source=trust_source,
+        llm_provider=llm_provider,
         llm_model_name=llm_model_name,
     )
