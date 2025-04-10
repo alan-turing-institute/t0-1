@@ -7,6 +7,8 @@ from tqdm import tqdm
 
 
 def remove_saved_directory(path: str | Path, directory_name: str) -> None:
+    if path is None:
+        return
     if os.path.exists(path):
         # remove the existing directory if it exists
         logging.info(f"Found existing directory at '{path}'. Attempting to remove...")
