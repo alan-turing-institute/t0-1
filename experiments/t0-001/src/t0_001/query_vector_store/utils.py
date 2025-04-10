@@ -6,6 +6,25 @@ from bs4 import BeautifulSoup
 from tqdm import tqdm
 
 
+def remove_saved_directory(path: str | Path, directory_name: str) -> None:
+    if os.path.exists(path):
+        # remove the existing directory if it exists
+        logging.info(f"Found existing directory at '{path}'. Attempting to remove...")
+        confirm = input(
+            f"Are you sure you want to remove the existing directory at '{path}'? (y/n): "
+        )
+        if confirm.lower() not in ("y", "yes"):
+            raise ValueError(
+                f"For force_create=True, {directory_name} is passed and the directory exists. Please remove it first."
+            )
+
+        import shutil
+
+        shutil.rmtree(path)
+
+        logging.info(f"Removed existing directory at '{path}'.")
+
+
 def load_conditions(
     conditions_folder: str | Path,
     main_only: bool = True,
