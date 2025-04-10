@@ -16,6 +16,7 @@ from t0_001.query_vector_store.build_index import (
 from t0_001.query_vector_store.custom_parent_document_retriever import (
     CustomParentDocumentRetriever,
 )
+from t0_001.query_vector_store.utils import remove_saved_directory
 
 
 @dataclass
@@ -176,6 +177,9 @@ def get_parent_doc_retriever(
             trust_source=trust_source,
         )
     else:
+        remove_saved_directory(config.persist_directory, "persist_directory")
+        remove_saved_directory(config.local_file_store, "local_file_store")
+
         retriever = create_parent_doc_retriever(
             conditions_folder=conditions_folder,
             main_only=main_only,
