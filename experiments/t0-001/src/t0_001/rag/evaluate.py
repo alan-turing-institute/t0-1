@@ -10,6 +10,20 @@ from t0_001.rag.build_rag import (
 )
 from t0_001.utils import read_jsonl, timestamp_file_name
 from tqdm import tqdm
+from typing_extensions import Annotated, TypedDict
+
+
+class ConditionRecommendation(TypedDict):
+    """
+    Submit a condition recommendation and severity level.
+    """
+
+    condition: Annotated[str, "Name of the condition or procedure"]
+    severity_level: Annotated[str, "Severity level of the condition"]
+
+
+def remove_dash_and_spaces(string: str) -> str:
+    return "".join([c for c in string if c.isalnum()]).lower()
 
 
 def evaluate_rag(
@@ -42,6 +56,8 @@ def evaluate_rag(
         raise ValueError(f"File {output_file} is not a JSONL file.")
 
     data = read_jsonl(input_file)
+    conditions_sum = 0
+    severity_sum = 0
     results = []
     output_file = timestamp_file_name(output_file)
 
@@ -51,11 +67,42 @@ def evaluate_rag(
 
     for item in tqdm(data, desc="Evaluating Queries"):
         query = item[query_field]
-        # comment out for now
-        # target_document = item[target_document_field]
+        target_document = item[target_document_field]
 
         # obtain the top k documents from the vector store
         response = rag._query(question=query)
+
+        if (
+            response["answer"].additional_kwargs.get("tool_calls") is not None
+            and len(response["answer"].additional_kwargs["tool_calls"]) == 1
+        ):
+            arguments = json.loads(
+                response["answer"].additional_kwargs["tool_calls"][0]["function"][
+                    "arguments"
+                ]
+            )
+
+            if arguments.get("condition") is not None:
+                prediction_condition = remove_dash_and_spaces(arguments["condition"])
+                target_condition = remove_dash_and_spaces(target_document)
+                conditions_match = prediction_condition == target_condition
+                if conditions_match:
+                    conditions_sum += 1
+            else:
+                conditions_match = False
+
+            if arguments.get("severity_level") is not None:
+                severity_match = (
+                    arguments["severity_level"].lower()
+                    == item["severity_level"].lower()
+                )
+                if severity_match:
+                    severity_sum += 1
+            else:
+                severity_match = False
+        else:
+            conditions_match = False
+            severity_match = False
 
         # create dictionary to store the results
         res = item | {
@@ -69,8 +116,13 @@ def evaluate_rag(
             "retrieved_documents_sources": [
                 doc.metadata["source"] for doc in response["context"]
             ],
-            "rag_message": response["messages"].messages[0].content,
+            "rag_message": [
+                message.content for message in response["messages"].messages
+            ],
             "rag_answer": response["answer"].content,
+            "rag_tool_calls": response["answer"].additional_kwargs.get("tool_calls"),
+            "conditions_match": conditions_match,
+            "severity_match": severity_match,
         }
 
         # write the results to the output file
@@ -80,6 +132,13 @@ def evaluate_rag(
 
         # append the result to the results list
         results.append(res)
+
+    logging.info(
+        f"Proportion of condition matches: {conditions_sum}/{len(data)} = {conditions_sum / len(data):.2%}"
+    )
+    logging.info(
+        f"Proportion of severity matches: {severity_sum}/{len(data)} = {severity_sum / len(data):.2%}"
+    )
 
     return results
 
@@ -107,6 +166,7 @@ def main(
         trust_source=trust_source,
         llm_provider=llm_provider,
         llm_model_name=llm_model_name,
+        tools=[ConditionRecommendation],
         prompt_template_path=prompt_template_path,
         system_prompt_path=system_prompt_path,
     )

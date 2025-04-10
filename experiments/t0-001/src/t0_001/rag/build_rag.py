@@ -35,6 +35,7 @@ class RAG:
         retriever: CustomParentDocumentRetriever,
         prompt: PromptTemplate,
         llm: LLM,
+        tools: list | None = None,
     ):
         """
         Initalise the RAG class with the vector store, prompt, and LLM.
@@ -55,6 +56,9 @@ class RAG:
         self.retriever: CustomParentDocumentRetriever = retriever
         self.prompt: PromptTemplate = prompt
         self.llm: LLM = llm
+        self.tools: list | None = tools
+        if tools is not None:
+            self.llm = self.llm.bind_tools(tools)
         self.memory: MemorySaver = MemorySaver()
         self.graph: CompiledStateGraph = self.build_graph()
 
@@ -99,7 +103,7 @@ class RAG:
             for doc in state["context"]
         ]
 
-        docs_content = "\n".join([sources] + retrieved_docs)
+        docs_content = "\n".join(retrieved_docs + [sources])
         messages = self.prompt.invoke(
             {"question": state["question"], "context": docs_content}
         )
@@ -227,6 +231,7 @@ def build_rag(
     trust_source: bool = False,
     llm_provider: str = "huggingface",
     llm_model_name: str = "Qwen/Qwen2.5-1.5B-Instruct",
+    tools: list | None = None,
     prompt_template_path: str | Path | None = None,
     system_prompt_path: str | Path | None = None,
 ) -> RAG:
@@ -272,6 +277,7 @@ def build_rag(
         retriever=retriever,
         prompt=prompt_template,
         llm=llm,
+        tools=tools,
     )
 
     return rag
