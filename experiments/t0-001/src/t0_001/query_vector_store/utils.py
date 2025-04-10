@@ -13,6 +13,10 @@ def remove_saved_directory(path: str | Path, directory_name: str) -> None:
         confirm = input(
             f"Are you sure you want to remove the existing directory at '{path}'? (y/n): "
         )
+
+        while confirm.lower() not in ("y", "yes", "n", "no"):
+            confirm = input("Invalid input. Please enter 'y'/'yes' or 'n'/'no': ")
+
         if confirm.lower() not in ("y", "yes"):
             raise ValueError(
                 f"For force_create=True, {directory_name} is passed and the directory exists. Please remove it first."
