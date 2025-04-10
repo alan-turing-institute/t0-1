@@ -148,11 +148,40 @@ t0-001 query-retriever \
 
 For serving the RAG model, you can use the `t0-001 serve-rag` command. This will start a FastAPI server that serves the RAG model. There are options to specify the host and port, by default it will run on `0.0.0.0:8000`.
 
-Many options are similar to the [vector store](#serving-the-vector-store) and [retriever](#serving-the-retriever) serving commands which are described above. The main difference is that you can specify the LLM to use with the `--llm-model-name` option.
+Many options are similar to the [vector store](#serving-the-vector-store) and [retriever](#serving-the-retriever) serving commands which are described above. The main difference is that you can specify the LLM to use with the `--llm-provider` and `--llm-model-name` options.
+- If `--llm-provider` is set to `huggingface`, the model name should be a Hugging Face model name (e.g., `Qwen/Qwen2.5-1.5B-Instruct`) - this is the default configuration.
+- If `--llm-provider` is set to `azure-openai`, the model name should be the name of the Azure OpenAI deployment/model name (e.g., `gpt-4o`).
+  - Note that you need to set the `AZURE_OPENAI_API_KEY_{model_name}` and `AZURE_OPENAI_ENDPOINT_{model_name}` environment variables.
+  - If these aren't set, you can set them without the model name: `AZURE_OPENAI_API_KEY` and `AZURE_OPENAI_ENDPOINT` - these represent the default key and endpoints.
+- If `--llm-provider` is set to `azure`, the model name should be the name of the Azure AI Foundry deployment/model name (e.g., `deepseek-r1`)
+  - Note that you need to set the `AZURE_API_KEY_{model_name}` and `AZURE_API_ENDPOINT_{model_name}` environment variables.
+  - If these aren't set, you can set them without the model name: `AZURE_API_KEY` and `AZURE_API_ENDPOINT` - these represent the default key and endpoints.
+
+**Note**: for environment variables, you can set them in a `.env` file. By default, the command loads in a `.env` file in the current directory. You can also set this to a different file using the `--env-file` option.
 
 All of these options have default arguments (see `t0-001 serve-rag --help`), so you can just run the command as is. But to save and load the vector store, you need to provide the `--persist-directory` and `--local-file-store` options:
 ```bash
 t0-001 serve-rag --persist-directory ./nhs-use-case-db --local-file-store ./nhs-use-case-fs
+```
+
+For using an Azure OpenAI endpoint, you can run something like:
+```bash
+t0-001 serve-rag --persist-directory ./nhs-use-case-db --local-file-store ./nhs-use-case-fs --llm-provider azure-openai --llm-model-name gpt-4o
+```
+and set the environment variables in a `.env` file:
+```bash
+AZURE_OPENAI_API_KEY_gpt-4o=<your-key>
+AZURE_OPENAI_ENDPOINT_gpt-4o=<your-endpoint>
+```
+
+For using an Azure AI Foundry endpoint, you can run something like:
+```bash
+t0-001 serve-rag --persist-directory ./nhs-use-case-db --local-file-store ./nhs-use-case-fs --llm-provider azure --llm-model-name deepseek-r1
+```
+and set the environment variables in a `.env` file:
+```bash
+AZURE_API_KEY_deepseek-r1=<your-key>
+AZURE_API_ENDPOINT_deepseek-r1=<your-endpoint>
 ```
 
 #### Querying the RAG model
@@ -168,6 +197,8 @@ t0-001 query-rag \
 ### Initalising a RAG chat interaction
 
 For spinning up a local RAG chat interaction, you can use the `t0-001 rag-chat` command. Most of the options are similar to those discussed above in the `t0-001 serve-vector-store` and `t0-001 serve-rag` commands - use `t0-001 rag-chat --help` to see all the options.
+
+See [Serving the RAG model](#serving-the-rag-model) for the options to specify the LLM to use with the `--llm-provider` and `--llm-model-name` options and using environment variables.
 
 You should be able to just spin it up with default options (below we are using the `--persist-directory` option to load the vector store if it exists, or create it if it doesn't):
 ```bash
