@@ -25,6 +25,8 @@ HELP_TEXT = {
     "with_score": "If True, return the score of the similarity search.",
     "llm_provider": "Service provider for the LLM.",
     "llm_model_name": "Name of the LLM model.",
+    "prompt_template_path": "Path to the prompt template file.",
+    "system_prompt_path": "Path to the system prompt file.",
     "serve": "If True, serve the vector store as a FastAPI app. If False, make sure that persist_directory must be passed.",
     "host_serve": "Host to listen on.",
     "port_serve": "Port to listen on.",
@@ -350,6 +352,14 @@ def serve_rag(
     llm_model_name: Annotated[
         str, typer.Option(help=HELP_TEXT["llm_model_name"])
     ] = DEFAULTS["llm_model_name"],
+    prompt_template_path: Annotated[
+        str | None,
+        typer.Option(help=HELP_TEXT["prompt_template_path"]),
+    ] = DEFAULTS["prompt_template_path"],
+    system_prompt_path: Annotated[
+        str | None,
+        typer.Option(help=HELP_TEXT["system_prompt_path"]),
+    ] = DEFAULTS["system_prompt_path"],
     env_file: Annotated[
         str | None,
         typer.Option(help=HELP_TEXT["env_file"]),
@@ -384,6 +394,8 @@ def serve_rag(
         trust_source=trust_source,
         llm_provider=llm_provider,
         llm_model_name=llm_model_name,
+        prompt_template_path=prompt_template_path,
+        system_prompt_path=system_prompt_path,
         host=host,
         port=port,
     )
@@ -496,6 +508,14 @@ def rag_chat(
     llm_model_name: Annotated[
         str, typer.Option(help=HELP_TEXT["llm_model_name"])
     ] = DEFAULTS["llm_model_name"],
+    prompt_template_path: Annotated[
+        str | None,
+        typer.Option(help=HELP_TEXT["prompt_template_path"]),
+    ] = DEFAULTS["prompt_template_path"],
+    system_prompt_path: Annotated[
+        str | None,
+        typer.Option(help=HELP_TEXT["system_prompt_path"]),
+    ] = DEFAULTS["system_prompt_path"],
     env_file: Annotated[
         str | None,
         typer.Option(help=HELP_TEXT["env_file"]),
@@ -528,4 +548,6 @@ def rag_chat(
         trust_source=trust_source,
         llm_provider=llm_provider,
         llm_model_name=llm_model_name,
+        prompt_template_path=prompt_template_path,
+        system_prompt_path=system_prompt_path,
     )
