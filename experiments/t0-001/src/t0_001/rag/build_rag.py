@@ -283,6 +283,10 @@ def build_rag(
         from t0_001.rag.chat_model import get_azure_endpoint_chat_model
 
         llm = get_azure_endpoint_chat_model(model_name=llm_model_name)
+    elif llm_provider == "openai":
+        from t0_001.rag.chat_model import get_openai_chat_model
+
+        llm = get_openai_chat_model(model_name=llm_model_name)
     else:
         raise ValueError(
             f"Unknown LLM provider: {llm_provider}. Use 'huggingface', 'azure_openai', or 'azure'."
