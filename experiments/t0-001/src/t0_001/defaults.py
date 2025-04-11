@@ -11,6 +11,7 @@ class LLMProvider(str, Enum):
     huggingface = "huggingface"
     azure_openai = "azure_openai"
     azure = "azure"
+    openai = "openai"
 
 
 CONDITIONS_FOLDER: Final[str] = "./nhs-use-case/conditions/"
