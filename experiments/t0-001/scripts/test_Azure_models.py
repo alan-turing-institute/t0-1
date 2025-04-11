@@ -1,12 +1,12 @@
 import os
 import time
+from pathlib import Path
 
 from azure.ai.inference import ChatCompletionsClient
 from azure.ai.inference.models import SystemMessage, UserMessage
 from azure.core.credentials import AzureKeyCredential
-from openai import AzureOpenAI
 from dotenv import load_dotenv
-from pathlib import Path
+from openai import AzureOpenAI
 
 # Specify the path to your .env file
 dotenv_path = Path("../.env")
@@ -18,8 +18,8 @@ AZURE_OPENAI_API_VERSION = "2024-12-01-preview"
 
 # Models
 OPENAI_MODELS = [
-    #"o3-mini",
-     "gpt-4o",
+    # "o3-mini",
+    "gpt-4o",
     # "o1",
 ]
 
