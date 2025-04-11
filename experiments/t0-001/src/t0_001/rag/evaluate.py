@@ -43,6 +43,7 @@ def evaluate_rag(
     query_field: str,
     target_document_field: str,
     rag: RAG,
+    generate_only: bool = False,
 ) -> list[dict]:
     """
     Evaluate the query store by comparing the query results with the target documents.
@@ -51,12 +52,17 @@ def evaluate_rag(
     ----------
     input_file : str | Path
         The path to the JSONL file containing the queries and target documents.
+    output_file : str | Path
+        The path to the JSONL file where the results will be saved.
     query_field : str
         The field name in the JSONL file that contains the query.
     target_document_field : str
         The field name in the JSONL file that contains the target document.
     rag : RAG
         The RAG model to use for querying.
+    generate_only : bool, optional
+        If True, only generate the RAG responses without evaluating the queries,
+        by default False.
 
     Returns
     -------
@@ -85,39 +91,41 @@ def evaluate_rag(
         response = rag._query(
             question=query, demographics=str(item["general_demographics"])
         )
-        print(response["answer"])
 
-        if (
-            response["answer"].additional_kwargs.get("tool_calls") is not None
-            and len(response["answer"].additional_kwargs["tool_calls"]) == 1
-        ):
-            arguments = json.loads(
-                response["answer"].additional_kwargs["tool_calls"][0]["function"][
-                    "arguments"
-                ]
-            )
+        if not generate_only:
+            if (
+                response["answer"].additional_kwargs.get("tool_calls") is not None
+                and len(response["answer"].additional_kwargs["tool_calls"]) == 1
+            ):
+                arguments = json.loads(
+                    response["answer"].additional_kwargs["tool_calls"][0]["function"][
+                        "arguments"
+                    ]
+                )
 
-            if arguments.get("condition") is not None:
-                prediction_condition = remove_dash_and_spaces(arguments["condition"])
-                target_condition = remove_dash_and_spaces(target_document)
-                conditions_match = prediction_condition == target_condition
-                if conditions_match:
-                    conditions_sum += 1
+                if arguments.get("condition") is not None:
+                    prediction_condition = remove_dash_and_spaces(
+                        arguments["condition"]
+                    )
+                    target_condition = remove_dash_and_spaces(target_document)
+                    conditions_match = prediction_condition == target_condition
+                    if conditions_match:
+                        conditions_sum += 1
+                else:
+                    conditions_match = False
+
+                if arguments.get("severity_level") is not None:
+                    severity_match = (
+                        arguments["severity_level"].lower()
+                        == item["severity_level"].lower()
+                    )
+                    if severity_match:
+                        severity_sum += 1
+                else:
+                    severity_match = False
             else:
                 conditions_match = False
-
-            if arguments.get("severity_level") is not None:
-                severity_match = (
-                    arguments["severity_level"].lower()
-                    == item["severity_level"].lower()
-                )
-                if severity_match:
-                    severity_sum += 1
-            else:
                 severity_match = False
-        else:
-            conditions_match = False
-            severity_match = False
 
         # create dictionary to store the results
         res = item | {
@@ -136,15 +144,17 @@ def evaluate_rag(
             ],
             "rag_answer": response["answer"].content,
             "rag_tool_calls": response["answer"].additional_kwargs.get("tool_calls"),
-            "conditions_match": conditions_match,
-            "severity_match": severity_match,
         }
 
-        # check for match between the source of the retrieved documents and the target document source
-        res["retriever_match"] = target_document in set(
-            res["retrieved_documents_sources"]
-        )
-        retriever_match_sum += res["retriever_match"]
+        if not generate_only:
+            res["conditions_match"] = conditions_match
+            res["severity_match"] = severity_match
+
+            # check for match between the source of the retrieved documents and the target document source
+            res["retriever_match"] = target_document in set(
+                res["retrieved_documents_sources"]
+            )
+            retriever_match_sum += res["retriever_match"]
 
         # write the results to the output file
         with open(output_file, "a") as f:
@@ -154,15 +164,16 @@ def evaluate_rag(
         # append the result to the results list
         results.append(res)
 
-    logging.info(
-        f"Proportion of retriever matches: {retriever_match_sum}/{len(data)} = {retriever_match_sum / len(data):.2%}"
-    )
-    logging.info(
-        f"Proportion of condition matches: {conditions_sum}/{len(data)} = {conditions_sum / len(data):.2%}"
-    )
-    logging.info(
-        f"Proportion of severity matches: {severity_sum}/{len(data)} = {severity_sum / len(data):.2%}"
-    )
+    if not generate_only:
+        logging.info(
+            f"Proportion of retriever matches: {retriever_match_sum}/{len(data)} = {retriever_match_sum / len(data):.2%}"
+        )
+        logging.info(
+            f"Proportion of condition matches: {conditions_sum}/{len(data)} = {conditions_sum / len(data):.2%}"
+        )
+        logging.info(
+            f"Proportion of severity matches: {severity_sum}/{len(data)} = {severity_sum / len(data):.2%}"
+        )
 
     return results
 
@@ -173,6 +184,7 @@ def main(
     query_field: str,
     target_document_field: str,
     conditions_folder: str,
+    generate_only: bool = False,
     main_only: bool = True,
     config: RetrieverConfig = DEFAULT_RETRIEVER_CONFIG,
     force_create: bool = False,
@@ -201,4 +213,5 @@ def main(
         query_field=query_field,
         target_document_field=target_document_field,
         rag=rag,
+        generate_only=generate_only,
     )

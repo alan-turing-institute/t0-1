@@ -27,6 +27,8 @@ def evaluate_query_store(
     ----------
     input_file : str | Path
         The path to the JSONL file containing the queries and target documents.
+    output_file : str | Path
+        The path to the JSONL file where the results will be saved.
     query_field : str
         The field name in the JSONL file that contains the query.
     target_document_field : str

@@ -27,6 +27,7 @@ HELP_TEXT = {
     "llm_model_name": "Name of the LLM model.",
     "prompt_template_path": "Path to the prompt template file.",
     "system_prompt_path": "Path to the system prompt file.",
+    "generate_only": "If True, only generate the responses from the queries without evaluating.",
     "serve": "If True, serve the vector store as a FastAPI app. If False, make sure that persist_directory must be passed.",
     "host_serve": "Host to listen on.",
     "port_serve": "Port to listen on.",
@@ -426,6 +427,10 @@ def query_rag(
 @cli.command()
 def evaluate_rag(
     input_file: Annotated[str, typer.Argument(help="Path to the input file.")],
+    generate_only: Annotated[
+        bool,
+        typer.Option(help=HELP_TEXT["generate_only"]),
+    ] = False,
     output_file: Annotated[
         str, typer.Option(help="Path to the output file.")
     ] = "./data/evaluation_rag_results.jsonl",
@@ -509,6 +514,7 @@ def evaluate_rag(
         query_field=query_field,
         target_document_field=target_document_field,
         conditions_folder=conditions_folder,
+        generate_only=generate_only,
         main_only=main_only,
         config=RetrieverConfig(
             embedding_model_name=embedding_model_name,
