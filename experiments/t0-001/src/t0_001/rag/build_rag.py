@@ -25,6 +25,7 @@ class State(TypedDict):
 
     question: str
     context: list[Document]
+    demographics: str | None
     messages: str
     answer: str
 
@@ -36,6 +37,7 @@ class RAG:
         prompt: PromptTemplate,
         llm: LLM,
         tools: list | None = None,
+        tools_kwargs: dict = {},
     ):
         """
         Initalise the RAG class with the vector store, prompt, and LLM.
@@ -52,13 +54,17 @@ class RAG:
             Prompt template to use for the LLM.
         llm : LLM
             LLM to use for generation.
+        tools : list | None, optional
+            List of tools to bind to the LLM. By default None.
+        tools_kwargs : dict, optional
+            Keyword arguments to pass to the tools. By default {}.
         """
         self.retriever: CustomParentDocumentRetriever = retriever
         self.prompt: PromptTemplate = prompt
         self.llm: LLM = llm
         self.tools: list | None = tools
         if tools is not None:
-            self.llm = self.llm.bind_tools(tools)
+            self.llm = self.llm.bind_tools(tools, **tools_kwargs)
         self.memory: MemorySaver = MemorySaver()
         self.graph: CompiledStateGraph = self.build_graph()
 
@@ -97,15 +103,21 @@ class RAG:
             A dictionary containing the generated answer and the messages used to generate it.
         """
         # obtain the sources and the context from the retrieved documents
-        sources = f"Sources: {[doc.metadata['source'] for doc in state['context']]}"
+        sources = [doc.metadata["source"] for doc in state["context"]]
+        sources_str = f"Sources: {sources}"
         retrieved_docs = [
             f"{'-' * 100}\nSource: {doc.metadata['source']}\nContent:\n{doc.page_content}"
             for doc in state["context"]
         ]
 
-        docs_content = "\n".join(retrieved_docs + [sources])
+        docs_content = "\n".join(retrieved_docs + [sources_str])
         messages = self.prompt.invoke(
-            {"question": state["question"], "context": docs_content}
+            {
+                "question": state["question"],
+                "context": docs_content,
+                "demographics": state["demographics"],
+                "sources": sources,
+            },
         )
 
         response = self.llm.invoke(messages)
@@ -126,9 +138,11 @@ class RAG:
         graph = graph_builder.compile(checkpointer=self.memory)
         return graph
 
-    def _query(self, question: str, user_id: str = "0") -> State:
+    def _query(
+        self, question: str, user_id: str = "0", demographics: str | None = None
+    ) -> State:
         response = self.graph.invoke(
-            input={"question": question},
+            input={"question": question, "demographics": demographics},
             config={"configurable": {"thread_id": user_id}},
         )
         return response
@@ -232,6 +246,7 @@ def build_rag(
     llm_provider: str = "huggingface",
     llm_model_name: str = "Qwen/Qwen2.5-1.5B-Instruct",
     tools: list | None = None,
+    tools_kwargs: dict = {},
     prompt_template_path: str | Path | None = None,
     system_prompt_path: str | Path | None = None,
 ) -> RAG:
@@ -278,6 +293,7 @@ def build_rag(
         prompt=prompt_template,
         llm=llm,
         tools=tools,
+        tools_kwargs=tools_kwargs,
     )
 
     return rag
