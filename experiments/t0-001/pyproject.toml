@@ -15,7 +15,7 @@ dependencies = [
     "openai>=1.72.0",
 ]
 
-[dependency-groups]
+[project.optional-dependencies]
 rag = [
     "chromadb>=0.6.3",
     "ollama>=0.4.7",
@@ -23,16 +23,18 @@ rag = [
     "typer>=0.15.2",
     "fastapi>=0.115.12",
     "faiss-cpu>=1.10.0",
-    "langchain-community>=0.3.20",
-    "transformers>=4.50.3",
+    "langchain-community>=0.3.21",
+    "transformers>=4.51.1",
     "torch>=2.6.0",
-    "langchain>=0.3.22",
+    "langchain>=0.3.23",
     "langchain-huggingface>=0.1.2",
     "tiktoken>=0.9.0",
     "langgraph>=0.3.22",
+    "langchain-openai>=0.3.12",
+    "langchain-azure-ai>=0.1.2",
 ]
 dev = [
-  "pre-commit>=4.2.0"
+    "pre-commit>=4.2.0"
 ]
 
 [tool.uv]

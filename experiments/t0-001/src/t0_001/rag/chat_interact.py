@@ -10,6 +10,7 @@ def run_chat_interact(
     config: RetrieverConfig = DEFAULT_RETRIEVER_CONFIG,
     force_create: bool = False,
     trust_source: bool = False,
+    llm_provider: str = "huggingface",
     llm_model_name: str = "Qwen/Qwen2.5-1.5B-Instruct",
 ):
     rag = build_rag(
@@ -18,6 +19,7 @@ def run_chat_interact(
         config=config,
         force_create=force_create,
         trust_source=trust_source,
+        llm_provider=llm_provider,
         llm_model_name=llm_model_name,
     )
     user_id = "command_line_chat"
