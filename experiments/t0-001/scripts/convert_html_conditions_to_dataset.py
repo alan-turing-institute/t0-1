@@ -23,37 +23,34 @@ def convert_html_to_text(html):
 
 
 def parse_downloaded_conditions(conditions_folder, selected_condition):
+    specific_folder = os.path.join(conditions_folder, selected_condition)
+
     # skip if selected_condition is not a folder
-    if not os.path.isdir(os.path.join(conditions_folder, selected_condition)):
+    if not os.path.isdir(specific_folder):
         print(f"Condition {selected_condition} is not a folder")
         return None
 
     text = []
 
-    if "index.html" in os.listdir(os.path.join(conditions_folder, selected_condition)):
-        content = open(
-            os.path.join(conditions_folder, selected_condition, "index.html"), "r"
-        ).read()
+    if "index.html" in os.listdir(specific_folder):
+        with open(os.path.join(specific_folder, "index.html"), "r") as f:
+            content = f.read()
+        # convert html to text
 
         conditions_content = convert_html_to_text(content)
 
         if conditions_content is not None:
             text.append(conditions_content)
 
-    for folder in os.listdir(os.path.join(conditions_folder, selected_condition)):
-        if not os.path.isdir(
-            os.path.join(conditions_folder, selected_condition, folder)
-        ):
+    for folder in os.listdir(specific_folder):
+        specific_subfolder = os.path.join(conditions_folder, selected_condition, folder)
+        if not os.path.isdir(specific_subfolder):
             continue
         # skip if index.html is not in the folder
-        if "index.html" not in os.listdir(
-            os.path.join(conditions_folder, selected_condition, folder)
-        ):
+        if "index.html" not in os.listdir(specific_subfolder):
             continue
-        content = open(
-            os.path.join(conditions_folder, selected_condition, folder, "index.html"),
-            "r",
-        ).read()
+        with open(os.path.join(specific_subfolder, "index.html"), "r") as f:
+            content = f.read()
         conditions_content = convert_html_to_text(content)
         if conditions_content is not None:
             text.append(conditions_content)
