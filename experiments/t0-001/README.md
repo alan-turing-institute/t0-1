@@ -222,6 +222,20 @@ Model: Switched to query-with-context mode.
 
 ### Generating synthetic queries
 
+For generating synthetic queries from NHS 111 patients, you can use the `t0-001 generate-synth-queries` command. This will generate synthetic queries based on the conditions in the `nhs-use-case` folder and save them to a JSONL file.
+
+The main options for the `t0-001 generate-synth-queries` command are:
+- `--n-queries`: The number of queries to generate. Default is 10.
+- `--model`: The model to use for generating the queries. This should be the name of the model to use (e.g., `gpt-4o`, `gemma3:1b`, etc.). For "gpt-4o" and "o3-mini" models, Azure endpoints are used and you will need to set the environment variables for ``AZURE_OPENAI_API_KEY` and `AZURE_OPENAI_ENDPOINT`. Otherwise the model will be called via Ollama.
+- `--overwrite`: Flag for overwriting existing output files. This is useful if you want to regenerate the queries.
+
+Use `t0-001 generate-synth-queries --help` to see all the options.
+
+To set the environment variables for using the Azure endpoints, create an `.env` file as described above:
+```bash
+AZURE_OPENAI_API_KEY=<your-key>
+AZURE_OPENAI_ENDPOINT=<your-endpoint>
+```
 
 ### Azure AI Foundry Endpoints
 
