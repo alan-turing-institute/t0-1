@@ -12,7 +12,6 @@ from t0_001.query_vector_store.build_retriever import (
 from t0_001.query_vector_store.custom_parent_document_retriever import (
     CustomParentDocumentRetriever,
 )
-from t0_001.rag.chat_model import get_huggingface_chat_model
 from typing_extensions import TypedDict
 
 
@@ -217,6 +216,7 @@ def build_rag(
     config: RetrieverConfig = DEFAULT_RETRIEVER_CONFIG,
     force_create: bool = False,
     trust_source: bool = False,
+    llm_provider: str = "huggingface",
     llm_model_name: str = "Qwen/Qwen2.5-1.5B-Instruct",
 ) -> RAG:
     retriever = get_parent_doc_retriever(
@@ -226,7 +226,22 @@ def build_rag(
         force_create=force_create,
         trust_source=trust_source,
     )
-    llm = get_huggingface_chat_model(method="pipeline", model_name=llm_model_name)
+    if llm_provider == "huggingface":
+        from t0_001.rag.chat_model import get_huggingface_chat_model
+
+        llm = get_huggingface_chat_model(method="pipeline", model_name=llm_model_name)
+    elif llm_provider == "azure_openai":
+        from t0_001.rag.chat_model import get_azure_openai_chat_model
+
+        llm = get_azure_openai_chat_model(model_name=llm_model_name)
+    elif llm_provider == "azure":
+        from t0_001.rag.chat_model import get_azure_endpoint_chat_model
+
+        llm = get_azure_endpoint_chat_model(model_name=llm_model_name)
+    else:
+        raise ValueError(
+            f"Unknown LLM provider: {llm_provider}. Use 'huggingface', 'azure_openai', or 'azure'."
+        )
     rag = RAG(
         retriever=retriever,
         prompt=hub.pull("rlm/rag-prompt"),
