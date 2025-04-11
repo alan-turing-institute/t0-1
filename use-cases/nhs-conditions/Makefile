@@ -1,15 +1,29 @@
-## Bugs: The subdirectory conditions/conditions should really be /conditions/mental-health
+## Instructions:
+## `make download` scrapes the website; then
+## `make all` makes index.txt from every index.html
 
-.PHONY: all
+.PHONY: download all
 
-# -w 3 adds a 3 second delay between each request
-all: all-conditions.txt
-	echo "Information from the NHS website as at " `date` > conditions/README.txt
-	wget -P conditions -x -nH --cut-dirs=1 -w 3 -i $<
+# -r             Recursively download
+# -l 0           Download to arbitrary depth
+# --no-parent    ... but nothing above this level
+# --domains      ... and only from this domain 
+# --reject-regex ... ignore some weird embedded URLs
+# -nH            Don't make www.nhs.uk the top-level directory of the output
+# -w 2           Add a 2 second delay between each request
+download: 
+	echo "Information from the NHS website as at" `date` > ogl-requirement.txt
+	wget -r -nH -w 2 -l 0 --no-parent --no-clobber --domains www.nhs.uk --reject-regex '\\\"' https://www.nhs.uk/conditions/
 
-# xidel extracts part of the HTML identified by an XPath locator
-all-conditions.txt: www_nhs_uk-conditions.html add-url.awk
-	xidel $< -e '/html/body//article/ol//ul/li/a/@href' | sort | uniq | awk -f add-url.awk - > $@
+htmls := $(patsubst %.html, %.txt, $(shell find conditions/ -name index.html))
 
-www_nhs_uk-conditions.html:
-	curl "https://www.nhs.uk/conditions/" > $@
+all: $(htmls)
+
+%.txt: %.html
+	pandoc --to=plain -o $@ $<
+
+
+## New approach:
+## wget -r -nH -w 2 -l 0 --no-parent --domains www.nhs.uk https://www.nhs.uk/conditions
+## NB: -nc (--no-clobber) prevents redownload of existing files
+

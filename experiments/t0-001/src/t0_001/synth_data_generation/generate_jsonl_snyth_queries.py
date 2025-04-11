@@ -71,9 +71,11 @@ def generate_synthetic_queries(
             )
 
     # write the jsonl file
-    with open(os.path.join(save_path, filename), "w") as f:
+    with open(os.path.join(save_path, filename), "w") as out:
         logging.info(f"Saving to {os.path.join(save_path, filename)}")
-        for _ in tqdm.tqdm(range(n_queries)):
+        i = 0
+        progress_bar = tqdm.tqdm(total=n_queries)
+        while i < n_queries:
             # random pick
             query_type = random.choice(
                 ["basic", "cluster", "hypochondriac", "vague", "downplay"]
@@ -91,9 +93,10 @@ def generate_synthetic_queries(
 
             # loop a few times and pick something meaningful for now (some "conditions" are not really conditions!)
             selected_condition = random.choice(os.listdir(conditions_path))
-            content = open(
+            with open(
                 os.path.join(conditions_path, selected_condition, "index.html"), "r"
-            ).read()
+            ) as f:
+                content = f.read()
             soup = BeautifulSoup(content, "html.parser")
             # Extract the main element
             main_element = soup.find("main", class_="nhsuk-main-wrapper")
@@ -137,7 +140,11 @@ def generate_synthetic_queries(
                     json_object["severity_level"] = severity_level
                     json_object["conditions_title"] = selected_condition
 
-                    f.write(json.dumps(json_object) + "\n")
+                    out.write(json.dumps(json_object) + "\n")
+
+                    # update the progress
+                    progress_bar.update(1)
+                    i += 1
                 else:
                     print(
                         "Response does not contain the expected keys. Skipping this response."
@@ -146,7 +153,7 @@ def generate_synthetic_queries(
                 print("Response is not a valid JSON. Skipping this response.")
             except Exception as e:
                 print(f"An error occurred: {e}")
-    f.close()
+    out.close()
 
 
 if __name__ == "__main__":
