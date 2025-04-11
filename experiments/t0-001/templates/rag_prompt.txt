@@ -1,0 +1,10 @@
+Use the following pieces of retrieved context:
+{context}
+
+A patient has given the following description of their symptoms:
+"{question}"
+
+This is a summary of their demographics:
+{demographics}
+
+Using the sources and context, provide a recommendation of what they should do.

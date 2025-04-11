@@ -2,6 +2,7 @@ import json
 import logging
 from pathlib import Path
 
+from langchain_core.tools import tool
 from t0_001.rag.build_rag import (
     DEFAULT_RETRIEVER_CONFIG,
     RAG,
@@ -10,16 +11,26 @@ from t0_001.rag.build_rag import (
 )
 from t0_001.utils import read_jsonl, timestamp_file_name
 from tqdm import tqdm
-from typing_extensions import Annotated, TypedDict
 
 
-class ConditionRecommendation(TypedDict):
+@tool
+def submit_condition_recommendation(
+    condition: str,
+    severity_level: str,
+) -> str:
     """
     Submit a condition recommendation and severity level.
-    """
 
-    condition: Annotated[str, "Name of the condition or procedure"]
-    severity_level: Annotated[str, "Severity level of the condition"]
+    Parameters
+    ----------
+    condition : str
+        Name of the condition or procedure. This must be one of the sources
+        provided or "inconclusive" if the model is not confident.
+    severity_level : str
+        Severity level of the condition. This must be one of
+        ["Not urgent", "Medium", "Medium urgent", "Urgent"].
+    """
+    return f"Condition: {condition}, Severity Level: {severity_level}"
 
 
 def remove_dash_and_spaces(string: str) -> str:
@@ -56,6 +67,7 @@ def evaluate_rag(
         raise ValueError(f"File {output_file} is not a JSONL file.")
 
     data = read_jsonl(input_file)
+    retriever_match_sum = 0
     conditions_sum = 0
     severity_sum = 0
     results = []
@@ -70,7 +82,10 @@ def evaluate_rag(
         target_document = item[target_document_field]
 
         # obtain the top k documents from the vector store
-        response = rag._query(question=query)
+        response = rag._query(
+            question=query, demographics=str(item["general_demographics"])
+        )
+        print(response["answer"])
 
         if (
             response["answer"].additional_kwargs.get("tool_calls") is not None
@@ -125,6 +140,12 @@ def evaluate_rag(
             "severity_match": severity_match,
         }
 
+        # check for match between the source of the retrieved documents and the target document source
+        res["retriever_match"] = target_document in set(
+            res["retrieved_documents_sources"]
+        )
+        retriever_match_sum += res["retriever_match"]
+
         # write the results to the output file
         with open(output_file, "a") as f:
             json.dump(res, f)
@@ -133,6 +154,9 @@ def evaluate_rag(
         # append the result to the results list
         results.append(res)
 
+    logging.info(
+        f"Proportion of retriever matches: {retriever_match_sum}/{len(data)} = {retriever_match_sum / len(data):.2%}"
+    )
     logging.info(
         f"Proportion of condition matches: {conditions_sum}/{len(data)} = {conditions_sum / len(data):.2%}"
     )
@@ -166,7 +190,7 @@ def main(
         trust_source=trust_source,
         llm_provider=llm_provider,
         llm_model_name=llm_model_name,
-        tools=[ConditionRecommendation],
+        tools=[submit_condition_recommendation],
         prompt_template_path=prompt_template_path,
         system_prompt_path=system_prompt_path,
     )
