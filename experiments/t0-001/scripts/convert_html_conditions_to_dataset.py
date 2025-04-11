@@ -1,10 +1,12 @@
+import json
 import os
+
 import tqdm
 from bs4 import BeautifulSoup
-import json
 
 # path to the condition folder (download them from sharepoint or scrape them again)
 conditions_folder = "../nhs-use-case/v2/conditions/"
+
 
 def convert_html_to_text(html):
     soup = BeautifulSoup(html, "html.parser")
@@ -17,10 +19,10 @@ def convert_html_to_text(html):
         conditions_content = conditions_content.split("\nPage last reviewed:")[0]
     except AttributeError:
         return None
-    return conditions_content   
+    return conditions_content
+
 
 def parse_downloaded_conditions(conditions_folder, selected_condition):
-
     # skip if selected_condition is not a folder
     if not os.path.isdir(os.path.join(conditions_folder, selected_condition)):
         print(f"Condition {selected_condition} is not a folder")
@@ -28,9 +30,7 @@ def parse_downloaded_conditions(conditions_folder, selected_condition):
 
     text = []
 
-    if "index.html" in os.listdir(
-        os.path.join(conditions_folder, selected_condition)
-    ):
+    if "index.html" in os.listdir(os.path.join(conditions_folder, selected_condition)):
         content = open(
             os.path.join(conditions_folder, selected_condition, "index.html"), "r"
         ).read()
@@ -40,11 +40,10 @@ def parse_downloaded_conditions(conditions_folder, selected_condition):
         if conditions_content is not None:
             text.append(conditions_content)
 
-
-    for folder in os.listdir(
-        os.path.join(conditions_folder, selected_condition)
-    ):
-        if not os.path.isdir(os.path.join(conditions_folder, selected_condition, folder)):
+    for folder in os.listdir(os.path.join(conditions_folder, selected_condition)):
+        if not os.path.isdir(
+            os.path.join(conditions_folder, selected_condition, folder)
+        ):
             continue
         # skip if index.html is not in the folder
         if "index.html" not in os.listdir(
@@ -52,18 +51,20 @@ def parse_downloaded_conditions(conditions_folder, selected_condition):
         ):
             continue
         content = open(
-            os.path.join(conditions_folder, selected_condition, folder, "index.html"), "r"
+            os.path.join(conditions_folder, selected_condition, folder, "index.html"),
+            "r",
         ).read()
         conditions_content = convert_html_to_text(content)
         if conditions_content is not None:
             text.append(conditions_content)
-            
+
     if len(text) == 0:
         print(f"Condition {selected_condition} does not have content")
         return None
     # join the text
     conditions_content = "\n".join(text)
     return conditions_content
+
 
 # create a pandas dataframe with condition title and converted text
 all_conditions_content = []
@@ -78,13 +79,12 @@ for condition in tqdm.tqdm(os.listdir(conditions_folder)):
             }
         )
 
-#save the output to a jsonl file
+# save the output to a jsonl file
 output_folder = "../data/nhs-conditions/"
 
 if not os.path.exists(output_folder):
     os.makedirs(output_folder)
 
-with open(
-    os.path.join(output_folder, "conditions.jsonl"), "w", encoding="utf-8") as f:
+with open(os.path.join(output_folder, "conditions.jsonl"), "w", encoding="utf-8") as f:
     for condition in all_conditions_content:
         f.write(json.dumps(condition) + "\n")
