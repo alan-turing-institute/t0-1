@@ -40,8 +40,6 @@ def get_azure_openai_key(model: str):
     model : str
         The model to use. Must be one of the following: gpt-4o, o3-mini, o1.
     """
-    logging.getLogger(__name__)
-
     key = get_environment_variable("AZURE_OPENAI_API_KEY", model)
     return key
 
