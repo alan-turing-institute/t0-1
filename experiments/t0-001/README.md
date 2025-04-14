@@ -36,7 +36,7 @@ For `t0-001`, we have several command line interfaces (CLIs) (implemented using 
 - [Serving and querying from a retriever](#serving-and-querying-from-a-retriever)
 - [Evaluating the retriever](#evaluating-the-retriever)
 - [Serving and querying from a RAG model](#serving-and-querying-from-a-rag-model)
-- [Initalising a RAG chat interaction](#initalising-a-rag-chat-interaction)
+- [Initialising a RAG chat interaction](#initalising-a-rag-chat-interaction)
 - [Generating synthetic queries](#generating-synthetic-queries)
 
 ### Serving and querying from the query vector store
@@ -123,7 +123,7 @@ As with a vector store, you can save and load a vector store by using the `--per
 
 You can also decide to not serve and just build the vector store by using the `--no-serve` option. This will build the vector store and save it to the provided path, but will not start the FastAPI server.
 
-All of these options have default arguments (see `t0-001 serve-retriever --help`), so you can just run the command as is. But to svae and load the vector store, you need to provide the `--persist-directory` and `--local-file-store` options:
+All of these options have default arguments (see `t0-001 serve-retriever --help`), so you can just run the command as is. But to save and load the vector store, you need to provide the `--persist-directory` and `--local-file-store` options:
 ```bash
 t0-001 serve-retriever --persist-directory ./nhs-use-case-db --local-file-store ./nhs-use-case-fs
 ```
@@ -194,7 +194,7 @@ t0-001 query-rag \
   "What should I do if I have lost a lot of weight over the last 3 to 6 months?"
 ```
 
-### Initalising a RAG chat interaction
+### Initialising a RAG chat interaction
 
 For spinning up a local RAG chat interaction, you can use the `t0-001 rag-chat` command. Most of the options are similar to those discussed above in the `t0-001 serve-vector-store` and `t0-001 serve-rag` commands - use `t0-001 rag-chat --help` to see all the options.
 
