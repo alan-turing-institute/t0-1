@@ -6,6 +6,9 @@ import re
 
 import tqdm
 from t0_001.synth_data_generation.azure import (
+    AZURE_OPENAI_ENDPOINTS,
+    get_azure_openai_endpoint,
+    get_azure_openai_key,
     get_response_from_azure_model,
     set_up_azure_client,
 )
@@ -110,9 +113,12 @@ def generate_synthetic_queries(
             prompt = fill_template(template, data)
 
             # Get the response from the model
-            if model in {"gpt-4o", "o3-mini"}:
+            if model in AZURE_OPENAI_ENDPOINTS:
                 logging.info(f"Using {model} model via Azure OpenAI.")
-                client = set_up_azure_client()
+                # set up the client
+                endpoint = get_azure_openai_endpoint(model)
+                key = get_azure_openai_key()
+                client = set_up_azure_client(endpoint=endpoint, key=key)
                 response = get_response_from_azure_model(client=client, prompt=prompt)
             else:
                 # assume otherwise it's ollama
