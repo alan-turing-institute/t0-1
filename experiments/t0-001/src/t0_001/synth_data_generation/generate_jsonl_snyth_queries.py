@@ -6,8 +6,10 @@ import re
 
 import git
 import tqdm
-from bs4 import BeautifulSoup
 from t0_001.synth_data_generation.azure import (
+    AZURE_OPENAI_ENDPOINTS,
+    get_azure_openai_endpoint,
+    get_azure_openai_key,
     get_response_from_azure_model,
     set_up_azure_client,
 )
@@ -26,7 +28,7 @@ def generate_synthetic_queries(
     n_queries=10,
     template_path="./templates/synthetic_data.txt",
     save_path="./data/synthetic_queries/",
-    conditions_path="./nhs-use-case/conditions/",
+    conditions_path="./data/nhs-conditions/conditions.jsonl",
     model="gpt-4o",
     overwrite=False,
 ):
@@ -41,7 +43,7 @@ def generate_synthetic_queries(
     save_path : str, optional
         The path to save the outputs, by default "./data/synthetic_queries/"
     conditions_path : str, optional
-        The path the NHS conditions data, by default "./nhs-use-case/conditions/"
+        The path the NHS conditions file, by default "./data/nhs-conditions/conditions.jsonl"
     model : str, optional
         The name of the model to use, by default "gpt-4o". If "gpt-4o" or "o3-mini", it uses the Azure OpenAI API. Otherwise, it uses the Ollama API.
     overwrite : bool, optional
@@ -94,33 +96,32 @@ def generate_synthetic_queries(
             )
             sex = random.choice(["Male", "Female"])
 
-            # loop a few times and pick something meaningful for now (some "conditions" are not really conditions!)
-            selected_condition = random.choice(os.listdir(conditions_path))
-            with open(
-                os.path.join(conditions_path, selected_condition, "index.html"), "r"
-            ) as f:
-                content = f.read()
-            soup = BeautifulSoup(content, "html.parser")
-            # Extract the main element
-            main_element = soup.find("main", class_="nhsuk-main-wrapper")
+            conditions = []
+            with open(conditions_path, "r") as f:
+                lines = f.readlines()
+                for line in lines:
+                    conditions.append(json.loads(line))
 
-            # Extract the text from the main element
-            conditions_content = main_element.get_text(separator="\n", strip=True)
+            # loop a few times and pick something meaningful for now (some "conditions" are not really conditions!)
+            selected_condition = random.choice(conditions)
 
             data = {
                 "query_type": query_type,
                 "severity_level": severity_level,
-                "conditions_content": conditions_content,
-                "conditions_title": selected_condition,
+                "conditions_content": selected_condition["condition_content"],
+                "conditions_title": selected_condition["condition_title"],
                 "sex": sex,
             }
 
             prompt = fill_template(template, data)
 
             # Get the response from the model
-            if model in {"gpt-4o", "o3-mini"}:
+            if model in AZURE_OPENAI_ENDPOINTS:
                 logging.info(f"Using {model} model via Azure OpenAI.")
-                client = set_up_azure_client()
+                # set up the client
+                endpoint = get_azure_openai_endpoint(model)
+                key = get_azure_openai_key(model)
+                client = set_up_azure_client(endpoint=endpoint, key=key)
                 response = get_response_from_azure_model(client=client, prompt=prompt)
             else:
                 # assume otherwise it's ollama
@@ -141,7 +142,9 @@ def generate_synthetic_queries(
                 ):
                     json_object["query_type"] = query_type
                     json_object["severity_level"] = severity_level
-                    json_object["conditions_title"] = selected_condition
+                    json_object["conditions_title"] = selected_condition[
+                        "condition_title"
+                    ]
 
                     out.write(json.dumps(json_object) + "\n")
 
