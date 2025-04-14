@@ -144,7 +144,7 @@ def evaluate_vector_store(
     input_file: Annotated[str, typer.Argument(help="Path to the input file.")],
     output_file: Annotated[
         str, typer.Option(help="Path to the output file.")
-    ] = "./data/evaluation_vector_store_results.jsonl",
+    ] = "./data/evaluation/evaluation_vector_store_results.jsonl",
     query_field: Annotated[
         str, typer.Option(help="Field name for the query in the input file.")
     ] = "symptoms_description",
@@ -433,7 +433,7 @@ def evaluate_rag(
     ] = False,
     output_file: Annotated[
         str, typer.Option(help="Path to the output file.")
-    ] = "./data/evaluation_rag_results.jsonl",
+    ] = "./data/evaluation/evaluation_rag_results.jsonl",
     query_field: Annotated[
         str, typer.Option(help="Field name for the query in the input file.")
     ] = "symptoms_description",
