@@ -238,8 +238,7 @@ class RAG:
 
 
 def build_rag(
-    conditions_folder: str,
-    main_only: bool = True,
+    conditions_file: str,
     config: RetrieverConfig = DEFAULT_RETRIEVER_CONFIG,
     force_create: bool = False,
     trust_source: bool = False,
@@ -252,8 +251,7 @@ def build_rag(
 ) -> RAG:
     # obtain the retriever for RAG
     retriever = get_parent_doc_retriever(
-        conditions_folder=conditions_folder,
-        main_only=main_only,
+        conditions_file=conditions_file,
         config=config,
         force_create=force_create,
         trust_source=trust_source,

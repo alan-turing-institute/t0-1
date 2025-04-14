@@ -243,9 +243,8 @@ def main(
     output_file: str | Path,
     query_field: str,
     target_document_field: str,
-    conditions_folder: str,
+    conditions_file: str,
     generate_only: bool = False,
-    main_only: bool = True,
     config: RetrieverConfig = DEFAULT_RETRIEVER_CONFIG,
     force_create: bool = False,
     trust_source: bool = False,
@@ -256,8 +255,7 @@ def main(
     deepseek_r1: bool = False,
 ):
     rag = build_rag(
-        conditions_folder=conditions_folder,
-        main_only=main_only,
+        conditions_file=conditions_file,
         config=config,
         force_create=force_create,
         trust_source=trust_source,

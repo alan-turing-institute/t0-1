@@ -9,7 +9,10 @@ from langchain_core.vectorstores import VectorStore
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_text_splitters import SentenceTransformersTokenTextSplitter
 from langchain_text_splitters.base import TextSplitter
-from t0_001.query_vector_store.utils import load_conditions, remove_saved_directory
+from t0_001.query_vector_store.utils import (
+    load_conditions_jsonl,
+    remove_saved_directory,
+)
 
 
 @dataclass
@@ -75,8 +78,7 @@ def setup_text_splitter(
 
 
 def create_vector_store(
-    conditions_folder: str,
-    main_only: bool = True,
+    conditions_file: str,
     config: VectorStoreConfig = DEFAULT_VECTOR_STORE_CONFIG,
 ) -> VectorStore:
     """
@@ -86,10 +88,8 @@ def create_vector_store(
 
     Parameters
     ----------
-    conditions_folder : str
-        The folder containing the conditions to be indexed.
-    main_only : bool, optional
-        If True, only the main conditions will be loaded. Default is True.
+    conditions_file : str
+        The file containing the conditions to be indexed.
     config : VectorStoreConfig, optional
         The configuration for the vector store which includes the embedding model name,
         chunk overlap size, database choice, and persist directory.
@@ -101,7 +101,7 @@ def create_vector_store(
         The created vector store instance.
     """
     logging.info(f"Creating vector store with {config.db_choice} database...")
-    conditions = load_conditions(conditions_folder, main_only)
+    conditions = load_conditions_jsonl(conditions_file)
     embedding_model = setup_embedding_model(config.embedding_model_name)
     text_splitter = setup_text_splitter(
         config.embedding_model_name, config.chunk_overlap
@@ -152,8 +152,7 @@ def load_vector_store(
 
 
 def get_vector_store(
-    conditions_folder: str,
-    main_only: bool = True,
+    conditions_file: str,
     config: VectorStoreConfig = DEFAULT_VECTOR_STORE_CONFIG,
     force_create: bool = False,
     trust_source: bool = False,
@@ -166,10 +165,8 @@ def get_vector_store(
 
     Parameters
     ----------
-    conditions_folder : str
-        The folder containing the conditions to be indexed.
-    main_only : bool, optional
-        If True, only the main conditions will be loaded. Default is True.
+    conditions_file : str
+        The file containing the conditions to be indexed.
     config : VectorStoreConfig, optional
         The configuration for the vector store which includes the embedding model name,
         chunk overlap size, database choice, and persist directory.
@@ -204,8 +201,7 @@ def get_vector_store(
         remove_saved_directory(config.persist_directory, "persist_directory")
 
         db = create_vector_store(
-            conditions_folder=conditions_folder,
-            main_only=main_only,
+            conditions_file=conditions_file,
             config=config,
         )
 
