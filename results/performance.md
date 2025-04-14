@@ -1,6 +1,6 @@
 # Knowledge retrieval summary results
 
-## Goal 
+## Goal
 
 Answers to:
 1. Does RAG improve over no RAG? (results in table 2b vs 3a)
@@ -55,7 +55,7 @@ model. Sets the baseline precision.
 | Qwen (32B)  | 10 | 0.53               | 0.46              |
 |             | 50 | 0.59               | 0.43              |
 
-NB. Qwen is Qwen2.5 Instruct. 
+NB. Qwen is Qwen2.5 Instruct.
 
 ### 2.b Large evaluation set (cross-check with 2a)
 
@@ -88,7 +88,7 @@ NB. Qwen is Qwen2.5 Instruct.
 Results with a large model, without passing in documents for RAG,
 large evaluation set.
 
-### 3.a 
+### 3.a
 
 | LLM         | Condition Accuracy | Severity Accuracy |
 |-------------|--------------------|-------------------|
@@ -111,7 +111,7 @@ data. There are two ideas:
 1. s1 (Qwen32B fine-tuned on reasoning)
 2. "Marcel" aka t1 (Qwen32B fine-tuned on domain-specific reasoning
    traces).
-   
+
 | LLM    | Condition Accuracy | Severity Accuracy |
 |--------|--------------------|-------------------|
 | s1     | x                  | x                 |
