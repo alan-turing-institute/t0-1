@@ -196,3 +196,4 @@ experiments/t0-001/data/evaluation_results_*
 *_synthetic_queries.jsonl
 experiments/t0-001/scripts/gpt-4o_*
 *nhs_use_case_db_notebook
+experiments/t0-001/data/nhs-conditions*
