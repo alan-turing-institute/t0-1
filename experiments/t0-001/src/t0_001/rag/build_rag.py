@@ -40,10 +40,10 @@ class RAG:
         tools_kwargs: dict = {},
     ):
         """
-        Initalise the RAG class with the vector store, prompt, and LLM.
+        Initialise the RAG class with the vector store, prompt, and LLM.
         The vector store is used to retrieve documents, the prompt is used to
         format the input for the LLM, and the LLM is used to generate the answer.
-        Upon initalisation, the class builds a Langchain compiled state graph
+        Upon initialisation, the class builds a Langchain compiled state graph
         with the retrieve and generate functions as nodes.
 
         Parameters
