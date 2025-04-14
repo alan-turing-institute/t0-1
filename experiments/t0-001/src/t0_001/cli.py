@@ -421,8 +421,8 @@ def generate_synth_queries(
         str, typer.Option(help="Path to save the generated queries.")
     ] = "./data/synthetic_queries/",
     conditions_path: Annotated[
-        str, typer.Option(help="Path to the NHS conditions folder.")
-    ] = CONDITIONS_FOLDER,
+        str, typer.Option(help="Path to the NHS conditions file.")
+    ] = "./data/nhs-conditions/conditions.jsonl",
     model: Annotated[str, typer.Option(help="Model to use for generation.")] = "gpt-4o",
     overwrite: Annotated[bool, typer.Option(help="Overwrite existing files.")] = False,
     env_file: Annotated[
