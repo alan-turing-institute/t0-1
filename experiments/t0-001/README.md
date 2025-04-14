@@ -12,7 +12,7 @@ Create a virtual environment, activate it and install required dependencies (in 
 ```bash
 uv venv .venv --python=3.12
 source .venv/bin/activate
-uv pip install ".[rag,dev]"
+uv pip install -e ".[rag,dev]"
 ```
 
 ## Data
