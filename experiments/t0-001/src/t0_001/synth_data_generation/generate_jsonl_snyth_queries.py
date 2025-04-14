@@ -4,6 +4,7 @@ import os
 import random
 import re
 
+import git
 import tqdm
 from bs4 import BeautifulSoup
 from t0_001.synth_data_generation.azure import (
@@ -53,11 +54,13 @@ def generate_synthetic_queries(
         template = f.read()
 
     # define jsonl file
-    model = model
-    save_path = save_path
     if not os.path.exists(save_path):
         os.makedirs(save_path)
-    filename = f"{model}_{n_queries}_synthetic_queries.jsonl"
+    # get the current git commit hash
+    repo = git.Repo(search_parent_directories=True)
+    commit_hash = repo.head.object.hexsha
+
+    filename = f"{commit_hash}_{model}_{n_queries}_synthetic_queries.jsonl"
 
     if os.path.exists(os.path.join(save_path, filename)):
         if overwrite:
