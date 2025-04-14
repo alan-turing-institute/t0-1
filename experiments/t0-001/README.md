@@ -12,7 +12,7 @@ Create a virtual environment, activate it and install required dependencies (in 
 ```bash
 uv venv .venv --python=3.12
 source .venv/bin/activate
-uv pip install -r pyproject.toml --extra rag --extra dev
+uv pip install ".[rag,dev]"
 ```
 
 ## Data
@@ -248,6 +248,22 @@ t0-001 evaluate-rag data/synthetic_queries/gpt-4o_100_synthetic_queries.jsonl \
 ```
 
 ### Generating synthetic queries
+
+For generating synthetic queries from NHS 111 patients, you can use the `t0-001 generate-synth-queries` command. This will generate synthetic queries based on the conditions in the `nhs-use-case` folder and save them to a JSONL file.
+
+The main options for the `t0-001 generate-synth-queries` command are:
+- `--n-queries`: The number of queries to generate. Default is 10.
+- `--model`: The model to use for generating the queries. This should be the name of the model to use (e.g., `gpt-4o`, `gemma3:1b`, etc.). For Azure OpenAI models, Azure endpoints are used and you will need to set the environment variables for ``AZURE_OPENAI_API_KEY` and `AZURE_OPENAI_ENDPOINT` (or `AZURE_OPENAI_ENDPOINT_{model}` where `model` is your model name.). Otherwise the model will be called via Ollama.
+- `--overwrite`: Flag for overwriting existing output files. This is useful if you want to regenerate the queries.
+- `--env-file`: Path to the environment file. This is used to load the environment variables for the Azure endpoints. By default it loads a `.env` file in the current directory.
+
+Use `t0-001 generate-synth-queries --help` to see all the options.
+
+To set the environment variables for using the Azure endpoints, create an `.env` file as described above.
+
+Endpoints can be of the form:
+- `https://<your-resouce-name>.openai.azure.com/openai/deployments/<your-deployment-name>`, where your-resource-name is your globally unique AOAI resource name, and your-deployment-name is your AI Model deployment name.
+- OR `https://<your-resource-name>.openai.azure.com/`, where your-resource-name is your globally unique AOAI resource name. In this case, `openai/deployments/<model>` will be appended afterwards using the model name you provide.
 
 
 ### Azure AI Foundry Endpoints

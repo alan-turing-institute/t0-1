@@ -174,10 +174,11 @@ cython_debug/
 .pypirc
 .DS_Store
 
-# Not production code, I assume we can keep lockfiles out of version control for now...
-poetry.lock
-uv.lock
+# Since this isn't production code, I assume we can keep lockfiles out of version control for now...
+**/uv.lock
 # Project-related ignores.
+data/*
+!data/.gitkeep
 src/fine_tuned_model/*
 experiments/t0-001/src/fine_tuned_model/*
 experiments/t0-001/src/fp32_fine_tuned_model/*
