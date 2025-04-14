@@ -17,7 +17,7 @@ uv pip install ".[rag,dev]"
 
 ## Data
 
-The data used in this project is scraped from the NHS website. Once you have downloaded the data, store it in a directory called `data/nhs-conditions`. This should be a JSONL file where each line has a JSON object with fields `"condition_title"` and `"condition_content"`.
+The data used in this project is scraped from the NHS website. Once you have downloaded the data, convert them into a JSONL file using [this script](scripts/convert_html_conditions_to_dataset.py) and store it in a directory called `data/nhs-conditions`. In this JSONL file each line has a JSON object with fields `"condition_title"` and `"condition_content"`.
 
 The convention is to run scripts and commands from the `experiments/t0-001` directory and use relative paths to the `data/nhs-conditions` directory. For the command line interfaces (CLIs) described below, the `--conditions-file` argument is defaulted to `"./data/nhs-conditions/conditions.jsonl"`.
 
