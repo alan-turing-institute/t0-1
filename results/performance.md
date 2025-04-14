@@ -31,9 +31,12 @@ condition is constrained to be one of the $k$ retrieved documents.
 | mpnet-base-v2 / Chroma         | Small    | 0.47| 0.56| 0.68 | 0.69 |  -   |   -   |
 | mpnet-base-v2 / FAISS          | Small    | 0.47| 0.68| 0.71 | 0.78 |  -   |   -   |
 | mxbai-embed-large-v1 / FAISS   | Small    | 0.51| 0.68| 0.71 | 0.76 |  -   |   -   |
-| mpnet-base-v2 / Chroma         | Large    |  x  |  x  |  x   |  x   |  x   |   x   |
+| mpnet-base-v2 / Chroma         | Large    | 0.44| 0.63| 0.70 | 0.77 | 0.86 | 0.90  |
 | mpnet-base-v2 / FAISS          | Large    | 0.44| 0.63| 0.70 | 0.77 | 0.86 | 0.90  |
 
+### Conclusion
+
+Chroma and FAISS perform very similarly on the large eval set, and Chroma is just slightly faster, so we'll use this as retrieval system for the rest of the evaluation. From now on, we'll consider two *k*, 10 and 50, as they provide an overview of performance when retrieving documents where at least one is relevant in respectivelly 70% and 86% of the queries.
 
 ## 2. Baseline models (RAG)
 
