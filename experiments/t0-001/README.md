@@ -8,10 +8,11 @@ git clone git@github.com:alan-turing-institute/t0.git
 cd experiments/t0-001
 ```
 
-Create a virtual environment, activate it and install required dependencies (in editable mode) using [uv](https://github.com/astral-sh/uv):
+Create a virtual environment, activate it and install required dependencies (in editable mode) using [uv](https://github.com/astral-sh/uv) -- to be improved when we have a moment:
 ```bash
 uv venv .venv --python=3.12
 source .venv/bin/activate
+uv pip install -e .
 uv pip install -r pyproject.toml --extra rag --extra dev
 ```
 
