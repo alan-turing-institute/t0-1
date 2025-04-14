@@ -293,6 +293,7 @@ class VectorStoreCreator:
         if self.db_choice == "chroma":
             from langchain_chroma import Chroma
 
+            logging.info("Creating Chroma database...")
             if config.persist_directory is not None:
                 logging.info(
                     f"Persisting Chroma database to '{config.persist_directory}'"
@@ -306,6 +307,7 @@ class VectorStoreCreator:
         elif self.db_choice == "faiss":
             from langchain_community.vectorstores import FAISS
 
+            logging.info("Creating FAISS database...")
             self.db: VectorStore = FAISS.from_documents(
                 self.documents,
                 self.embedding_model,
