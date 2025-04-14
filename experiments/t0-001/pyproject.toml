@@ -13,6 +13,7 @@ dependencies = [
     "aiohttp>=3.11.15",
     "azureopenai>=0.0.1",
     "openai>=1.72.0",
+    "gitpython>=3.1.44",
     "pandas>=2.2.3",
     "fastparquet>=2024.11.0",
     "huggingface-hub>=0.30.1",
