@@ -34,9 +34,9 @@ For `t0-001`, we have several command line interfaces (CLIs) (implemented using 
 - [Serving and querying from the query vector store](#serving-and-querying-from-the-query-vector-store)
 - [Evaluating the query vector store](#evaluating-the-query-vector-store)
 - [Serving and querying from a retriever](#serving-and-querying-from-a-retriever)
-- [Evaluating the retriever](#evaluating-the-retriever)
 - [Serving and querying from a RAG model](#serving-and-querying-from-a-rag-model)
 - [Initialising a RAG chat interaction](#initalising-a-rag-chat-interaction)
+- [Evaluating RAG](#evaluating-RAG)
 - [Generating synthetic queries](#generating-synthetic-queries)
 
 ### Serving and querying from the query vector store
@@ -218,6 +218,33 @@ You can switch between these during the chat by typing a backslash command: `/qu
 ```bash
 >>> /query-with-sources-mode
 Model: Switched to query-with-context mode.
+```
+
+### Evaluating RAG
+
+For evaluating RAG, you can use the `t0-001 evaluate-rag` command. This takes as input a JSONL file where each row has has a query and a target document (i.e. the name of the document or source of the chunk). In the evaluation, we query the vector database by performing a similarity search to obtain the top `k` relevant documents (note that we retrieve full documents rather than chunks) and ask the model to predict the condition and severity of the query.
+
+You can run this evaluation with the `t0-001 evaluate-rag` command:
+```bash
+t0-001 evaluate-rag data/synthetic_queries/gpt-4o_100_synthetic_queries.jsonl \
+  --k 10 \
+  --llm-provider azure_openai \
+  --llm-model-name gpt-4o \
+  --prompt-template-path templates/rag_evaluation_prompt.txt \
+  --system-prompt-path templates/rag_evaluation_system_prompt.txt
+```
+
+We use tool use to force the model as a form of structured output to get the model to predict the condition and severity.
+
+Note for serving Deepseek-R1 on Azure AI Foundry, tool use is not currently supported, so we slightly adjust the system and prompt template so that it produces an output that we can easily parse. To evaluate Deepseek-R1, you need to use the `--deepseek-r1` option:
+```bash
+t0-001 evaluate-rag data/synthetic_queries/gpt-4o_100_synthetic_queries.jsonl \
+  --k 10 \
+  --llm-provider azure \
+  --llm-model-name deepseek-r1 \
+  --prompt-template-path templates/rag_evaluation_prompt_deepseek_r1.txt \
+  --system-prompt-path templates/rag_evaluation_system_prompt_deepseek_r1.txt \
+  --deepseek-r1
 ```
 
 ### Generating synthetic queries

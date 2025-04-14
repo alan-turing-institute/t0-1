@@ -37,6 +37,41 @@ def remove_dash_and_spaces(string: str) -> str:
     return "".join([c for c in string if c.isalnum()]).lower()
 
 
+def parse_deepseek_r1(string: str) -> tuple[str]:
+    """
+    Responses from deepseek-R1 should be in the format:
+    <think>some reasoning</think>(condition, severity).
+    The function extracts the condition and severity level from the string.
+    The condition and severity level are separated by a comma.
+
+    Parameters
+    ----------
+    string : str
+        The string to parse.
+
+    Returns
+    -------
+    tuple[str]
+        A tuple containing the condition and severity level.
+    """
+    import re
+
+    # split the string into two parts: before and after the reasoning
+    string_after_think_end = string.split("</think>")[-1]
+
+    # extract the condition and severity level using regex
+    match = re.search(r"\(([^,]+), ([^)]+)\)", string_after_think_end)
+    if match:
+        condition = match.group(1).strip()
+        severity_level = match.group(2).strip()
+        return condition, severity_level
+    else:
+        logging.warning(
+            f"Could not extract condition and severity level from string: {string}"
+        )
+        return "", ""
+
+
 def evaluate_rag(
     input_file: str | Path,
     output_file: str | Path,
@@ -44,6 +79,7 @@ def evaluate_rag(
     target_document_field: str,
     rag: RAG,
     generate_only: bool = False,
+    deepseek_r1: bool = False,
 ) -> list[dict]:
     """
     Evaluate the query store by comparing the query results with the target documents.
@@ -61,8 +97,11 @@ def evaluate_rag(
     rag : RAG
         The RAG model to use for querying.
     generate_only : bool, optional
-        If True, only generate the RAG responses without evaluating the queries,
-        by default False.
+        If True, only generate the RAG responses without evaluating the queries.
+        By default False.
+    deepseek_r1 : bool, optional
+        If True, evaluating deepseek-R1 responses which requires parsing the response.
+        By default False.
 
     Returns
     -------
@@ -93,39 +132,56 @@ def evaluate_rag(
         )
 
         if not generate_only:
-            if (
-                response["answer"].additional_kwargs.get("tool_calls") is not None
-                and len(response["answer"].additional_kwargs["tool_calls"]) == 1
-            ):
-                arguments = json.loads(
-                    response["answer"].additional_kwargs["tool_calls"][0]["function"][
-                        "arguments"
-                    ]
+            if deepseek_r1:
+                # extract condition and severity level from the response
+                parsed_condition, parsed_severity_level = parse_deepseek_r1(
+                    response["answer"].content
                 )
+                prediction_condition = remove_dash_and_spaces(parsed_condition)
+                target_condition = remove_dash_and_spaces(target_document)
+                conditions_match = prediction_condition == target_condition
+                if conditions_match:
+                    conditions_sum += 1
 
-                if arguments.get("condition") is not None:
-                    prediction_condition = remove_dash_and_spaces(
-                        arguments["condition"]
+                severity_match = (
+                    parsed_severity_level.lower() == item["severity_level"].lower()
+                )
+                if severity_match:
+                    severity_sum += 1
+            else:
+                if (
+                    response["answer"].additional_kwargs.get("tool_calls") is not None
+                    and len(response["answer"].additional_kwargs["tool_calls"]) == 1
+                ):
+                    arguments = json.loads(
+                        response["answer"].additional_kwargs["tool_calls"][0][
+                            "function"
+                        ]["arguments"]
                     )
-                    target_condition = remove_dash_and_spaces(target_document)
-                    conditions_match = prediction_condition == target_condition
-                    if conditions_match:
-                        conditions_sum += 1
+
+                    if arguments.get("condition") is not None:
+                        prediction_condition = remove_dash_and_spaces(
+                            arguments["condition"]
+                        )
+                        target_condition = remove_dash_and_spaces(target_document)
+                        conditions_match = prediction_condition == target_condition
+                        if conditions_match:
+                            conditions_sum += 1
+                    else:
+                        conditions_match = False
+
+                    if arguments.get("severity_level") is not None:
+                        severity_match = (
+                            arguments["severity_level"].lower()
+                            == item["severity_level"].lower()
+                        )
+                        if severity_match:
+                            severity_sum += 1
+                    else:
+                        severity_match = False
                 else:
                     conditions_match = False
-
-                if arguments.get("severity_level") is not None:
-                    severity_match = (
-                        arguments["severity_level"].lower()
-                        == item["severity_level"].lower()
-                    )
-                    if severity_match:
-                        severity_sum += 1
-                else:
                     severity_match = False
-            else:
-                conditions_match = False
-                severity_match = False
 
         # create dictionary to store the results
         res = item | {
@@ -155,6 +211,10 @@ def evaluate_rag(
                 res["retrieved_documents_sources"]
             )
             retriever_match_sum += res["retriever_match"]
+
+            if deepseek_r1:
+                res["parsed_conditions"] = parsed_condition
+                res["parsed_severity_level"] = parsed_severity_level
 
         # write the results to the output file
         with open(output_file, "a") as f:
@@ -193,6 +253,7 @@ def main(
     llm_model_name: str = "Qwen/Qwen2.5-1.5B-Instruct",
     prompt_template_path: str | None = None,
     system_prompt_path: str | None = None,
+    deepseek_r1: bool = False,
 ):
     rag = build_rag(
         conditions_folder=conditions_folder,
@@ -214,4 +275,5 @@ def main(
         target_document_field=target_document_field,
         rag=rag,
         generate_only=generate_only,
+        deepseek_r1=deepseek_r1,
     )

@@ -491,6 +491,12 @@ def evaluate_rag(
         str | None,
         typer.Option(help=HELP_TEXT["system_prompt_path"]),
     ] = DEFAULTS["system_prompt_path"],
+    deepseek_r1: Annotated[
+        bool,
+        typer.Option(
+            help="If True, evaluating deepseek-R1 responses which requires parsing the response."
+        ),
+    ] = False,
     env_file: Annotated[
         str | None,
         typer.Option(help=HELP_TEXT["env_file"]),
@@ -532,6 +538,7 @@ def evaluate_rag(
         llm_model_name=llm_model_name,
         prompt_template_path=prompt_template_path,
         system_prompt_path=system_prompt_path,
+        deepseek_r1=deepseek_r1,
     )
 
 
