@@ -37,9 +37,9 @@ def get_azure_openai_endpoint(model: str):
 def get_azure_openai_key():
     """Get the Azure OpenAI key from the environment variables."""
     try:
-        return os.environ["AZURE_OPENAI_KEY"]
+        return os.environ["AZURE_OPENAI_API_KEY"]
     except KeyError:
-        raise KeyError("Please set the AZURE_OPENAI_KEY environment variable.")
+        raise KeyError("Please set the AZURE_OPENAI_API_KEY environment variable.")
 
 
 def set_up_azure_client(endpoint: str, key: str) -> ChatCompletionsClient:
