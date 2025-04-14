@@ -93,11 +93,6 @@ def get_azure_openai_chat_model(
         api_version=api_version,
     )
 
-    print(
-        llm.invoke(
-            input=[{"role": "user", "content": "What is the capital of France?"}],
-        )
-    )
     return llm
 
 
@@ -132,6 +127,24 @@ def get_azure_endpoint_chat_model(
     llm = AzureAIChatCompletionsModel(
         endpoint=endpoint_url,
         credential=api_key,
+    )
+
+    return llm
+
+
+def get_openai_chat_model(
+    model_name: str,
+) -> BaseChatModel:
+    from langchain_openai import ChatOpenAI
+
+    logging.info(f"Using OpenAI for model: {model_name}")
+
+    api_key = get_environment_variable("OPENAI_API_KEY", model_name)
+    base_url = get_environment_variable("OPENAI_BASE_URL", model_name)
+    llm = ChatOpenAI(
+        model=model_name,
+        api_key=api_key,
+        base_url=base_url,
     )
 
     return llm

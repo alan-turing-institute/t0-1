@@ -25,3 +25,9 @@ repos:
       - id: ruff
         args: ["--fix", "--show-fixes"]
       - id: ruff-format
+
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.3.0
+    hooks:
+    - id: codespell
+      args: ["--skip", "experiments/t0-001/data/,nhs-use-case*,*.jsonl,*.json,*.txt"]

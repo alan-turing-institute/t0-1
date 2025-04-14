@@ -11,6 +11,7 @@ class LLMProvider(str, Enum):
     huggingface = "huggingface"
     azure_openai = "azure_openai"
     azure = "azure"
+    openai = "openai"
 
 
 CONDITIONS_FOLDER: Final[str] = "./nhs-use-case/conditions/"
@@ -27,6 +28,8 @@ DEFAULTS = {
     "with_score": False,
     "llm_provider": LLMProvider.huggingface,
     "llm_model_name": "Qwen/Qwen2.5-1.5B-Instruct",
+    "prompt_template_path": None,
+    "system_prompt_path": None,
     "force_create": False,
     "trust_source": False,
     "serve": True,
