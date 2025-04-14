@@ -139,7 +139,9 @@ def generate_synthetic_queries(
                 ):
                     json_object["query_type"] = query_type
                     json_object["severity_level"] = severity_level
-                    json_object["conditions_title"] = selected_condition
+                    json_object["conditions_title"] = selected_condition[
+                        "condition_title"
+                    ]
 
                     out.write(json.dumps(json_object) + "\n")
 
