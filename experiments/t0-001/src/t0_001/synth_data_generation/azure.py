@@ -1,9 +1,9 @@
 import logging
-import os
 
 from azure.ai.inference import ChatCompletionsClient
 from azure.ai.inference.models import UserMessage
 from azure.core.credentials import AzureKeyCredential
+from t0_001.utils import get_environment_variable
 
 AZURE_OPENAI_ENDPOINTS = {
     "gpt-4o",
@@ -14,7 +14,6 @@ AZURE_OPENAI_ENDPOINTS = {
 
 def get_azure_openai_endpoint(model: str):
     """Get the Azure OpenAI endpoint from the environment variables.
-    The endpoint is stored in the environment variable AZURE_OPENAI_ENDPOINT_{model}.
 
     Parameters
     ----------
@@ -23,23 +22,28 @@ def get_azure_openai_endpoint(model: str):
     """
     logging.getLogger(__name__)
 
-    try:
-        endpoint = os.environ[f"AZURE_OPENAI_ENDPOINT_{model.lower()}"]
-    except KeyError:
-        raise KeyError(
-            f"Please set the AZURE_OPENAI_ENDPOINT_{model.lower()} environment variable."
-        )
+    endpoint = get_environment_variable("AZURE_OPENAI_ENDPOINT", model)
+    endpoint = endpoint.rstrip("/")  # Remove trailing slash if present
 
+    # add the deployment name to the endpoint
+    if endpoint.endswith("openai.azure.com"):
+        endpoint = endpoint + "/openai/deployments/" + model
     logging.info(f"Using Azure OpenAI endpoint: {endpoint}")
     return endpoint
 
 
-def get_azure_openai_key():
-    """Get the Azure OpenAI key from the environment variables."""
-    try:
-        return os.environ["AZURE_OPENAI_API_KEY"]
-    except KeyError:
-        raise KeyError("Please set the AZURE_OPENAI_API_KEY environment variable.")
+def get_azure_openai_key(model: str):
+    """Get the Azure OpenAI key from the environment variables.
+
+    Parameters
+    ----------
+    model : str
+        The model to use. Must be one of the following: gpt-4o, o3-mini, o1.
+    """
+    logging.getLogger(__name__)
+
+    key = get_environment_variable("AZURE_OPENAI_API_KEY", model)
+    return key
 
 
 def set_up_azure_client(endpoint: str, key: str) -> ChatCompletionsClient:

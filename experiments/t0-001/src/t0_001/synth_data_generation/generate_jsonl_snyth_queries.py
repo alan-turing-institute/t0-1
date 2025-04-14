@@ -117,7 +117,7 @@ def generate_synthetic_queries(
                 logging.info(f"Using {model} model via Azure OpenAI.")
                 # set up the client
                 endpoint = get_azure_openai_endpoint(model)
-                key = get_azure_openai_key()
+                key = get_azure_openai_key(model)
                 client = set_up_azure_client(endpoint=endpoint, key=key)
                 response = get_response_from_azure_model(client=client, prompt=prompt)
             else:

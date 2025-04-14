@@ -226,7 +226,7 @@ For generating synthetic queries from NHS 111 patients, you can use the `t0-001 
 
 The main options for the `t0-001 generate-synth-queries` command are:
 - `--n-queries`: The number of queries to generate. Default is 10.
-- `--model`: The model to use for generating the queries. This should be the name of the model to use (e.g., `gpt-4o`, `gemma3:1b`, etc.). For Azure OpenAI models, Azure endpoints are used and you will need to set the environment variables for ``AZURE_OPENAI_API_KEY` and `AZURE_OPENAI_ENDPOINT_{model}` where model is your model name. Otherwise the model will be called via Ollama.
+- `--model`: The model to use for generating the queries. This should be the name of the model to use (e.g., `gpt-4o`, `gemma3:1b`, etc.). For Azure OpenAI models, Azure endpoints are used and you will need to set the environment variables for ``AZURE_OPENAI_API_KEY` and `AZURE_OPENAI_ENDPOINT` (or `AZURE_OPENAI_ENDPOINT_{model}` where `model` is your model name.). Otherwise the model will be called via Ollama.
 - `--overwrite`: Flag for overwriting existing output files. This is useful if you want to regenerate the queries.
 - `--env-file`: Path to the environment file. This is used to load the environment variables for the Azure endpoints. By default it loads a `.env` file in the current directory.
 
