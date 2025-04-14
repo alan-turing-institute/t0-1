@@ -18,7 +18,7 @@ dependencies = [
     "fastparquet>=2024.11.0",
     "huggingface-hub>=0.30.1",
     "datasets>=3.5.0",
-    "transformers>=4.51.1",
+    "transformers>=4.51.3",
     "jinja2>=3.1.6",
 ]
 
@@ -35,7 +35,7 @@ rag = [
     "langchain>=0.3.23",
     "langchain-huggingface>=0.1.2",
     "tiktoken>=0.9.0",
-    "langgraph>=0.3.22",
+    "langgraph>=0.3.30",
     "langchain-openai>=0.3.12",
     "langchain-azure-ai>=0.1.2",
 ]
