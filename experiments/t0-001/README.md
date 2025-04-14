@@ -233,11 +233,11 @@ The main options for the `t0-001 generate-synth-queries` command are:
 Use `t0-001 generate-synth-queries --help` to see all the options.
 
 To set the environment variables for using the Azure endpoints, create an `.env` file as described above.
-e.g. for the gpt-4o model:
-```bash
-AZURE_OPENAI_API_KEY=<your-key>
-AZURE_OPENAI_ENDPOINT_gpt-4o=<your-endpoint>
-```
+
+Endpoints can be of the form:
+- `https://<your-resouce-name>.openai.azure.com/openai/deployments/<your-deployment-name>`, where your-resource-name is your globally unique AOAI resource name, and your-deployment-name is your AI Model deployment name.
+- OR `https://<your-resource-name>.openai.azure.com/`, where your-resource-name is your globally unique AOAI resource name. In this case, `openai/deployments/<model>` will be appended afterwards using the model name you provide.
+
 
 ### Azure AI Foundry Endpoints
 
