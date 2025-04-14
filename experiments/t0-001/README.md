@@ -17,15 +17,9 @@ uv pip install ".[rag,dev]"
 
 ## Data
 
-The data used in this project is scraped from the NHS website. Once you have downloaded the data, store it in a directory called `nhs-use-case`. This folder should have the following structure:
-```
-nhs-use-case/
-  +-- nhs-conditions/
-      +-- <condition-name>/
-          +-- index.html
-```
+The data used in this project is scraped from the NHS website. Once you have downloaded the data, store it in a directory called `data/nhs-conditions`. This should be a JSONL file where each line has a JSON object with fields `"condition_title"` and `"condition_content"`.
 
-The convention is to run scripts and commands from the `experiments/t0-001` directory and use relative paths to the `nhs-use-case` directory. For the command line interfaces (CLIs) described below, the `--data-folder` argument is defaulted to `./nhs-use-case/conditions/`.
+The convention is to run scripts and commands from the `experiments/t0-001` directory and use relative paths to the `data/nhs-conditions` directory. For the command line interfaces (CLIs) described below, the `--conditions-file` argument is defaulted to `"./data/nhs-conditions/conditions.jsonl"`.
 
 ## Command Line Interfaces (CLIs)
 
@@ -50,7 +44,7 @@ For `t0-001`, we have several command line interfaces (CLIs) (implemented using 
 For serving the vector store, you can use the `t0-001 serve-vector-store` command. This will start a FastAPI server that serves the vector store. There are options to specify the host and port, by default it will run on `0.0.0.0:8000`.
 
 There are several options for the `t0-001 serve-vector-store` command:
-- `--data-folder`: The folder containing the data. Default is `./nhs-use-case/conditions/`.
+- `--conditions-file`: The folder containing the data. Default is `"./data/nhs-conditions/conditions.jsonl"`.
 - `--main-only`: If set, only the main element of the HTML file is extracted.
 - `--embedding-model-name`: The name of the embedding model to use.
 - `--chunk-overlap`: The character overlap between chunks.
