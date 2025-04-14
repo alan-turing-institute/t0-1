@@ -83,7 +83,7 @@ Each of three possible metrics:
 
 1. Generate a predicted condition. Score 1 for correct, 0 for
    incorrect.
-2. Generate a probability distibution over all conditions in the
+2. Generate a probability distribution over all conditions in the
    NHS 1000. Score the log-likelihood of the actual answer.
 3. Generate a list of 3 (or 5) possible conditions. Score 1 if that
    list contains the correct condition, 0 otherwise.

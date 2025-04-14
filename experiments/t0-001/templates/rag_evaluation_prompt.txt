@@ -1,0 +1,13 @@
+Use the following pieces of retrieved context:
+{context}
+
+A patient has given the following description of their symptoms:
+"{question}"
+
+This is a summary of their demographics:
+{demographics}
+
+Using the sources and context provided, use the "submit_condition_recommendation" tool to submit the condition and the severity level.
+
+Remember that the condition must either be one of {sources} or "inconclusive" if you think that the condition is not listed.
+Remember that the severity level must be one of ["Self-care", "Routine GP appointment", "Urgent Primary Care", "A&E", "Ambulance"].
