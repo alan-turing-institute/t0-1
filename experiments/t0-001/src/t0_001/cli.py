@@ -4,14 +4,13 @@ from typing import Annotated
 
 import requests
 import typer
-from t0_001.defaults import CONDITIONS_FOLDER, DEFAULTS, DBChoice, LLMProvider
+from t0_001.defaults import CONDITIONS_FILE, DEFAULTS, DBChoice, LLMProvider
 from t0_001.utils import load_env_file
 
 cli = typer.Typer(context_settings={"help_option_names": ["-h", "--help"]})
 
 HELP_TEXT = {
-    "data_folder": "Path to the data folder.",
-    "main_only": "If True, only the main element of the HTML file is extracted.",
+    "conditions_file": "Path to the conditions file.",
     "embedding_model_name": "Name of the embedding model.",
     "chunk_overlap": "Chunk overlap for the text splitter.",
     "db_choice": "Database choice.",
@@ -48,13 +47,10 @@ def set_up_logging_config(level: int = 20) -> None:
 
 @cli.command()
 def serve_vector_store(
-    data_folder: Annotated[
-        str, typer.Option(envvar="T0_DATA_FOLDER", help=HELP_TEXT["data_folder"])
-    ] = CONDITIONS_FOLDER,
-    main_only: Annotated[
-        bool,
-        typer.Option(help=HELP_TEXT["main_only"]),
-    ] = DEFAULTS["main_only"],
+    conditions_file: Annotated[
+        str,
+        typer.Option(envvar="T0_CONDITIONS_FILE", help=HELP_TEXT["conditions_file"]),
+    ] = CONDITIONS_FILE,
     embedding_model_name: Annotated[
         str, typer.Option(help=HELP_TEXT["embedding_model_name"])
     ] = DEFAULTS["embedding_model_name"],
@@ -93,8 +89,7 @@ def serve_vector_store(
     from t0_001.query_vector_store.index_endpoint import VectorStoreConfig, main
 
     main(
-        conditions_folder=data_folder,
-        main_only=main_only,
+        conditions_file=conditions_file,
         config=VectorStoreConfig(
             embedding_model_name=embedding_model_name,
             chunk_overlap=chunk_overlap,
@@ -152,13 +147,10 @@ def evaluate_vector_store(
         str,
         typer.Option(help="Field name for the target document in the input file."),
     ] = "conditions_title",
-    conditions_folder: Annotated[
-        str, typer.Option(envvar="T0_DATA_FOLDER", help=HELP_TEXT["data_folder"])
-    ] = CONDITIONS_FOLDER,
-    main_only: Annotated[
-        bool,
-        typer.Option(help=HELP_TEXT["main_only"]),
-    ] = DEFAULTS["main_only"],
+    conditions_file: Annotated[
+        str,
+        typer.Option(envvar="T0_CONDITIONS_FILE", help=HELP_TEXT["conditions_file"]),
+    ] = CONDITIONS_FILE,
     embedding_model_name: Annotated[
         str, typer.Option(help=HELP_TEXT["embedding_model_name"])
     ] = DEFAULTS["embedding_model_name"],
@@ -198,8 +190,7 @@ def evaluate_vector_store(
         output_file=output_file,
         query_field=query_field,
         target_document_field=target_document_field,
-        conditions_folder=conditions_folder,
-        main_only=main_only,
+        conditions_file=conditions_file,
         config=VectorStoreConfig(
             embedding_model_name=embedding_model_name,
             chunk_overlap=chunk_overlap,
@@ -214,13 +205,10 @@ def evaluate_vector_store(
 
 @cli.command()
 def serve_retriever(
-    data_folder: Annotated[
-        str, typer.Option(envvar="T0_DATA_FOLDER", help=HELP_TEXT["data_folder"])
-    ] = CONDITIONS_FOLDER,
-    main_only: Annotated[
-        bool,
-        typer.Option(help=HELP_TEXT["main_only"]),
-    ] = DEFAULTS["main_only"],
+    conditions_file: Annotated[
+        str,
+        typer.Option(envvar="T0_CONDITIONS_FILE", help=HELP_TEXT["conditions_file"]),
+    ] = CONDITIONS_FILE,
     embedding_model_name: Annotated[
         str, typer.Option(help=HELP_TEXT["embedding_model_name"])
     ] = DEFAULTS["embedding_model_name"],
@@ -267,8 +255,7 @@ def serve_retriever(
     from t0_001.query_vector_store.retriever_endpoint import main
 
     main(
-        conditions_folder=data_folder,
-        main_only=main_only,
+        conditions_file=conditions_file,
         config=RetrieverConfig(
             embedding_model_name=embedding_model_name,
             chunk_overlap=chunk_overlap,
@@ -311,13 +298,10 @@ def query_retriever(
 
 @cli.command()
 def serve_rag(
-    data_folder: Annotated[
-        str, typer.Option(envvar="T0_DATA_FOLDER", help=HELP_TEXT["data_folder"])
-    ] = CONDITIONS_FOLDER,
-    main_only: Annotated[
-        bool,
-        typer.Option(help=HELP_TEXT["main_only"]),
-    ] = DEFAULTS["main_only"],
+    conditions_file: Annotated[
+        str,
+        typer.Option(envvar="T0_CONDITIONS_FILE", help=HELP_TEXT["conditions_file"]),
+    ] = CONDITIONS_FILE,
     embedding_model_name: Annotated[
         str, typer.Option(help=HELP_TEXT["embedding_model_name"])
     ] = DEFAULTS["embedding_model_name"],
@@ -379,8 +363,7 @@ def serve_rag(
     from t0_001.rag.rag_endpoint import main
 
     main(
-        conditions_folder=data_folder,
-        main_only=main_only,
+        conditions_file=conditions_file,
         config=RetrieverConfig(
             embedding_model_name=embedding_model_name,
             chunk_overlap=chunk_overlap,
@@ -441,13 +424,10 @@ def evaluate_rag(
         str,
         typer.Option(help="Field name for the target document in the input file."),
     ] = "conditions_title",
-    conditions_folder: Annotated[
-        str, typer.Option(envvar="T0_DATA_FOLDER", help=HELP_TEXT["data_folder"])
-    ] = CONDITIONS_FOLDER,
-    main_only: Annotated[
-        bool,
-        typer.Option(help=HELP_TEXT["main_only"]),
-    ] = DEFAULTS["main_only"],
+    conditions_file: Annotated[
+        str,
+        typer.Option(envvar="T0_CONDITIONS_FILE", help=HELP_TEXT["conditions_file"]),
+    ] = CONDITIONS_FILE,
     embedding_model_name: Annotated[
         str, typer.Option(help=HELP_TEXT["embedding_model_name"])
     ] = DEFAULTS["embedding_model_name"],
@@ -519,9 +499,8 @@ def evaluate_rag(
         output_file=output_file,
         query_field=query_field,
         target_document_field=target_document_field,
-        conditions_folder=conditions_folder,
+        conditions_file=conditions_file,
         generate_only=generate_only,
-        main_only=main_only,
         config=RetrieverConfig(
             embedding_model_name=embedding_model_name,
             chunk_overlap=chunk_overlap,
@@ -553,7 +532,7 @@ def generate_synth_queries(
     ] = "./data/synthetic_queries/",
     conditions_path: Annotated[
         str, typer.Option(help="Path to the NHS conditions file.")
-    ] = "./data/nhs-conditions/conditions.jsonl",
+    ] = CONDITIONS_FILE,
     model: Annotated[str, typer.Option(help="Model to use for generation.")] = "gpt-4o",
     overwrite: Annotated[bool, typer.Option(help="Overwrite existing files.")] = False,
     env_file: Annotated[
@@ -585,13 +564,10 @@ def generate_synth_queries(
 
 @cli.command()
 def rag_chat(
-    conditions_folder: Annotated[
-        str, typer.Option(envvar="T0_DATA_FOLDER", help=HELP_TEXT["data_folder"])
-    ] = CONDITIONS_FOLDER,
-    main_only: Annotated[
-        bool,
-        typer.Option(help=HELP_TEXT["main_only"]),
-    ] = DEFAULTS["main_only"],
+    conditions_file: Annotated[
+        str,
+        typer.Option(envvar="T0_CONDITIONS_FILE", help=HELP_TEXT["conditions_file"]),
+    ] = CONDITIONS_FILE,
     embedding_model_name: Annotated[
         str, typer.Option(help=HELP_TEXT["embedding_model_name"])
     ] = DEFAULTS["embedding_model_name"],
@@ -651,8 +627,7 @@ def rag_chat(
     from t0_001.rag.chat_interact import run_chat_interact
 
     run_chat_interact(
-        conditions_folder=conditions_folder,
-        main_only=main_only,
+        conditions_file=conditions_file,
         config=RetrieverConfig(
             embedding_model_name=embedding_model_name,
             chunk_overlap=chunk_overlap,

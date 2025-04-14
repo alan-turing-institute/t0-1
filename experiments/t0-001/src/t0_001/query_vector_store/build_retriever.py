@@ -9,7 +9,7 @@ from langchain_core.embeddings import Embeddings
 from langchain_text_splitters.base import TextSplitter
 from t0_001.query_vector_store.build_index import (
     VectorStoreConfig,
-    load_conditions,
+    load_conditions_jsonl,
     setup_embedding_model,
     setup_text_splitter,
 )
@@ -40,8 +40,7 @@ DEFAULT_RETRIEVER_CONFIG = RetrieverConfig(
 
 
 def create_parent_doc_retriever(
-    conditions_folder: str,
-    main_only: bool = True,
+    conditions_file: str,
     config: RetrieverConfig = DEFAULT_RETRIEVER_CONFIG,
 ) -> CustomParentDocumentRetriever:
     """
@@ -53,10 +52,8 @@ def create_parent_doc_retriever(
 
     Parameters
     ----------
-    conditions_folder : str
-        The folder containing the conditions to be indexed.
-    main_only : bool, optional
-        If True, only the main conditions will be loaded. Default is True.
+    conditions_file : str
+        The file containing the conditions to be indexed.
     config : RetrieverConfig, optional
         Configuration object containing parameters for the retriever which
         includes the embedding model name, chunk overlap, database choice,
@@ -70,7 +67,7 @@ def create_parent_doc_retriever(
         The created retriever instance.
     """
     logging.info(f"Creating retriever with {config.db_choice} database...")
-    conditions = load_conditions(conditions_folder, main_only)
+    conditions = load_conditions_jsonl(conditions_file)
     embedding_model = setup_embedding_model(config.embedding_model_name)
     text_splitter = setup_text_splitter(
         config.embedding_model_name, config.chunk_overlap
@@ -132,8 +129,7 @@ def load_parent_doc_retriever(
 
 
 def get_parent_doc_retriever(
-    conditions_folder: str,
-    main_only: bool = True,
+    conditions_file: str,
     config: RetrieverConfig = DEFAULT_RETRIEVER_CONFIG,
     force_create: bool = False,
     trust_source: bool = False,
@@ -146,10 +142,8 @@ def get_parent_doc_retriever(
 
     Parameters
     ----------
-    conditions_folder : str
-        The folder containing the conditions to be indexed.
-    main_only : bool, optional
-        If True, only the main conditions will be loaded. Default is True.
+    conditions_file : str
+        The file containing the conditions to be indexed.
     config : RetrieverConfig, optional
         Configuration object containing parameters for the retriever which
         includes the embedding model name, chunk overlap, database choice,
@@ -181,8 +175,7 @@ def get_parent_doc_retriever(
         remove_saved_directory(config.local_file_store, "local_file_store")
 
         retriever = create_parent_doc_retriever(
-            conditions_folder=conditions_folder,
-            main_only=main_only,
+            conditions_file=conditions_file,
             config=config,
         )
 

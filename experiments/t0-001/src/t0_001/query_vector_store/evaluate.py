@@ -94,16 +94,14 @@ def main(
     output_file: str | Path,
     query_field: str,
     target_document_field: str,
-    conditions_folder: str,
-    main_only: bool = True,
+    conditions_file: str,
     config: VectorStoreConfig = DEFAULT_VECTOR_STORE_CONFIG,
     force_create: bool = False,
     trust_source: bool = False,
     k: int = 4,
 ):
     vector_store = get_vector_store(
-        conditions_folder=conditions_folder,
-        main_only=main_only,
+        conditions_file=conditions_file,
         config=config,
         force_create=force_create,
         trust_source=trust_source,
