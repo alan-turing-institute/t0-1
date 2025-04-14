@@ -60,7 +60,7 @@ def generate_synthetic_queries(
         os.makedirs(save_path)
     # get the current git commit hash
     repo = git.Repo(search_parent_directories=True)
-    commit_hash = repo.head.object.hexsha
+    commit_hash = repo.head.object.hexsha[:7]
 
     filename = f"{commit_hash}_{model}_{n_queries}_synthetic_queries.jsonl"
 
