@@ -104,10 +104,11 @@ large evaluation set.
 
 ### 3.a 
 
-| LLM         | Condition Accuracy | Severity Accuracy |
-|-------------|-------------------:|------------------:|
-| DeepSeek-r1 |                  x |                 x |
-| Qwen-32B    |                  x |                 x |
+| LLM         | Condition Accuracy | Severity Accuracy | Command |
+|-------------|-------------------:|------------------:|------------------:|
+| GPT-4o      |               0.43 |              0.47 | `t0-001 evaluate-rag data/synthetic_queries/5bb7345_gpt-4o_1000_synthetic_queries.jsonl --k 1 --trust-source --db-choice faiss --persist-directory nhs-use-case-db-faiss --local-file-store nhs-use-case-fs --llm-provider azure_openai --llm-model-name gpt-4o --prompt-template-path templates/withoutrag_evaluation_prompt.txt --system-prompt-path templates/withoutrag_evaluation_system_prompt.txt --force-create --k 1` |
+| DeepSeek-r1 |                  x |                 x |                 x |
+| Qwen-32B    |                  x |                 x |                 x |
 
 ### 3.b (as time allows)
 
