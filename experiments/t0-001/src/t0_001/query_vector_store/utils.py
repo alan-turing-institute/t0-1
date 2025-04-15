@@ -59,14 +59,14 @@ def load_conditions_jsonl(
     """
     # check if the file exists
     if not os.path.exists(conditions_file):
-        raise ValueError(f"File {conditions_file} does not exist")
+        raise FileNotFoundError(f"File {conditions_file} does not exist")
 
     logging.info(f"Loading conditions from {conditions_file}")
 
     # read all conditions and put them in a list
     conditions = {}
     with open(conditions_file, "r") as f:
-        for line in tqdm(f, desc="Loading JSONL"):
+        for line in tqdm(f, desc="Loading conditions JSONL"):
             condition = json.loads(line)
             conditions[condition["condition_title"]] = condition["condition_content"]
 
