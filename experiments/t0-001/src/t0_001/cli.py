@@ -25,6 +25,9 @@ HELP_TEXT = {
     "with_score": "If True, return the score of the similarity search.",
     "llm_provider": "Service provider for the LLM.",
     "llm_model_name": "Name of the LLM model.",
+    "prompt_template_path": "Path to the prompt template file.",
+    "system_prompt_path": "Path to the system prompt file.",
+    "generate_only": "If True, only generate the responses from the queries without evaluating.",
     "serve": "If True, serve the vector store as a FastAPI app. If False, make sure that persist_directory must be passed.",
     "host_serve": "Host to listen on.",
     "port_serve": "Port to listen on.",
@@ -141,7 +144,7 @@ def evaluate_vector_store(
     input_file: Annotated[str, typer.Argument(help="Path to the input file.")],
     output_file: Annotated[
         str, typer.Option(help="Path to the output file.")
-    ] = "./data/evaluation_results.jsonl",
+    ] = "./data/evaluation/evaluation_vector_store_results.jsonl",
     query_field: Annotated[
         str, typer.Option(help="Field name for the query in the input file.")
     ] = "symptoms_description",
@@ -350,6 +353,14 @@ def serve_rag(
     llm_model_name: Annotated[
         str, typer.Option(help=HELP_TEXT["llm_model_name"])
     ] = DEFAULTS["llm_model_name"],
+    prompt_template_path: Annotated[
+        str | None,
+        typer.Option(help=HELP_TEXT["prompt_template_path"]),
+    ] = DEFAULTS["prompt_template_path"],
+    system_prompt_path: Annotated[
+        str | None,
+        typer.Option(help=HELP_TEXT["system_prompt_path"]),
+    ] = DEFAULTS["system_prompt_path"],
     env_file: Annotated[
         str | None,
         typer.Option(help=HELP_TEXT["env_file"]),
@@ -384,6 +395,8 @@ def serve_rag(
         trust_source=trust_source,
         llm_provider=llm_provider,
         llm_model_name=llm_model_name,
+        prompt_template_path=prompt_template_path,
+        system_prompt_path=system_prompt_path,
         host=host,
         port=port,
     )
@@ -409,6 +422,124 @@ def query_rag(
         return
 
     logging.info(f"Response: {req.json()}")
+
+
+@cli.command()
+def evaluate_rag(
+    input_file: Annotated[str, typer.Argument(help="Path to the input file.")],
+    generate_only: Annotated[
+        bool,
+        typer.Option(help=HELP_TEXT["generate_only"]),
+    ] = False,
+    output_file: Annotated[
+        str, typer.Option(help="Path to the output file.")
+    ] = "./data/evaluation/evaluation_rag_results.jsonl",
+    query_field: Annotated[
+        str, typer.Option(help="Field name for the query in the input file.")
+    ] = "symptoms_description",
+    target_document_field: Annotated[
+        str,
+        typer.Option(help="Field name for the target document in the input file."),
+    ] = "conditions_title",
+    conditions_folder: Annotated[
+        str, typer.Option(envvar="T0_DATA_FOLDER", help=HELP_TEXT["data_folder"])
+    ] = CONDITIONS_FOLDER,
+    main_only: Annotated[
+        bool,
+        typer.Option(help=HELP_TEXT["main_only"]),
+    ] = DEFAULTS["main_only"],
+    embedding_model_name: Annotated[
+        str, typer.Option(help=HELP_TEXT["embedding_model_name"])
+    ] = DEFAULTS["embedding_model_name"],
+    chunk_overlap: Annotated[
+        int, typer.Option(help=HELP_TEXT["chunk_overlap"])
+    ] = DEFAULTS["chunk_overlap"],
+    db_choice: Annotated[
+        DBChoice, typer.Option(help=HELP_TEXT["db_choice"])
+    ] = DEFAULTS["db_choice"],
+    persist_directory: Annotated[
+        str | None,
+        typer.Option(help=HELP_TEXT["persist_directory"]),
+    ] = DEFAULTS["persist_directory"],
+    local_file_store: Annotated[
+        str | None,
+        typer.Option(help=HELP_TEXT["local_file_store"]),
+    ] = DEFAULTS["local_file_store"],
+    search_type: Annotated[str, typer.Option(help=HELP_TEXT["search_type"])] = DEFAULTS[
+        "search_type"
+    ],
+    k: Annotated[int, typer.Option(help=HELP_TEXT["k"])] = DEFAULTS["k"],
+    force_create: Annotated[
+        bool,
+        typer.Option(help=HELP_TEXT["force_create"]),
+    ] = DEFAULTS["force_create"],
+    trust_source: Annotated[
+        bool,
+        typer.Option(help=HELP_TEXT["trust_source"]),
+    ] = DEFAULTS["trust_source"],
+    llm_provider: Annotated[
+        LLMProvider, typer.Option(help=HELP_TEXT["llm_provider"])
+    ] = DEFAULTS["llm_provider"],
+    llm_model_name: Annotated[
+        str, typer.Option(help=HELP_TEXT["llm_model_name"])
+    ] = DEFAULTS["llm_model_name"],
+    prompt_template_path: Annotated[
+        str | None,
+        typer.Option(help=HELP_TEXT["prompt_template_path"]),
+    ] = DEFAULTS["prompt_template_path"],
+    system_prompt_path: Annotated[
+        str | None,
+        typer.Option(help=HELP_TEXT["system_prompt_path"]),
+    ] = DEFAULTS["system_prompt_path"],
+    deepseek_r1: Annotated[
+        bool,
+        typer.Option(
+            help="If True, evaluating deepseek-R1 responses which requires parsing the response."
+        ),
+    ] = False,
+    env_file: Annotated[
+        str | None,
+        typer.Option(help=HELP_TEXT["env_file"]),
+    ] = DEFAULTS["env_file"],
+):
+    """
+    Evaluate the RAG.
+    """
+    set_up_logging_config()
+    load_env_file(env_file)
+    if not os.path.exists(input_file):
+        raise FileNotFoundError(f"Input file {input_file} does not exist.")
+
+    logging.info("Evaluating RAG...")
+
+    from t0_001.rag.evaluate import RetrieverConfig, main
+
+    main(
+        input_file=input_file,
+        output_file=output_file,
+        query_field=query_field,
+        target_document_field=target_document_field,
+        conditions_folder=conditions_folder,
+        generate_only=generate_only,
+        main_only=main_only,
+        config=RetrieverConfig(
+            embedding_model_name=embedding_model_name,
+            chunk_overlap=chunk_overlap,
+            db_choice=db_choice,
+            persist_directory=persist_directory,
+            local_file_store=local_file_store,
+            search_type=search_type,
+            k=k,
+            search_kwargs={},
+        ),
+        force_create=force_create,
+        trust_source=trust_source,
+        llm_provider=llm_provider,
+        llm_model_name=llm_model_name,
+        prompt_template_path=prompt_template_path,
+        system_prompt_path=system_prompt_path,
+        deepseek_r1=deepseek_r1,
+    )
 
 
 @cli.command()
@@ -496,6 +627,14 @@ def rag_chat(
     llm_model_name: Annotated[
         str, typer.Option(help=HELP_TEXT["llm_model_name"])
     ] = DEFAULTS["llm_model_name"],
+    prompt_template_path: Annotated[
+        str | None,
+        typer.Option(help=HELP_TEXT["prompt_template_path"]),
+    ] = DEFAULTS["prompt_template_path"],
+    system_prompt_path: Annotated[
+        str | None,
+        typer.Option(help=HELP_TEXT["system_prompt_path"]),
+    ] = DEFAULTS["system_prompt_path"],
     env_file: Annotated[
         str | None,
         typer.Option(help=HELP_TEXT["env_file"]),
@@ -528,4 +667,6 @@ def rag_chat(
         trust_source=trust_source,
         llm_provider=llm_provider,
         llm_model_name=llm_model_name,
+        prompt_template_path=prompt_template_path,
+        system_prompt_path=system_prompt_path,
     )

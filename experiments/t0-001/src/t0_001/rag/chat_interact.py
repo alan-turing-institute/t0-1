@@ -12,6 +12,8 @@ def run_chat_interact(
     trust_source: bool = False,
     llm_provider: str = "huggingface",
     llm_model_name: str = "Qwen/Qwen2.5-1.5B-Instruct",
+    prompt_template_path: str | None = None,
+    system_prompt_path: str | None = None,
 ):
     rag = build_rag(
         conditions_folder=conditions_folder,
@@ -21,6 +23,8 @@ def run_chat_interact(
         trust_source=trust_source,
         llm_provider=llm_provider,
         llm_model_name=llm_model_name,
+        prompt_template_path=prompt_template_path,
+        system_prompt_path=system_prompt_path,
     )
     user_id = "command_line_chat"
     mode = "query-with-sources"

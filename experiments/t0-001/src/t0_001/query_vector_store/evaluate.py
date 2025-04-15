@@ -1,7 +1,5 @@
 import json
 import logging
-import os
-from datetime import datetime
 from pathlib import Path
 
 from langchain_core.vectorstores import VectorStore
@@ -10,52 +8,8 @@ from t0_001.query_vector_store.build_index import (
     VectorStoreConfig,
     get_vector_store,
 )
+from t0_001.utils import read_jsonl, timestamp_file_name
 from tqdm import tqdm
-
-
-def read_jsonl(input_file: str | Path) -> list[dict]:
-    """
-    Read a JSONL file and return a list of dictionaries.
-
-    Parameters
-    ----------
-    input_file : str | Path
-        The path to the JSONL file.
-
-    Returns
-    -------
-    list[dict]
-        A list of dictionaries representing the JSONL file.
-    """
-    if not str(input_file).endswith(".jsonl"):
-        raise ValueError(f"File {input_file} is not a JSONL file.")
-    if not os.path.exists(input_file):
-        raise FileNotFoundError(f"File {input_file} does not exist.")
-
-    logging.info(f"Reading JSONL file: {input_file}")
-    with open(input_file, "r", encoding="utf-8") as f:
-        data = [dict(json.loads(line)) for line in tqdm(f, desc="Loading JSONL")]
-
-    return data
-
-
-def timestamp_file_name(file_name: str) -> str:
-    """
-    Add a timestamp to the file name.
-
-    Parameters
-    ----------
-    file_name : str
-        The original file name.
-
-    Returns
-    -------
-    str
-        The file name with a timestamp.
-    """
-    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    base_name, ext = os.path.splitext(file_name)
-    return f"{base_name}_{timestamp}{ext}"
 
 
 def evaluate_query_store(
@@ -73,6 +27,8 @@ def evaluate_query_store(
     ----------
     input_file : str | Path
         The path to the JSONL file containing the queries and target documents.
+    output_file : str | Path
+        The path to the JSONL file where the results will be saved.
     query_field : str
         The field name in the JSONL file that contains the query.
     target_document_field : str
@@ -129,15 +85,16 @@ def evaluate_query_store(
         results.append(res)
 
     logging.info(f"Proportion of matches: {sum}/{len(data)} = {sum / len(data):.2%}")
+
     return results
 
 
 def main(
-    conditions_folder: str,
     input_file: str | Path,
     output_file: str | Path,
     query_field: str,
     target_document_field: str,
+    conditions_folder: str,
     main_only: bool = True,
     config: VectorStoreConfig = DEFAULT_VECTOR_STORE_CONFIG,
     force_create: bool = False,
