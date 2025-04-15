@@ -19,7 +19,7 @@ def create_rag_app(rag: RAG) -> FastAPI:
     async def query_endpoint(
         query: str,
     ):
-        response = rag.query(query)
+        response = rag._query(query)
         return {"response": response}
 
     return app
@@ -33,6 +33,8 @@ def main(
     trust_source: bool = False,
     llm_provider: str = "huggingface",
     llm_model_name: str = "Qwen/Qwen2.5-1.5B-Instruct",
+    prompt_template_path: str | None = None,
+    system_prompt_path: str | None = None,
     host: str = "0.0.0.0",
     port: int = 8000,
 ):
@@ -44,6 +46,8 @@ def main(
         trust_source=trust_source,
         llm_provider=llm_provider,
         llm_model_name=llm_model_name,
+        prompt_template_path=prompt_template_path,
+        system_prompt_path=system_prompt_path,
     )
     app = create_rag_app(rag)
     uvicorn.run(app, host=host, port=port)

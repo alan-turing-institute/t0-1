@@ -26,16 +26,17 @@ correct condition.
 Sets the highest precision possible through RAG, if the predicted
 condition is constrained to be one of the $k$ retrieved documents.
 
-| Embedding Method               | Eval set |  p@1 |  p@5 | p@10 | p@20 | p@50 | p@100 |
-|                                |          |  <r> |  <r> |  <r> |  <r> |  <r> |   <r> |
-|--------------------------------+----------+------+------+------+------+------+-------|
-| (mpnet-base-v2 / Chroma)       | Small    | 0.47 | 0.56 | 0.68 | 0.69 |    - |     - |
-| (mpnet-base-v2 / FAISS)        | Small    | 0.47 | 0.68 | 0.71 | 0.78 |    - |     - |
-| (mxbai-embed-large-v1 / FAISS) | Small    | 0.51 | 0.68 | 0.71 | 0.76 |    - |     - |
-|                                |          |      |      |      |      |      |       |
-| (mpnet-base-v2 / Chroma)       | Large    |    x |    x |    x |    x |    x |     x |
-| (mpnet-base-v2 / FAISS)        | Large    | 0.44 | 0.63 | 0.70 | 0.77 | 0.86 |  0.90 |
+| Embedding Method                | Eval Set | p@1 | p@5 | p@10 | p@20 | p@50 | p@100 |
+|--------------------------------|----------|-----|-----|------|------|------|-------|
+| mpnet-base-v2 / Chroma         | Small    | 0.47| 0.56| 0.68 | 0.69 |  -   |   -   |
+| mpnet-base-v2 / FAISS          | Small    | 0.47| 0.68| 0.71 | 0.78 |  -   |   -   |
+| mxbai-embed-large-v1 / FAISS   | Small    | 0.51| 0.68| 0.71 | 0.76 |  -   |   -   |
+| mpnet-base-v2 / Chroma         | Large    | 0.44| 0.63| 0.70 | 0.77 | 0.86 | 0.90  |
+| mpnet-base-v2 / FAISS          | Large    | 0.44| 0.63| 0.70 | 0.77 | 0.86 | 0.90  |
 
+### Conclusion
+
+Chroma and FAISS perform very similarly on the large eval set, and Chroma is just slightly faster, so we'll use this as retrieval system for the rest of the evaluation. From now on, we'll consider two *k*, 10 and 50, as they provide an overview of performance when retrieving documents where at least one is relevant in respectivelly 70% and 86% of the queries.
 
 ## 2. Baseline models (RAG)
 
@@ -44,66 +45,47 @@ model. Sets the baseline precision.
 
 ### 2 a. Small evaluation set
 
-| LLM         |  k | Condition | Severity |
-|             |    |  accuracy | accuracy |
-|             |    |       <r> |      <r> |
-|-------------+----+-----------+----------|
-| GPT-4o      | 10 |      0.52 |     0.49 |
-|             | 50 |      0.61 |     0.53 |
-|-------------+----+-----------+----------|
-| o3-mini     | 10 |      0.56 |     0.54 |
-|             | 50 |      0.59 |     0.62 |
-|-------------+----+-----------+----------|
-| DeepSeek-r1 | 10 |      0.52 |     0.49 |
-|             | 50 |      0.57 |     0.43 |
-|-------------+----+-----------+----------|
-| Qwen (1.5B) | 10 |      0.35 |     0.34 |
-|             | 50 |      0.20 |     0.29 |
-|-------------+----+-----------+----------|
-| Qwen (14B)  | 10 |      0.47 |     0.52 |
-|             | 50 |      0.51 |     0.46 |
-|-------------+----+-----------+----------|
-| Qwen (32B)  | 10 |      0.53 |     0.46 |
-|             | 50 |      0.59 |     0.43 |
-|-------------+----+-----------+----------|
+| LLM         | k  | Condition Accuracy | Severity Accuracy |
+|-------------|----|--------------------|-------------------|
+| GPT-4o      | 10 | 0.52               | 0.49              |
+|             | 50 | **0.61**           | 0.53              |
+| o3-mini     | 10 | 0.56               | 0.54              |
+|             | 50 | 0.59               | **0.62**          |
+| DeepSeek-r1 | 10 | 0.52               | 0.49              |
+|             | 50 | 0.57               | 0.43              |
+| Qwen (1.5B) | 10 | 0.35               | 0.34              |
+|             | 50 | 0.20               | 0.29              |
+| Qwen (14B)  | 10 | 0.47               | 0.52              |
+|             | 50 | 0.51               | 0.46              |
+| Qwen (32B)  | 10 | 0.53               | 0.46              |
+|             | 50 | 0.59               | 0.43              |
 
 NB. Qwen is Qwen2.5 Instruct. 
 
 ### 2.b Large evaluation set (cross-check with 2a)
 
 
-| LLM        |  k | Condition | Severity |
-|            |    |  accuracy | accuracy |
-|            |    |       <r> |      <r> |
-|------------+----+-----------+----------|
-| Qwen (32B) | 10 |         x |        x |
-|            | 50 |         x |        x |
-|------------+----+-----------+----------|
+| LLM        | k  | Condition Accuracy | Severity Accuracy |
+|------------|----|--------------------|-------------------|
+| Qwen (32B) | 10 | x                  | x                 |
+|            | 50 | x                  | x                 |
 
 ### 2.c Large evaluation set (as time allows)
 
-| LLM         |  k | Condition | Severity |
-|             |    |  accuracy | accuracy |
-|             |    |       <r> |      <r> |
-|-------------+----+-----------+----------|
-| o3-mini or  | 10 |         x |        x |
-| DeepSeek-r1 | 50 |         x |        x |
-|-------------+----+-----------+----------|
-| Qwen (1.5B) | 10 |         x |        x |
-|             | 50 |         x |        x |
-|-------------+----+-----------+----------|
+| LLM             | k  | Condition Accuracy | Severity Accuracy |
+|-----------------|----|--------------------|-------------------|
+| o3-mini         | 10 | x                  | x                 |
+| DeepSeek-r1     | 50 | x                  | x                 |
+| Qwen (1.5B)     | 10 | x                  | x                 |
+|                 | 50 | x                  | x                 |
 
 ### 2.d Large evaluation set (not essential)
 
-| LLM         |   k | Condition | Severity |
-|             |     |  accuracy | accuracy |
-|             |     |       <r> |      <r> |
-|-------------+-----+-----------+----------|
-| o3-mini or  | 100 |         x |        x |
-| DeepSeek-r1 |     |           |          |
-|-------------+-----+-----------+----------|
-| Qwen (1.5B) | 100 |         x |        x |
-|-------------+-----+-----------+----------|
+| LLM             | k   | Condition Accuracy | Severity Accuracy |
+|-----------------|-----|--------------------|-------------------|
+| o3-mini         | 100 | x                  | x                 |
+| DeepSeek-r1     | 100 | x                  | x                 |
+| Qwen (1.5B)     | 100 | x                  | x                 |
 
 
 ## 3. Baseline model (no RAG)
@@ -113,23 +95,17 @@ large evaluation set.
 
 ### 3.a 
 
-| LLM         | Condition | Severity |
-|             |  accuracy | accuracy |
-|             |       <r> |      <r> |
-|-------------+-----------+----------|
-| DeepSeek-r1 |         x |        x |
-| Qwen-32B    |         x |        x |
-|-------------+-----------+----------|
+| LLM         | Condition Accuracy | Severity Accuracy |
+|-------------|--------------------|-------------------|
+| DeepSeek-r1 | x                  | x                 |
+| Qwen-32B    | x                  | x                 |
 
 ### 3.b (as time allows)
 
-| LLM         | Condition | Severity |
-|             |  accuracy | accuracy |
-|             |       <r> |      <r> |
-|-------------+-----------+----------|
-| o3-mini     |         x |        x |
-| Qwen-1.5B   |         x |        x |
-|-------------+-----------+----------|
+| LLM       | Condition Accuracy | Severity Accuracy |
+|-----------|--------------------|-------------------|
+| o3-mini   | x                  | x                 |
+| Qwen-1.5B | x                  | x                 |
 
 
 ## 4. RAG + post-trained model
@@ -141,10 +117,7 @@ data. There are two ideas:
 2. "Marcel" aka t1 (Qwen32B fine-tuned on domain-specific reasoning
    traces).
    
-| LLM    | Condition | Severity |
-|        |  accuracy | accuracy |
-|        |       <r> |      <r> |
-|--------+-----------+----------|
-| s1     |         x |        x |
-| Marcel |         x |        x |
-|--------+-----------+----------|
+| LLM    | Condition Accuracy | Severity Accuracy |
+|--------|--------------------|-------------------|
+| s1     | x                  | x                 |
+| Marcel | x                  | x                 |

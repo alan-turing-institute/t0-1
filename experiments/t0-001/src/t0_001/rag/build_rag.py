@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from langchain import hub
 from langchain_core.documents import Document
 from langchain_core.language_models.llms import LLM
@@ -23,6 +25,8 @@ class State(TypedDict):
 
     question: str
     context: list[Document]
+    demographics: str | None
+    messages: str
     answer: str
 
 
@@ -32,12 +36,14 @@ class RAG:
         retriever: CustomParentDocumentRetriever,
         prompt: PromptTemplate,
         llm: LLM,
+        tools: list | None = None,
+        tools_kwargs: dict = {},
     ):
         """
-        Initalise the RAG class with the vector store, prompt, and LLM.
+        Initialise the RAG class with the vector store, prompt, and LLM.
         The vector store is used to retrieve documents, the prompt is used to
         format the input for the LLM, and the LLM is used to generate the answer.
-        Upon initalisation, the class builds a Langchain compiled state graph
+        Upon initialisation, the class builds a Langchain compiled state graph
         with the retrieve and generate functions as nodes.
 
         Parameters
@@ -48,10 +54,17 @@ class RAG:
             Prompt template to use for the LLM.
         llm : LLM
             LLM to use for generation.
+        tools : list | None, optional
+            List of tools to bind to the LLM. By default None.
+        tools_kwargs : dict, optional
+            Keyword arguments to pass to the tools. By default {}.
         """
         self.retriever: CustomParentDocumentRetriever = retriever
         self.prompt: PromptTemplate = prompt
         self.llm: LLM = llm
+        self.tools: list | None = tools
+        if tools is not None:
+            self.llm = self.llm.bind_tools(tools, **tools_kwargs)
         self.memory: MemorySaver = MemorySaver()
         self.graph: CompiledStateGraph = self.build_graph()
 
@@ -87,16 +100,28 @@ class RAG:
         Returns
         -------
         dict[str, str]
-            A dictionary containing the generated answer.
+            A dictionary containing the generated answer and the messages used to generate it.
         """
-        retrieved_docs = [doc.page_content for doc in state["context"]]
-        docs_content = "\n\n".join(retrieved_docs)
+        # obtain the sources and the context from the retrieved documents
+        sources = [doc.metadata["source"] for doc in state["context"]]
+        sources_str = f"Sources: {sources}"
+        retrieved_docs = [
+            f"{'-' * 100}\nSource: {doc.metadata['source']}\nContent:\n{doc.page_content}"
+            for doc in state["context"]
+        ]
+
+        docs_content = "\n".join(retrieved_docs + [sources_str])
         messages = self.prompt.invoke(
-            {"question": state["question"], "context": docs_content}
+            {
+                "question": state["question"],
+                "context": docs_content,
+                "demographics": state["demographics"],
+                "sources": sources,
+            },
         )
 
         response = self.llm.invoke(messages)
-        return {"answer": response}
+        return {"messages": messages, "answer": response}
 
     def build_graph(self) -> CompiledStateGraph:
         """
@@ -113,9 +138,11 @@ class RAG:
         graph = graph_builder.compile(checkpointer=self.memory)
         return graph
 
-    def _query(self, question: str, user_id: str = "0") -> State:
+    def _query(
+        self, question: str, user_id: str = "0", demographics: str | None = None
+    ) -> State:
         response = self.graph.invoke(
-            input={"question": question},
+            input={"question": question, "demographics": demographics},
             config={"configurable": {"thread_id": user_id}},
         )
         return response
@@ -218,7 +245,12 @@ def build_rag(
     trust_source: bool = False,
     llm_provider: str = "huggingface",
     llm_model_name: str = "Qwen/Qwen2.5-1.5B-Instruct",
+    tools: list | None = None,
+    tools_kwargs: dict = {},
+    prompt_template_path: str | Path | None = None,
+    system_prompt_path: str | Path | None = None,
 ) -> RAG:
+    # obtain the retriever for RAG
     retriever = get_parent_doc_retriever(
         conditions_folder=conditions_folder,
         main_only=main_only,
@@ -226,6 +258,19 @@ def build_rag(
         force_create=force_create,
         trust_source=trust_source,
     )
+
+    # obtain the prompt template for RAG
+    if prompt_template_path is None:
+        prompt_template = hub.pull("rlm/rag-prompt")
+    else:
+        from t0_001.rag.custom_prompt_template import read_prompt_template
+
+        prompt_template = read_prompt_template(
+            prompt_template_path=prompt_template_path,
+            system_prompt_path=system_prompt_path,
+        )
+
+    # obtain the LLM for RAG
     if llm_provider == "huggingface":
         from t0_001.rag.chat_model import get_huggingface_chat_model
 
@@ -238,14 +283,21 @@ def build_rag(
         from t0_001.rag.chat_model import get_azure_endpoint_chat_model
 
         llm = get_azure_endpoint_chat_model(model_name=llm_model_name)
+    elif llm_provider == "openai":
+        from t0_001.rag.chat_model import get_openai_chat_model
+
+        llm = get_openai_chat_model(model_name=llm_model_name)
     else:
         raise ValueError(
             f"Unknown LLM provider: {llm_provider}. Use 'huggingface', 'azure_openai', or 'azure'."
         )
+
     rag = RAG(
         retriever=retriever,
-        prompt=hub.pull("rlm/rag-prompt"),
+        prompt=prompt_template,
         llm=llm,
+        tools=tools,
+        tools_kwargs=tools_kwargs,
     )
 
     return rag
