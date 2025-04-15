@@ -26,13 +26,13 @@ correct condition.
 Sets the highest precision possible through RAG, if the predicted
 condition is constrained to be one of the $k$ retrieved documents.
 
-| Embedding Method                | Eval Set | p@1 | p@5 | p@10 | p@20 | p@50 | p@100 |
-|--------------------------------|----------|-----|-----|------|------|------|-------|
-| mpnet-base-v2 / Chroma         | Small    | 0.47| 0.56| 0.68 | 0.69 |  -   |   -   |
-| mpnet-base-v2 / FAISS          | Small    | 0.47| 0.68| 0.71 | 0.78 |  -   |   -   |
-| mxbai-embed-large-v1 / FAISS   | Small    | 0.51| 0.68| 0.71 | 0.76 |  -   |   -   |
-| mpnet-base-v2 / Chroma         | Large    | 0.44| 0.63| 0.70 | 0.77 | 0.86 | 0.90  |
-| mpnet-base-v2 / FAISS          | Large    | 0.44| 0.63| 0.70 | 0.77 | 0.86 | 0.90  |
+| Embedding Method             | Eval Set |  p@1 |  p@5 | p@10 | p@20 | p@50 | p@100 |
+|------------------------------|----------|-----:|-----:|-----:|-----:|-----:|------:|
+| mpnet-base-v2 / Chroma       | Small    | 0.47 | 0.56 | 0.68 | 0.69 |    - |     - |
+| mpnet-base-v2 / FAISS        | Small    | 0.47 | 0.68 | 0.71 | 0.78 |    - |     - |
+| mxbai-embed-large-v1 / FAISS | Small    | 0.51 | 0.68 | 0.71 | 0.76 |    - |     - |
+| mpnet-base-v2 / Chroma       | Large    | 0.44 | 0.63 | 0.70 | 0.77 | 0.86 |  0.90 |
+| mpnet-base-v2 / FAISS        | Large    | 0.44 | 0.63 | 0.70 | 0.77 | 0.86 |  0.90 |
 
 ### Conclusion
 
