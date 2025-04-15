@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 from pathlib import Path
@@ -32,7 +33,47 @@ def remove_saved_directory(path: str | Path | None, directory_name: str) -> None
         logging.info(f"Removed existing directory at '{path}'.")
 
 
-def load_conditions(
+def load_conditions_jsonl(
+    conditions_file: str | Path,
+) -> dict[str, str]:
+    """
+    Load the conditions from the JSONL file which has fields
+    condition_title and condition_content.
+
+    Parameters
+    ----------
+    conditions_file : str | Path
+        Path to the JSONL file containing the conditions. This should be a file
+        where each line is a JSON object with fields condition_title and condition_content.
+
+    Returns
+    -------
+    dict[str, str]
+        A dictionary where the keys are the names of the conditions and the values
+        are the text extracted from the JSONL file. For example:
+        {
+            "condition1": "text from condition1",
+            "condition2": "text from condition2",
+            ...
+        }
+    """
+    # check if the file exists
+    if not os.path.exists(conditions_file):
+        raise FileNotFoundError(f"File {conditions_file} does not exist")
+
+    logging.info(f"Loading conditions from {conditions_file}")
+
+    # read all conditions and put them in a list
+    conditions = {}
+    with open(conditions_file, "r") as f:
+        for line in tqdm(f, desc="Loading conditions JSONL"):
+            condition = json.loads(line)
+            conditions[condition["condition_title"]] = condition["condition_content"]
+
+    return conditions
+
+
+def load_conditions_folder(
     conditions_folder: str | Path,
     main_only: bool = True,
     max_conditions: int | None = None,
@@ -53,7 +94,6 @@ def load_conditions(
     main_only : bool, optional
         If True, only the main element of the HTML file is extracted with class "nhsuk-main-wrapper".
         If False, the whole HTML file is extracted. The default is True.
-
     max_conditions : int | None, optional
         The maximum number of conditions to load. If None, all conditions are loaded.
         The default is None.
