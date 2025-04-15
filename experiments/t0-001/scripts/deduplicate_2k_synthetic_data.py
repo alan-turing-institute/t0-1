@@ -11,6 +11,13 @@ extra = pd.read_json(
     "./data/synthetic_queries/5bb7345_gpt-4o_517_synthetic_queries.jsonl", lines=True
 )
 
+# save the origianl 2k data with a new name
+two_k.to_json(
+    "./data/synthetic_queries/UNCLEANED_5bb7345_gpt-4o_2000_synthetic_queries.jsonl",
+    orient="records",
+    lines=True,
+)
+
 # create combination column that combines severity_level and conditions_title
 one_k["combination"] = one_k["severity_level"] + ", " + one_k["conditions_title"]
 two_k["combination"] = two_k["severity_level"] + ", " + two_k["conditions_title"]
@@ -41,7 +48,7 @@ print(f"Number of combinations in two_k_final: {len(two_k_final)}")
 
 # save to jsonl
 two_k_final.to_json(
-    "./data/synthetic_queries/5bb7345_gpt-4o_2000_synthetic_queries_cleaned.jsonl",
+    "./data/synthetic_queries/5bb7345_gpt-4o_2000_synthetic_queries.jsonl",
     orient="records",
     lines=True,
 )
