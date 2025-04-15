@@ -1,6 +1,6 @@
 # Knowledge retrieval summary results
 
-## Goal 
+## Goal
 
 Answers to:
 1. Does RAG improve over no RAG? (results in table 2b vs 3a)
@@ -69,7 +69,7 @@ model. Sets the baseline precision.
 | Qwen (32B)  |  10 |               0.53 |              0.46 |
 |             |  50 |               0.59 |              0.43 |
 
-NB. Qwen is Qwen2.5 Instruct. 
+NB. Qwen is Qwen2.5 Instruct.
 
 ### 2.b Large evaluation set (cross-check with 2a)
 
@@ -102,13 +102,13 @@ NB. Qwen is Qwen2.5 Instruct.
 Results with a large model, without passing in documents for RAG,
 large evaluation set.
 
-### 3.a 
+### 3.a
 
-| LLM         | Condition Accuracy | Severity Accuracy | Command |
-|-------------|-------------------:|------------------:|------------------:|
-| GPT-4o      |               0.43 |              0.47 | `t0-001 evaluate-rag data/synthetic_queries/5bb7345_gpt-4o_1000_synthetic_queries.jsonl --k 1 --trust-source --db-choice faiss --persist-directory nhs-use-case-db-faiss --local-file-store nhs-use-case-fs --llm-provider azure_openai --llm-model-name gpt-4o --prompt-template-path templates/withoutrag_evaluation_prompt.txt --system-prompt-path templates/withoutrag_evaluation_system_prompt.txt --force-create --k 1` |
-| DeepSeek-r1 |                  x |                 x |                 x |
-| Qwen-32B    |                  x |                 x |                 x |
+| LLM         | Condition Accuracy | Severity Accuracy |
+|-------------|-------------------:|------------------:|
+| GPT-4o      |               0.41 |              0.46 |
+| DeepSeek-r1 |                  x |                 x |
+| Qwen-32B    |                  x |                 x |
 
 ### 3.b (as time allows)
 
@@ -126,7 +126,7 @@ data. There are two ideas:
 1. s1 (Qwen32B fine-tuned on reasoning)
 2. "Marcel" aka t1 (Qwen32B fine-tuned on domain-specific reasoning
    traces).
-   
+
 | LLM    | Condition Accuracy | Severity Accuracy |
 |--------|-------------------:|------------------:|
 | s1     | x                  | x                 |
