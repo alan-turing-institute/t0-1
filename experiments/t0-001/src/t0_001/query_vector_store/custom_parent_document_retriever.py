@@ -93,5 +93,7 @@ class CustomParentDocumentRetriever(ParentDocumentRetriever):
         ):
             self.vectorstore.add_documents(docs_chunk, **kwargs)
 
+        logging.info("Adding full documents to docstore...")
+
         if add_to_docstore:
             self.docstore.mset(full_docs)
