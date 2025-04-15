@@ -82,7 +82,9 @@ class RAG:
         dict[str, list[Document]]
             A dictionary containing the retrieved documents.
         """
-        retrieved_docs: list[Document] = self.retriever.invoke(input=state["question"])
+        retrieved_docs: list[Document] = await self.retriever.ainvoke(
+            input=state["question"]
+        )
 
         return {"context": retrieved_docs}
 
@@ -111,7 +113,7 @@ class RAG:
         ]
 
         docs_content = "\n".join(retrieved_docs + [sources_str])
-        messages = self.prompt.invoke(
+        messages = await self.prompt.ainvoke(
             {
                 "question": state["question"],
                 "context": docs_content,
@@ -120,7 +122,7 @@ class RAG:
             },
         )
 
-        response = self.llm.invoke(messages)
+        response = self.llm.ainvoke(messages)
         return {"messages": messages, "answer": response}
 
     def build_graph(self) -> CompiledStateGraph:
@@ -141,7 +143,7 @@ class RAG:
     def _query(
         self, question: str, user_id: str = "0", demographics: str | None = None
     ) -> State:
-        response = self.graph.invoke(
+        response = await self.graph.ainvoke(
             input={"question": question, "demographics": demographics},
             config={"configurable": {"thread_id": user_id}},
         )
