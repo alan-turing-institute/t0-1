@@ -14,10 +14,9 @@ class LLMProvider(str, Enum):
     openai = "openai"
 
 
-CONDITIONS_FOLDER: Final[str] = "./nhs-use-case/conditions/"
+CONDITIONS_FILE: Final[str] = "./data/nhs-conditions/conditions.jsonl"
 
 DEFAULTS = {
-    "main_only": True,
     "embedding_model_name": "sentence-transformers/all-mpnet-base-v2",
     "chunk_overlap": 50,
     "db_choice": DBChoice.chroma,

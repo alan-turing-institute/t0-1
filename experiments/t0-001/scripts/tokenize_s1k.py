@@ -4,19 +4,20 @@ Adapted from: https://github.com/simplescaling/s1/blob/main/data/tokenization.py
 """
 
 import argparse
-from dotenv import load_dotenv
+import json
 import logging
 import multiprocessing
-import pandas as pd
-import tempfile
-import re
-from functools import partial
-from typing import Dict
-import json
 import os
+import re
+import tempfile
+from functools import partial
 from pathlib import Path
+from typing import Dict
+
 import datasets
+import pandas as pd
 from datasets import load_dataset, load_from_disk
+from dotenv import load_dotenv
 from transformers import AutoTokenizer
 
 logger = logging.getLogger(__name__)
@@ -36,6 +37,7 @@ def stringify_all_values(obj):
         return [stringify_all_values(item) for item in obj]
     else:
         return str(obj) if obj is not None else None
+
 
 def read_jsonl(input_file: str | Path) -> list[dict]:
     """
@@ -61,9 +63,10 @@ def read_jsonl(input_file: str | Path) -> list[dict]:
 
     return data
 
+
 def load_hf_dataset(input_path: str | Path) -> datasets.DatasetDict:
     """Convert JSONL to Parquet and load as a Hugging Face dataset.
-    
+
     Intermediate step converts mixed dtypes to strings.
     """
     if input_path.startswith("hf://"):
@@ -74,6 +77,7 @@ def load_hf_dataset(input_path: str | Path) -> datasets.DatasetDict:
         tmp_file_path = tmp_file.name + ".parquet"
         pd.DataFrame(dataset).to_parquet(tmp_file_path)
         return load_dataset("parquet", data_files=tmp_file_path)
+
 
 def preprocess(text):
     if text is None:
@@ -97,7 +101,9 @@ def process_cot_example(
 
     if not regex_match:
         condition = example["conditions_title"]
-        logger.warning(f"Failed to extract reasoning trace and output for example of {condition=}.")
+        logger.warning(
+            f"Failed to extract reasoning trace and output for example of {condition=}."
+        )
         return
     reasoning_trace = regex_match.group(1).strip()
     answer = regex_match.group(2).strip()

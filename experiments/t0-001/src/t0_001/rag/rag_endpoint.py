@@ -26,8 +26,7 @@ def create_rag_app(rag: RAG) -> FastAPI:
 
 
 def main(
-    conditions_folder: str,
-    main_only: bool = True,
+    conditions_file: str,
     config: RetrieverConfig = DEFAULT_RETRIEVER_CONFIG,
     force_create: bool = False,
     trust_source: bool = False,
@@ -39,8 +38,7 @@ def main(
     port: int = 8000,
 ):
     rag = build_rag(
-        conditions_folder=conditions_folder,
-        main_only=main_only,
+        conditions_file=conditions_file,
         config=config,
         force_create=force_create,
         trust_source=trust_source,

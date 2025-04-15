@@ -5,8 +5,7 @@ EXIT_STRS: set[str] = {"exit", "exit()", "quit()", "bye"}
 
 
 def run_chat_interact(
-    conditions_folder: str,
-    main_only: bool = True,
+    conditions_file: str,
     config: RetrieverConfig = DEFAULT_RETRIEVER_CONFIG,
     force_create: bool = False,
     trust_source: bool = False,
@@ -16,8 +15,7 @@ def run_chat_interact(
     system_prompt_path: str | None = None,
 ):
     rag = build_rag(
-        conditions_folder=conditions_folder,
-        main_only=main_only,
+        conditions_file=conditions_file,
         config=config,
         force_create=force_create,
         trust_source=trust_source,
