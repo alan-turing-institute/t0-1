@@ -259,7 +259,6 @@ class ParentDocumentRetrieverCreator:
             Document(page_content=doc, metadata=meta)
             for doc, meta in zip(documents, metadatas)
         ]
-        logging.info(f"Number of documents created: {len(self.documents)}")
 
         if config.local_file_store is None:
             store = InMemoryStore()

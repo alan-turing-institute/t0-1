@@ -1,9 +1,12 @@
+import logging
 from collections import defaultdict
+from typing import Any, List, Optional
 
 from langchain.retrievers import ParentDocumentRetriever
 from langchain.retrievers.multi_vector import SearchType
 from langchain_core.callbacks import CallbackManagerForRetrieverRun
 from langchain_core.documents import Document
+from tqdm import tqdm
 
 
 class CustomParentDocumentRetriever(ParentDocumentRetriever):
@@ -59,3 +62,36 @@ class CustomParentDocumentRetriever(ParentDocumentRetriever):
                     docs.append(doc)
 
         return docs
+
+    def add_documents(
+        self,
+        documents: List[Document],
+        ids: Optional[List[str]] = None,
+        add_to_docstore: bool = True,
+        **kwargs: Any,
+    ) -> None:
+        """
+        Adds documents to the docstore and vectorstores in batches of 2048.
+        """
+        logging.info("Adding documents to vectorstore and docstore...")
+        logging.info("Splitting documents for adding...")
+
+        docs, full_docs = self._split_docs_for_adding(documents, ids, add_to_docstore)
+
+        logging.info(f"Number of documents created after splitting: {len(docs)}")
+        logging.info(f"Number of full documents: {len(full_docs)}")
+
+        def split_list(input_list, batch_size):
+            for i in range(0, len(input_list), batch_size):
+                yield input_list[i : i + batch_size]
+
+        split_docs_chunked = split_list(docs, batch_size=2048)
+        for docs_chunk in tqdm(
+            split_docs_chunked,
+            desc="Adding documents in batches of 2048",
+            total=len(docs) // 2048,
+        ):
+            self.vectorstore.add_documents(docs_chunk, **kwargs)
+
+        if add_to_docstore:
+            self.docstore.mset(full_docs)
