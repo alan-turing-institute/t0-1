@@ -10,7 +10,7 @@ cd experiments/t0-001
 
 Create a virtual environment, activate it and install required dependencies (in editable mode) using [uv](https://github.com/astral-sh/uv):
 ```bash
-uv venv .venv --python=3.12
+uv venv --python=3.12
 source .venv/bin/activate
 uv pip install -e ".[rag,dev]"
 ```
@@ -32,6 +32,8 @@ For `t0-001`, we have several command line interfaces (CLIs) (implemented using 
 - [Initialising a RAG chat interaction](#initalising-a-rag-chat-interaction)
 - [Evaluating RAG](#evaluating-RAG)
 - [Generating synthetic queries](#generating-synthetic-queries)
+
+Note that with using `uv`, it is useful to run scripts with `uv run`, e.g. `uv run t0-001 rag-chat ...`.
 
 ### Serving and querying from the query vector store
 
@@ -58,7 +60,7 @@ Lastly, you can decide to not serve and just build the vector store by using the
 
 All of these options have default arguments (see `t0-001 serve-vector-store --help`), so you can just run the command as is. But to save and load the vector store, you need to provide the `--persist-directory` option:
 ```bash
-t0-001 serve-vector-store --persist-directory ./nhs-use-case-db
+uv run t0-001 serve-vector-store --persist-directory ./nhs-use-case-db
 ```
 
 #### Querying the vector store
@@ -71,7 +73,7 @@ There are several options for the `t0-001 query-vector-store` command:
 
 An example command to query the vector store is:
 ```bash
-t0-001 query-vector-store \
+uv run t0-001 query-vector-store \
   "What should I do if I have lost a lot of weight over the last 3 to 6 months?" \
   --k 5 \
   --with-score
@@ -90,7 +92,7 @@ The other options are same as for [serving the vector store](#serving-the-vector
 
 An example command to evaluate the vector store is:
 ```bash
-t0-001 evaluate-vector-store <path-to-input-jsonl> \
+uv run t0-001 evaluate-vector-store <path-to-input-jsonl> \
   --output-file ./eval-vector-store-defaults-k10.jsonl \
   --k 10
 ```
@@ -119,7 +121,9 @@ You can also decide to not serve and just build the vector store by using the `-
 
 All of these options have default arguments (see `t0-001 serve-retriever --help`), so you can just run the command as is. But to save and load the vector store, you need to provide the `--persist-directory` and `--local-file-store` options:
 ```bash
-t0-001 serve-retriever --persist-directory ./nhs-use-case-db --local-file-store ./nhs-use-case-fs
+uv run t0-001 serve-retriever \
+  --persist-directory ./nhs-use-case-db \
+  --local-file-store ./nhs-use-case-fs
 ```
 
 #### Querying the retriever
@@ -128,7 +132,7 @@ Once you have served the FastAPI to the retriever, you can query it with the `t0
 
 An example command to query the RAG model is:
 ```bash
-t0-001 query-retriever \
+uv run t0-001 query-retriever \
   "What should I do if I have lost a lot of weight over the last 3 to 6 months?"
 ```
 
@@ -155,12 +159,18 @@ Many options are similar to the [vector store](#serving-the-vector-store) and [r
 
 All of these options have default arguments (see `t0-001 serve-rag --help`), so you can just run the command as is. But to save and load the vector store, you need to provide the `--persist-directory` and `--local-file-store` options:
 ```bash
-t0-001 serve-rag --persist-directory ./nhs-use-case-db --local-file-store ./nhs-use-case-fs
+uv run t0-001 serve-rag \
+  --persist-directory ./nhs-use-case-db \
+  --local-file-store ./nhs-use-case-fs
 ```
 
 For using an Azure OpenAI endpoint, you can run something like:
 ```bash
-t0-001 serve-rag --persist-directory ./nhs-use-case-db --local-file-store ./nhs-use-case-fs --llm-provider azure-openai --llm-model-name gpt-4o
+uv run t0-001 serve-rag \
+  --persist-directory ./nhs-use-case-db \
+  --local-file-store ./nhs-use-case-fs \
+  --llm-provider azure-openai \
+  --llm-model-name gpt-4o
 ```
 and set the environment variables in a `.env` file:
 ```bash
@@ -170,7 +180,11 @@ AZURE_OPENAI_ENDPOINT_gpt-4o=<your-endpoint>
 
 For using an Azure AI Foundry endpoint, you can run something like:
 ```bash
-t0-001 serve-rag --persist-directory ./nhs-use-case-db --local-file-store ./nhs-use-case-fs --llm-provider azure --llm-model-name deepseek-r1
+uv run t0-001 serve-rag \
+  --persist-directory ./nhs-use-case-db \
+  --local-file-store ./nhs-use-case-fs \
+  --llm-provider azure \
+  --llm-model-name deepseek-r1
 ```
 and set the environment variables in a `.env` file:
 ```bash
@@ -184,7 +198,7 @@ Once you have served the FastAPI to the RAG model, you can query it with the `t0
 
 An example command to query the RAG model is:
 ```bash
-t0-001 query-rag \
+uv run t0-001 query-rag \
   "What should I do if I have lost a lot of weight over the last 3 to 6 months?"
 ```
 
@@ -196,7 +210,8 @@ See [Serving the RAG model](#serving-the-rag-model) for the options to specify t
 
 You should be able to just spin it up with default options (below we are using the `--persist-directory` option to load the vector store if it exists, or create it if it doesn't):
 ```bash
-t0-001 rag-chat --persist-directory ./nhs-use-case-db
+uv run t0-001 rag-chat \
+  --persist-directory ./nhs-use-case-db
 ```
 
 You can then interact with the RAG model in a chat-like interface. You can type in your queries and the model will respond with the relevant information from the vector store.
@@ -220,7 +235,7 @@ For evaluating RAG, you can use the `t0-001 evaluate-rag` command. This takes as
 
 You can run this evaluation with the `t0-001 evaluate-rag` command:
 ```bash
-t0-001 evaluate-rag data/synthetic_queries/gpt-4o_100_synthetic_queries.jsonl \
+uv run t0-001 evaluate-rag data/synthetic_queries/gpt-4o_100_synthetic_queries.jsonl \
   --k 10 \
   --llm-provider azure_openai \
   --llm-model-name gpt-4o \
@@ -232,7 +247,7 @@ We use tool use to force the model as a form of structured output to get the mod
 
 Note for serving Deepseek-R1 on Azure AI Foundry, tool use is not currently supported, so we slightly adjust the system and prompt template so that it produces an output that we can easily parse. To evaluate Deepseek-R1, you need to use the `--deepseek-r1` option:
 ```bash
-t0-001 evaluate-rag data/synthetic_queries/gpt-4o_100_synthetic_queries.jsonl \
+uv run t0-001 evaluate-rag data/synthetic_queries/gpt-4o_100_synthetic_queries.jsonl \
   --k 10 \
   --llm-provider azure \
   --llm-model-name deepseek-r1 \
@@ -273,9 +288,9 @@ To test the endpoints, you can run the `scripts/test_Azure_models.py` script, bu
 #### Pricing of the models
 
 | Model         | Price per 1M Tokens (USD) |
-|---------------|----------------------------|
-| gpt-4o        | 4.38                       |
-| o3-mini       | 1.93                       |
-| DeepSeek-V3   | 2.00                       |
-| DeepSeek-R1   | 2.36                       |
-| o1            | 26.25                      |
+|---------------|---------------------------|
+| gpt-4o        | 4.38                      |
+| o3-mini       | 1.93                      |
+| DeepSeek-V3   | 2.00                      |
+| DeepSeek-R1   | 2.36                      |
+| o1            | 26.25                     |
