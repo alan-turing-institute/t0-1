@@ -107,6 +107,7 @@ large evaluation set.
 | LLM         | Condition Accuracy | Severity Accuracy |
 |-------------|-------------------:|------------------:|
 | GPT-4o      |               0.41 |              0.46 |
+| 03-mini     |               0.17 |              0.44 |
 | DeepSeek-r1 |                  x |                 x |
 | Qwen-32B    |                  x |                 x |
 
