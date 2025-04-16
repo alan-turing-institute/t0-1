@@ -5,14 +5,14 @@
 #### deepseek-r1
 | Embedding Method                        |   Supporting documents retrieved | Query Type   | LLM         | Predicted Severity Type   |   Count |   Score |   Count (no Ambulance) |   Score (no Ambulance) |
 |-----------------------------------------|----------------------------------|--------------|-------------|---------------------------|---------|---------|------------------------|------------------------|
-| sentence-transformers/all-mpnet-base-v2 |                               10 | all          | deepseek-r1 | correct                   |       0 |    0.00 |                      0 |                   0.00 |
-| sentence-transformers/all-mpnet-base-v2 |                               10 | all          | deepseek-r1 | less severe               |       0 |    0.00 |                      0 |                   0.00 |
-| sentence-transformers/all-mpnet-base-v2 |                               10 | all          | deepseek-r1 | more severe               |       0 |    0.00 |                      0 |                   0.00 |
-| sentence-transformers/all-mpnet-base-v2 |                               10 | all          | deepseek-r1 | NA                        |    1000 |    1.00 |                   1000 |                   1.00 |
-| sentence-transformers/all-mpnet-base-v2 |                               30 | all          | deepseek-r1 | correct                   |       0 |    0.00 |                      0 |                   0.00 |
-| sentence-transformers/all-mpnet-base-v2 |                               30 | all          | deepseek-r1 | less severe               |       0 |    0.00 |                      0 |                   0.00 |
-| sentence-transformers/all-mpnet-base-v2 |                               30 | all          | deepseek-r1 | more severe               |       0 |    0.00 |                      0 |                   0.00 |
-| sentence-transformers/all-mpnet-base-v2 |                               30 | all          | deepseek-r1 | NA                        |    1000 |    1.00 |                   1000 |                   1.00 |
+| sentence-transformers/all-mpnet-base-v2 |                               10 | all          | deepseek-r1 | correct                   |     431 |    0.43 |                    530 |                   0.53 |
+| sentence-transformers/all-mpnet-base-v2 |                               10 | all          | deepseek-r1 | less severe               |     312 |    0.31 |                    248 |                   0.25 |
+| sentence-transformers/all-mpnet-base-v2 |                               10 | all          | deepseek-r1 | more severe               |     256 |    0.26 |                    221 |                   0.22 |
+| sentence-transformers/all-mpnet-base-v2 |                               10 | all          | deepseek-r1 | NA                        |       1 |    0.00 |                      1 |                   0.00 |
+| sentence-transformers/all-mpnet-base-v2 |                               30 | all          | deepseek-r1 | correct                   |     420 |    0.42 |                    521 |                   0.52 |
+| sentence-transformers/all-mpnet-base-v2 |                               30 | all          | deepseek-r1 | less severe               |     324 |    0.32 |                    265 |                   0.27 |
+| sentence-transformers/all-mpnet-base-v2 |                               30 | all          | deepseek-r1 | more severe               |     251 |    0.25 |                    209 |                   0.21 |
+| sentence-transformers/all-mpnet-base-v2 |                               30 | all          | deepseek-r1 | NA                        |       5 |    0.01 |                      5 |                   0.01 |
 
 #### o3-mini
 | Embedding Method                        |   Supporting documents retrieved | Query Type   | LLM     | Predicted Severity Type   |   Count |   Score |   Count (no Ambulance) |   Score (no Ambulance) |
@@ -56,14 +56,14 @@
 #### deepseek-r1
 | Embedding Method                        |   Supporting documents retrieved | Query Type   | LLM         | Predicted Severity Type   |   Count |   Score |   Count (no Ambulance) |   Score (no Ambulance) |
 |-----------------------------------------|----------------------------------|--------------|-------------|---------------------------|---------|---------|------------------------|------------------------|
-| sentence-transformers/all-mpnet-base-v2 |                               10 | cluster      | deepseek-r1 | correct                   |       0 |    0.00 |                      0 |                   0.00 |
-| sentence-transformers/all-mpnet-base-v2 |                               10 | cluster      | deepseek-r1 | less severe               |       0 |    0.00 |                      0 |                   0.00 |
-| sentence-transformers/all-mpnet-base-v2 |                               10 | cluster      | deepseek-r1 | more severe               |       0 |    0.00 |                      0 |                   0.00 |
-| sentence-transformers/all-mpnet-base-v2 |                               10 | cluster      | deepseek-r1 | NA                        |     203 |    1.00 |                    203 |                   1.00 |
-| sentence-transformers/all-mpnet-base-v2 |                               30 | cluster      | deepseek-r1 | correct                   |       0 |    0.00 |                      0 |                   0.00 |
-| sentence-transformers/all-mpnet-base-v2 |                               30 | cluster      | deepseek-r1 | less severe               |       0 |    0.00 |                      0 |                   0.00 |
-| sentence-transformers/all-mpnet-base-v2 |                               30 | cluster      | deepseek-r1 | more severe               |       0 |    0.00 |                      0 |                   0.00 |
-| sentence-transformers/all-mpnet-base-v2 |                               30 | cluster      | deepseek-r1 | NA                        |     203 |    1.00 |                    203 |                   1.00 |
+| sentence-transformers/all-mpnet-base-v2 |                               10 | cluster      | deepseek-r1 | correct                   |      94 |    0.46 |                    117 |                   0.58 |
+| sentence-transformers/all-mpnet-base-v2 |                               10 | cluster      | deepseek-r1 | less severe               |      56 |    0.28 |                     48 |                   0.24 |
+| sentence-transformers/all-mpnet-base-v2 |                               10 | cluster      | deepseek-r1 | more severe               |      53 |    0.26 |                     38 |                   0.19 |
+| sentence-transformers/all-mpnet-base-v2 |                               10 | cluster      | deepseek-r1 | NA                        |       0 |    0.00 |                      0 |                   0.00 |
+| sentence-transformers/all-mpnet-base-v2 |                               30 | cluster      | deepseek-r1 | correct                   |      95 |    0.47 |                    119 |                   0.59 |
+| sentence-transformers/all-mpnet-base-v2 |                               30 | cluster      | deepseek-r1 | less severe               |      60 |    0.30 |                     53 |                   0.26 |
+| sentence-transformers/all-mpnet-base-v2 |                               30 | cluster      | deepseek-r1 | more severe               |      48 |    0.24 |                     31 |                   0.15 |
+| sentence-transformers/all-mpnet-base-v2 |                               30 | cluster      | deepseek-r1 | NA                        |       0 |    0.00 |                      0 |                   0.00 |
 
 #### o3-mini
 | Embedding Method                        |   Supporting documents retrieved | Query Type   | LLM     | Predicted Severity Type   |   Count |   Score |   Count (no Ambulance) |   Score (no Ambulance) |
@@ -107,14 +107,14 @@
 #### deepseek-r1
 | Embedding Method                        |   Supporting documents retrieved | Query Type   | LLM         | Predicted Severity Type   |   Count |   Score |   Count (no Ambulance) |   Score (no Ambulance) |
 |-----------------------------------------|----------------------------------|--------------|-------------|---------------------------|---------|---------|------------------------|------------------------|
-| sentence-transformers/all-mpnet-base-v2 |                               10 | vague        | deepseek-r1 | correct                   |       0 |    0.00 |                      0 |                   0.00 |
-| sentence-transformers/all-mpnet-base-v2 |                               10 | vague        | deepseek-r1 | less severe               |       0 |    0.00 |                      0 |                   0.00 |
-| sentence-transformers/all-mpnet-base-v2 |                               10 | vague        | deepseek-r1 | more severe               |       0 |    0.00 |                      0 |                   0.00 |
-| sentence-transformers/all-mpnet-base-v2 |                               10 | vague        | deepseek-r1 | NA                        |     238 |    1.00 |                    238 |                   1.00 |
-| sentence-transformers/all-mpnet-base-v2 |                               30 | vague        | deepseek-r1 | correct                   |       0 |    0.00 |                      0 |                   0.00 |
-| sentence-transformers/all-mpnet-base-v2 |                               30 | vague        | deepseek-r1 | less severe               |       0 |    0.00 |                      0 |                   0.00 |
-| sentence-transformers/all-mpnet-base-v2 |                               30 | vague        | deepseek-r1 | more severe               |       0 |    0.00 |                      0 |                   0.00 |
-| sentence-transformers/all-mpnet-base-v2 |                               30 | vague        | deepseek-r1 | NA                        |     238 |    1.00 |                    238 |                   1.00 |
+| sentence-transformers/all-mpnet-base-v2 |                               10 | vague        | deepseek-r1 | correct                   |      95 |    0.40 |                    120 |                   0.50 |
+| sentence-transformers/all-mpnet-base-v2 |                               10 | vague        | deepseek-r1 | less severe               |      85 |    0.36 |                     63 |                   0.26 |
+| sentence-transformers/all-mpnet-base-v2 |                               10 | vague        | deepseek-r1 | more severe               |      58 |    0.24 |                     55 |                   0.23 |
+| sentence-transformers/all-mpnet-base-v2 |                               10 | vague        | deepseek-r1 | NA                        |       0 |    0.00 |                      0 |                   0.00 |
+| sentence-transformers/all-mpnet-base-v2 |                               30 | vague        | deepseek-r1 | correct                   |      89 |    0.37 |                    114 |                   0.48 |
+| sentence-transformers/all-mpnet-base-v2 |                               30 | vague        | deepseek-r1 | less severe               |      89 |    0.37 |                     69 |                   0.29 |
+| sentence-transformers/all-mpnet-base-v2 |                               30 | vague        | deepseek-r1 | more severe               |      58 |    0.24 |                     53 |                   0.22 |
+| sentence-transformers/all-mpnet-base-v2 |                               30 | vague        | deepseek-r1 | NA                        |       2 |    0.01 |                      2 |                   0.01 |
 
 #### o3-mini
 | Embedding Method                        |   Supporting documents retrieved | Query Type   | LLM     | Predicted Severity Type   |   Count |   Score |   Count (no Ambulance) |   Score (no Ambulance) |
@@ -158,14 +158,14 @@
 #### deepseek-r1
 | Embedding Method                        |   Supporting documents retrieved | Query Type    | LLM         | Predicted Severity Type   |   Count |   Score |   Count (no Ambulance) |   Score (no Ambulance) |
 |-----------------------------------------|----------------------------------|---------------|-------------|---------------------------|---------|---------|------------------------|------------------------|
-| sentence-transformers/all-mpnet-base-v2 |                               10 | hypochondriac | deepseek-r1 | correct                   |       0 |    0.00 |                      0 |                   0.00 |
-| sentence-transformers/all-mpnet-base-v2 |                               10 | hypochondriac | deepseek-r1 | less severe               |       0 |    0.00 |                      0 |                   0.00 |
-| sentence-transformers/all-mpnet-base-v2 |                               10 | hypochondriac | deepseek-r1 | more severe               |       0 |    0.00 |                      0 |                   0.00 |
-| sentence-transformers/all-mpnet-base-v2 |                               10 | hypochondriac | deepseek-r1 | NA                        |     193 |    1.00 |                    193 |                   1.00 |
-| sentence-transformers/all-mpnet-base-v2 |                               30 | hypochondriac | deepseek-r1 | correct                   |       0 |    0.00 |                      0 |                   0.00 |
-| sentence-transformers/all-mpnet-base-v2 |                               30 | hypochondriac | deepseek-r1 | less severe               |       0 |    0.00 |                      0 |                   0.00 |
-| sentence-transformers/all-mpnet-base-v2 |                               30 | hypochondriac | deepseek-r1 | more severe               |       0 |    0.00 |                      0 |                   0.00 |
-| sentence-transformers/all-mpnet-base-v2 |                               30 | hypochondriac | deepseek-r1 | NA                        |     193 |    1.00 |                    193 |                   1.00 |
+| sentence-transformers/all-mpnet-base-v2 |                               10 | hypochondriac | deepseek-r1 | correct                   |      90 |    0.47 |                    107 |                   0.55 |
+| sentence-transformers/all-mpnet-base-v2 |                               10 | hypochondriac | deepseek-r1 | less severe               |      52 |    0.27 |                     41 |                   0.21 |
+| sentence-transformers/all-mpnet-base-v2 |                               10 | hypochondriac | deepseek-r1 | more severe               |      50 |    0.26 |                     44 |                   0.23 |
+| sentence-transformers/all-mpnet-base-v2 |                               10 | hypochondriac | deepseek-r1 | NA                        |       1 |    0.01 |                      1 |                   0.01 |
+| sentence-transformers/all-mpnet-base-v2 |                               30 | hypochondriac | deepseek-r1 | correct                   |      81 |    0.42 |                    102 |                   0.53 |
+| sentence-transformers/all-mpnet-base-v2 |                               30 | hypochondriac | deepseek-r1 | less severe               |      59 |    0.31 |                     47 |                   0.24 |
+| sentence-transformers/all-mpnet-base-v2 |                               30 | hypochondriac | deepseek-r1 | more severe               |      51 |    0.26 |                     42 |                   0.22 |
+| sentence-transformers/all-mpnet-base-v2 |                               30 | hypochondriac | deepseek-r1 | NA                        |       2 |    0.01 |                      2 |                   0.01 |
 
 #### o3-mini
 | Embedding Method                        |   Supporting documents retrieved | Query Type    | LLM     | Predicted Severity Type   |   Count |   Score |   Count (no Ambulance) |   Score (no Ambulance) |
@@ -209,14 +209,14 @@
 #### deepseek-r1
 | Embedding Method                        |   Supporting documents retrieved | Query Type   | LLM         | Predicted Severity Type   |   Count |   Score |   Count (no Ambulance) |   Score (no Ambulance) |
 |-----------------------------------------|----------------------------------|--------------|-------------|---------------------------|---------|---------|------------------------|------------------------|
-| sentence-transformers/all-mpnet-base-v2 |                               10 | basic        | deepseek-r1 | correct                   |       0 |    0.00 |                      0 |                   0.00 |
-| sentence-transformers/all-mpnet-base-v2 |                               10 | basic        | deepseek-r1 | less severe               |       0 |    0.00 |                      0 |                   0.00 |
-| sentence-transformers/all-mpnet-base-v2 |                               10 | basic        | deepseek-r1 | more severe               |       0 |    0.00 |                      0 |                   0.00 |
-| sentence-transformers/all-mpnet-base-v2 |                               10 | basic        | deepseek-r1 | NA                        |     170 |    1.00 |                    170 |                   1.00 |
-| sentence-transformers/all-mpnet-base-v2 |                               30 | basic        | deepseek-r1 | correct                   |       0 |    0.00 |                      0 |                   0.00 |
-| sentence-transformers/all-mpnet-base-v2 |                               30 | basic        | deepseek-r1 | less severe               |       0 |    0.00 |                      0 |                   0.00 |
-| sentence-transformers/all-mpnet-base-v2 |                               30 | basic        | deepseek-r1 | more severe               |       0 |    0.00 |                      0 |                   0.00 |
-| sentence-transformers/all-mpnet-base-v2 |                               30 | basic        | deepseek-r1 | NA                        |     170 |    1.00 |                    170 |                   1.00 |
+| sentence-transformers/all-mpnet-base-v2 |                               10 | basic        | deepseek-r1 | correct                   |      84 |    0.49 |                    106 |                   0.62 |
+| sentence-transformers/all-mpnet-base-v2 |                               10 | basic        | deepseek-r1 | less severe               |      53 |    0.31 |                     40 |                   0.24 |
+| sentence-transformers/all-mpnet-base-v2 |                               10 | basic        | deepseek-r1 | more severe               |      33 |    0.19 |                     24 |                   0.14 |
+| sentence-transformers/all-mpnet-base-v2 |                               10 | basic        | deepseek-r1 | NA                        |       0 |    0.00 |                      0 |                   0.00 |
+| sentence-transformers/all-mpnet-base-v2 |                               30 | basic        | deepseek-r1 | correct                   |      86 |    0.51 |                    107 |                   0.63 |
+| sentence-transformers/all-mpnet-base-v2 |                               30 | basic        | deepseek-r1 | less severe               |      53 |    0.31 |                     42 |                   0.25 |
+| sentence-transformers/all-mpnet-base-v2 |                               30 | basic        | deepseek-r1 | more severe               |      31 |    0.18 |                     21 |                   0.12 |
+| sentence-transformers/all-mpnet-base-v2 |                               30 | basic        | deepseek-r1 | NA                        |       0 |    0.00 |                      0 |                   0.00 |
 
 #### o3-mini
 | Embedding Method                        |   Supporting documents retrieved | Query Type   | LLM     | Predicted Severity Type   |   Count |   Score |   Count (no Ambulance) |   Score (no Ambulance) |
@@ -260,14 +260,14 @@
 #### deepseek-r1
 | Embedding Method                        |   Supporting documents retrieved | Query Type   | LLM         | Predicted Severity Type   |   Count |   Score |   Count (no Ambulance) |   Score (no Ambulance) |
 |-----------------------------------------|----------------------------------|--------------|-------------|---------------------------|---------|---------|------------------------|------------------------|
-| sentence-transformers/all-mpnet-base-v2 |                               10 | downplay     | deepseek-r1 | correct                   |       0 |    0.00 |                      0 |                   0.00 |
-| sentence-transformers/all-mpnet-base-v2 |                               10 | downplay     | deepseek-r1 | less severe               |       0 |    0.00 |                      0 |                   0.00 |
-| sentence-transformers/all-mpnet-base-v2 |                               10 | downplay     | deepseek-r1 | more severe               |       0 |    0.00 |                      0 |                   0.00 |
-| sentence-transformers/all-mpnet-base-v2 |                               10 | downplay     | deepseek-r1 | NA                        |     196 |    1.00 |                    196 |                   1.00 |
-| sentence-transformers/all-mpnet-base-v2 |                               30 | downplay     | deepseek-r1 | correct                   |       0 |    0.00 |                      0 |                   0.00 |
-| sentence-transformers/all-mpnet-base-v2 |                               30 | downplay     | deepseek-r1 | less severe               |       0 |    0.00 |                      0 |                   0.00 |
-| sentence-transformers/all-mpnet-base-v2 |                               30 | downplay     | deepseek-r1 | more severe               |       0 |    0.00 |                      0 |                   0.00 |
-| sentence-transformers/all-mpnet-base-v2 |                               30 | downplay     | deepseek-r1 | NA                        |     196 |    1.00 |                    196 |                   1.00 |
+| sentence-transformers/all-mpnet-base-v2 |                               10 | downplay     | deepseek-r1 | correct                   |      68 |    0.35 |                     80 |                   0.41 |
+| sentence-transformers/all-mpnet-base-v2 |                               10 | downplay     | deepseek-r1 | less severe               |      66 |    0.34 |                     56 |                   0.29 |
+| sentence-transformers/all-mpnet-base-v2 |                               10 | downplay     | deepseek-r1 | more severe               |      62 |    0.32 |                     60 |                   0.31 |
+| sentence-transformers/all-mpnet-base-v2 |                               10 | downplay     | deepseek-r1 | NA                        |       0 |    0.00 |                      0 |                   0.00 |
+| sentence-transformers/all-mpnet-base-v2 |                               30 | downplay     | deepseek-r1 | correct                   |      69 |    0.35 |                     79 |                   0.40 |
+| sentence-transformers/all-mpnet-base-v2 |                               30 | downplay     | deepseek-r1 | less severe               |      63 |    0.32 |                     54 |                   0.28 |
+| sentence-transformers/all-mpnet-base-v2 |                               30 | downplay     | deepseek-r1 | more severe               |      63 |    0.32 |                     62 |                   0.32 |
+| sentence-transformers/all-mpnet-base-v2 |                               30 | downplay     | deepseek-r1 | NA                        |       1 |    0.01 |                      1 |                   0.01 |
 
 #### o3-mini
 | Embedding Method                        |   Supporting documents retrieved | Query Type   | LLM     | Predicted Severity Type   |   Count |   Score |   Count (no Ambulance) |   Score (no Ambulance) |
