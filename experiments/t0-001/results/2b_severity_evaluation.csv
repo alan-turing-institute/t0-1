@@ -1,169 +1,169 @@
-Embedding Method,Supporting documents retrieved,Query Type,LLM,Predicted Severity Type,Count
-sentence-transformers/all-mpnet-base-v2,10,all,o3-mini,correct,423
-sentence-transformers/all-mpnet-base-v2,10,all,o3-mini,less severe,219
-sentence-transformers/all-mpnet-base-v2,10,all,o3-mini,more severe,268
-sentence-transformers/all-mpnet-base-v2,10,all,o3-mini,,88
-sentence-transformers/all-mpnet-base-v2,10,all,qwen2.5-1.5b,correct,83
-sentence-transformers/all-mpnet-base-v2,10,all,qwen2.5-1.5b,less severe,19
-sentence-transformers/all-mpnet-base-v2,10,all,qwen2.5-1.5b,more severe,198
-sentence-transformers/all-mpnet-base-v2,10,all,qwen2.5-1.5b,,700
-sentence-transformers/all-mpnet-base-v2,10,all,qwen2.5-32b,correct,408
-sentence-transformers/all-mpnet-base-v2,10,all,qwen2.5-32b,less severe,277
-sentence-transformers/all-mpnet-base-v2,10,all,qwen2.5-32b,more severe,294
-sentence-transformers/all-mpnet-base-v2,10,all,qwen2.5-32b,,21
-sentence-transformers/all-mpnet-base-v2,30,all,deepseek-r1,correct,0
-sentence-transformers/all-mpnet-base-v2,30,all,deepseek-r1,less severe,0
-sentence-transformers/all-mpnet-base-v2,30,all,deepseek-r1,more severe,0
-sentence-transformers/all-mpnet-base-v2,30,all,deepseek-r1,,1000
-sentence-transformers/all-mpnet-base-v2,30,all,o3-mini,correct,455
-sentence-transformers/all-mpnet-base-v2,30,all,o3-mini,less severe,237
-sentence-transformers/all-mpnet-base-v2,30,all,o3-mini,more severe,276
-sentence-transformers/all-mpnet-base-v2,30,all,o3-mini,,30
-sentence-transformers/all-mpnet-base-v2,30,all,qwen2.5-1.5b,correct,48
-sentence-transformers/all-mpnet-base-v2,30,all,qwen2.5-1.5b,less severe,6
-sentence-transformers/all-mpnet-base-v2,30,all,qwen2.5-1.5b,more severe,132
-sentence-transformers/all-mpnet-base-v2,30,all,qwen2.5-1.5b,,814
-sentence-transformers/all-mpnet-base-v2,30,all,qwen2.5-32b,correct,404
-sentence-transformers/all-mpnet-base-v2,30,all,qwen2.5-32b,less severe,263
-sentence-transformers/all-mpnet-base-v2,30,all,qwen2.5-32b,more severe,327
-sentence-transformers/all-mpnet-base-v2,30,all,qwen2.5-32b,,6
-sentence-transformers/all-mpnet-base-v2,10,basic,o3-mini,correct,88
-sentence-transformers/all-mpnet-base-v2,10,basic,o3-mini,less severe,41
-sentence-transformers/all-mpnet-base-v2,10,basic,o3-mini,more severe,31
-sentence-transformers/all-mpnet-base-v2,10,basic,o3-mini,,10
-sentence-transformers/all-mpnet-base-v2,10,basic,qwen2.5-1.5b,correct,12
-sentence-transformers/all-mpnet-base-v2,10,basic,qwen2.5-1.5b,less severe,4
-sentence-transformers/all-mpnet-base-v2,10,basic,qwen2.5-1.5b,more severe,26
-sentence-transformers/all-mpnet-base-v2,10,basic,qwen2.5-1.5b,,128
-sentence-transformers/all-mpnet-base-v2,10,basic,qwen2.5-32b,correct,89
-sentence-transformers/all-mpnet-base-v2,10,basic,qwen2.5-32b,less severe,44
-sentence-transformers/all-mpnet-base-v2,10,basic,qwen2.5-32b,more severe,33
-sentence-transformers/all-mpnet-base-v2,10,basic,qwen2.5-32b,,4
-sentence-transformers/all-mpnet-base-v2,30,basic,deepseek-r1,correct,0
-sentence-transformers/all-mpnet-base-v2,30,basic,deepseek-r1,less severe,0
-sentence-transformers/all-mpnet-base-v2,30,basic,deepseek-r1,more severe,0
-sentence-transformers/all-mpnet-base-v2,30,basic,deepseek-r1,,170
-sentence-transformers/all-mpnet-base-v2,30,basic,o3-mini,correct,98
-sentence-transformers/all-mpnet-base-v2,30,basic,o3-mini,less severe,31
-sentence-transformers/all-mpnet-base-v2,30,basic,o3-mini,more severe,31
-sentence-transformers/all-mpnet-base-v2,30,basic,o3-mini,,10
-sentence-transformers/all-mpnet-base-v2,30,basic,qwen2.5-1.5b,correct,12
-sentence-transformers/all-mpnet-base-v2,30,basic,qwen2.5-1.5b,less severe,0
-sentence-transformers/all-mpnet-base-v2,30,basic,qwen2.5-1.5b,more severe,18
-sentence-transformers/all-mpnet-base-v2,30,basic,qwen2.5-1.5b,,140
-sentence-transformers/all-mpnet-base-v2,30,basic,qwen2.5-32b,correct,89
-sentence-transformers/all-mpnet-base-v2,30,basic,qwen2.5-32b,less severe,42
-sentence-transformers/all-mpnet-base-v2,30,basic,qwen2.5-32b,more severe,39
-sentence-transformers/all-mpnet-base-v2,30,basic,qwen2.5-32b,,0
-sentence-transformers/all-mpnet-base-v2,10,cluster,o3-mini,correct,106
-sentence-transformers/all-mpnet-base-v2,10,cluster,o3-mini,less severe,34
-sentence-transformers/all-mpnet-base-v2,10,cluster,o3-mini,more severe,44
-sentence-transformers/all-mpnet-base-v2,10,cluster,o3-mini,,18
-sentence-transformers/all-mpnet-base-v2,10,cluster,qwen2.5-1.5b,correct,10
-sentence-transformers/all-mpnet-base-v2,10,cluster,qwen2.5-1.5b,less severe,0
-sentence-transformers/all-mpnet-base-v2,10,cluster,qwen2.5-1.5b,more severe,38
-sentence-transformers/all-mpnet-base-v2,10,cluster,qwen2.5-1.5b,,155
-sentence-transformers/all-mpnet-base-v2,10,cluster,qwen2.5-32b,correct,98
-sentence-transformers/all-mpnet-base-v2,10,cluster,qwen2.5-32b,less severe,49
-sentence-transformers/all-mpnet-base-v2,10,cluster,qwen2.5-32b,more severe,50
-sentence-transformers/all-mpnet-base-v2,10,cluster,qwen2.5-32b,,6
-sentence-transformers/all-mpnet-base-v2,30,cluster,deepseek-r1,correct,0
-sentence-transformers/all-mpnet-base-v2,30,cluster,deepseek-r1,less severe,0
-sentence-transformers/all-mpnet-base-v2,30,cluster,deepseek-r1,more severe,0
-sentence-transformers/all-mpnet-base-v2,30,cluster,deepseek-r1,,203
-sentence-transformers/all-mpnet-base-v2,30,cluster,o3-mini,correct,117
-sentence-transformers/all-mpnet-base-v2,30,cluster,o3-mini,less severe,39
-sentence-transformers/all-mpnet-base-v2,30,cluster,o3-mini,more severe,39
-sentence-transformers/all-mpnet-base-v2,30,cluster,o3-mini,,7
-sentence-transformers/all-mpnet-base-v2,30,cluster,qwen2.5-1.5b,correct,7
-sentence-transformers/all-mpnet-base-v2,30,cluster,qwen2.5-1.5b,less severe,0
-sentence-transformers/all-mpnet-base-v2,30,cluster,qwen2.5-1.5b,more severe,28
-sentence-transformers/all-mpnet-base-v2,30,cluster,qwen2.5-1.5b,,168
-sentence-transformers/all-mpnet-base-v2,30,cluster,qwen2.5-32b,correct,89
-sentence-transformers/all-mpnet-base-v2,30,cluster,qwen2.5-32b,less severe,47
-sentence-transformers/all-mpnet-base-v2,30,cluster,qwen2.5-32b,more severe,65
-sentence-transformers/all-mpnet-base-v2,30,cluster,qwen2.5-32b,,2
-sentence-transformers/all-mpnet-base-v2,10,downplay,o3-mini,correct,61
-sentence-transformers/all-mpnet-base-v2,10,downplay,o3-mini,less severe,50
-sentence-transformers/all-mpnet-base-v2,10,downplay,o3-mini,more severe,65
-sentence-transformers/all-mpnet-base-v2,10,downplay,o3-mini,,20
-sentence-transformers/all-mpnet-base-v2,10,downplay,qwen2.5-1.5b,correct,13
-sentence-transformers/all-mpnet-base-v2,10,downplay,qwen2.5-1.5b,less severe,3
-sentence-transformers/all-mpnet-base-v2,10,downplay,qwen2.5-1.5b,more severe,59
-sentence-transformers/all-mpnet-base-v2,10,downplay,qwen2.5-1.5b,,121
-sentence-transformers/all-mpnet-base-v2,10,downplay,qwen2.5-32b,correct,63
-sentence-transformers/all-mpnet-base-v2,10,downplay,qwen2.5-32b,less severe,64
-sentence-transformers/all-mpnet-base-v2,10,downplay,qwen2.5-32b,more severe,67
-sentence-transformers/all-mpnet-base-v2,10,downplay,qwen2.5-32b,,2
-sentence-transformers/all-mpnet-base-v2,30,downplay,deepseek-r1,correct,0
-sentence-transformers/all-mpnet-base-v2,30,downplay,deepseek-r1,less severe,0
-sentence-transformers/all-mpnet-base-v2,30,downplay,deepseek-r1,more severe,0
-sentence-transformers/all-mpnet-base-v2,30,downplay,deepseek-r1,,196
-sentence-transformers/all-mpnet-base-v2,30,downplay,o3-mini,correct,61
-sentence-transformers/all-mpnet-base-v2,30,downplay,o3-mini,less severe,56
-sentence-transformers/all-mpnet-base-v2,30,downplay,o3-mini,more severe,74
-sentence-transformers/all-mpnet-base-v2,30,downplay,o3-mini,,5
-sentence-transformers/all-mpnet-base-v2,30,downplay,qwen2.5-1.5b,correct,8
-sentence-transformers/all-mpnet-base-v2,30,downplay,qwen2.5-1.5b,less severe,3
-sentence-transformers/all-mpnet-base-v2,30,downplay,qwen2.5-1.5b,more severe,27
-sentence-transformers/all-mpnet-base-v2,30,downplay,qwen2.5-1.5b,,158
-sentence-transformers/all-mpnet-base-v2,30,downplay,qwen2.5-32b,correct,62
-sentence-transformers/all-mpnet-base-v2,30,downplay,qwen2.5-32b,less severe,55
-sentence-transformers/all-mpnet-base-v2,30,downplay,qwen2.5-32b,more severe,76
-sentence-transformers/all-mpnet-base-v2,30,downplay,qwen2.5-32b,,3
-sentence-transformers/all-mpnet-base-v2,10,hypochondriac,o3-mini,correct,85
-sentence-transformers/all-mpnet-base-v2,10,hypochondriac,o3-mini,less severe,29
-sentence-transformers/all-mpnet-base-v2,10,hypochondriac,o3-mini,more severe,58
-sentence-transformers/all-mpnet-base-v2,10,hypochondriac,o3-mini,,21
-sentence-transformers/all-mpnet-base-v2,10,hypochondriac,qwen2.5-1.5b,correct,26
-sentence-transformers/all-mpnet-base-v2,10,hypochondriac,qwen2.5-1.5b,less severe,8
-sentence-transformers/all-mpnet-base-v2,10,hypochondriac,qwen2.5-1.5b,more severe,34
-sentence-transformers/all-mpnet-base-v2,10,hypochondriac,qwen2.5-1.5b,,125
-sentence-transformers/all-mpnet-base-v2,10,hypochondriac,qwen2.5-32b,correct,76
-sentence-transformers/all-mpnet-base-v2,10,hypochondriac,qwen2.5-32b,less severe,37
-sentence-transformers/all-mpnet-base-v2,10,hypochondriac,qwen2.5-32b,more severe,75
-sentence-transformers/all-mpnet-base-v2,10,hypochondriac,qwen2.5-32b,,5
-sentence-transformers/all-mpnet-base-v2,30,hypochondriac,deepseek-r1,correct,0
-sentence-transformers/all-mpnet-base-v2,30,hypochondriac,deepseek-r1,less severe,0
-sentence-transformers/all-mpnet-base-v2,30,hypochondriac,deepseek-r1,more severe,0
-sentence-transformers/all-mpnet-base-v2,30,hypochondriac,deepseek-r1,,193
-sentence-transformers/all-mpnet-base-v2,30,hypochondriac,o3-mini,correct,87
-sentence-transformers/all-mpnet-base-v2,30,hypochondriac,o3-mini,less severe,38
-sentence-transformers/all-mpnet-base-v2,30,hypochondriac,o3-mini,more severe,60
-sentence-transformers/all-mpnet-base-v2,30,hypochondriac,o3-mini,,7
-sentence-transformers/all-mpnet-base-v2,30,hypochondriac,qwen2.5-1.5b,correct,13
-sentence-transformers/all-mpnet-base-v2,30,hypochondriac,qwen2.5-1.5b,less severe,3
-sentence-transformers/all-mpnet-base-v2,30,hypochondriac,qwen2.5-1.5b,more severe,29
-sentence-transformers/all-mpnet-base-v2,30,hypochondriac,qwen2.5-1.5b,,148
-sentence-transformers/all-mpnet-base-v2,30,hypochondriac,qwen2.5-32b,correct,80
-sentence-transformers/all-mpnet-base-v2,30,hypochondriac,qwen2.5-32b,less severe,39
-sentence-transformers/all-mpnet-base-v2,30,hypochondriac,qwen2.5-32b,more severe,74
-sentence-transformers/all-mpnet-base-v2,30,hypochondriac,qwen2.5-32b,,0
-sentence-transformers/all-mpnet-base-v2,10,vague,o3-mini,correct,83
-sentence-transformers/all-mpnet-base-v2,10,vague,o3-mini,less severe,65
-sentence-transformers/all-mpnet-base-v2,10,vague,o3-mini,more severe,70
-sentence-transformers/all-mpnet-base-v2,10,vague,o3-mini,,19
-sentence-transformers/all-mpnet-base-v2,10,vague,qwen2.5-1.5b,correct,22
-sentence-transformers/all-mpnet-base-v2,10,vague,qwen2.5-1.5b,less severe,4
-sentence-transformers/all-mpnet-base-v2,10,vague,qwen2.5-1.5b,more severe,41
-sentence-transformers/all-mpnet-base-v2,10,vague,qwen2.5-1.5b,,171
-sentence-transformers/all-mpnet-base-v2,10,vague,qwen2.5-32b,correct,82
-sentence-transformers/all-mpnet-base-v2,10,vague,qwen2.5-32b,less severe,83
-sentence-transformers/all-mpnet-base-v2,10,vague,qwen2.5-32b,more severe,69
-sentence-transformers/all-mpnet-base-v2,10,vague,qwen2.5-32b,,4
-sentence-transformers/all-mpnet-base-v2,30,vague,deepseek-r1,correct,0
-sentence-transformers/all-mpnet-base-v2,30,vague,deepseek-r1,less severe,0
-sentence-transformers/all-mpnet-base-v2,30,vague,deepseek-r1,more severe,0
-sentence-transformers/all-mpnet-base-v2,30,vague,deepseek-r1,,238
-sentence-transformers/all-mpnet-base-v2,30,vague,o3-mini,correct,92
-sentence-transformers/all-mpnet-base-v2,30,vague,o3-mini,less severe,73
-sentence-transformers/all-mpnet-base-v2,30,vague,o3-mini,more severe,72
-sentence-transformers/all-mpnet-base-v2,30,vague,o3-mini,,1
-sentence-transformers/all-mpnet-base-v2,30,vague,qwen2.5-1.5b,correct,8
-sentence-transformers/all-mpnet-base-v2,30,vague,qwen2.5-1.5b,less severe,0
-sentence-transformers/all-mpnet-base-v2,30,vague,qwen2.5-1.5b,more severe,30
-sentence-transformers/all-mpnet-base-v2,30,vague,qwen2.5-1.5b,,200
-sentence-transformers/all-mpnet-base-v2,30,vague,qwen2.5-32b,correct,84
-sentence-transformers/all-mpnet-base-v2,30,vague,qwen2.5-32b,less severe,80
-sentence-transformers/all-mpnet-base-v2,30,vague,qwen2.5-32b,more severe,73
-sentence-transformers/all-mpnet-base-v2,30,vague,qwen2.5-32b,,1
+Embedding Method,Supporting documents retrieved,Query Type,LLM,Predicted Severity Type,Count,Score
+sentence-transformers/all-mpnet-base-v2,10,all,o3-mini,correct,423,0.42384769539078154
+sentence-transformers/all-mpnet-base-v2,10,all,o3-mini,less severe,219,0.21943887775551102
+sentence-transformers/all-mpnet-base-v2,10,all,o3-mini,more severe,268,0.2685370741482966
+sentence-transformers/all-mpnet-base-v2,10,all,o3-mini,,88,0.08817635270541083
+sentence-transformers/all-mpnet-base-v2,10,all,qwen2.5-1.5b,correct,83,0.083
+sentence-transformers/all-mpnet-base-v2,10,all,qwen2.5-1.5b,less severe,19,0.019
+sentence-transformers/all-mpnet-base-v2,10,all,qwen2.5-1.5b,more severe,198,0.198
+sentence-transformers/all-mpnet-base-v2,10,all,qwen2.5-1.5b,,700,0.7
+sentence-transformers/all-mpnet-base-v2,10,all,qwen2.5-32b,correct,408,0.408
+sentence-transformers/all-mpnet-base-v2,10,all,qwen2.5-32b,less severe,277,0.277
+sentence-transformers/all-mpnet-base-v2,10,all,qwen2.5-32b,more severe,294,0.294
+sentence-transformers/all-mpnet-base-v2,10,all,qwen2.5-32b,,21,0.021
+sentence-transformers/all-mpnet-base-v2,30,all,deepseek-r1,correct,0,0.0
+sentence-transformers/all-mpnet-base-v2,30,all,deepseek-r1,less severe,0,0.0
+sentence-transformers/all-mpnet-base-v2,30,all,deepseek-r1,more severe,0,0.0
+sentence-transformers/all-mpnet-base-v2,30,all,deepseek-r1,,1000,1.0
+sentence-transformers/all-mpnet-base-v2,30,all,o3-mini,correct,455,0.4559118236472946
+sentence-transformers/all-mpnet-base-v2,30,all,o3-mini,less severe,237,0.2374749498997996
+sentence-transformers/all-mpnet-base-v2,30,all,o3-mini,more severe,276,0.27655310621242485
+sentence-transformers/all-mpnet-base-v2,30,all,o3-mini,,30,0.03006012024048096
+sentence-transformers/all-mpnet-base-v2,30,all,qwen2.5-1.5b,correct,48,0.048
+sentence-transformers/all-mpnet-base-v2,30,all,qwen2.5-1.5b,less severe,6,0.006
+sentence-transformers/all-mpnet-base-v2,30,all,qwen2.5-1.5b,more severe,132,0.132
+sentence-transformers/all-mpnet-base-v2,30,all,qwen2.5-1.5b,,814,0.814
+sentence-transformers/all-mpnet-base-v2,30,all,qwen2.5-32b,correct,404,0.404
+sentence-transformers/all-mpnet-base-v2,30,all,qwen2.5-32b,less severe,263,0.263
+sentence-transformers/all-mpnet-base-v2,30,all,qwen2.5-32b,more severe,327,0.327
+sentence-transformers/all-mpnet-base-v2,30,all,qwen2.5-32b,,6,0.006
+sentence-transformers/all-mpnet-base-v2,10,basic,o3-mini,correct,88,0.5176470588235295
+sentence-transformers/all-mpnet-base-v2,10,basic,o3-mini,less severe,41,0.2411764705882353
+sentence-transformers/all-mpnet-base-v2,10,basic,o3-mini,more severe,31,0.18235294117647058
+sentence-transformers/all-mpnet-base-v2,10,basic,o3-mini,,10,0.058823529411764705
+sentence-transformers/all-mpnet-base-v2,10,basic,qwen2.5-1.5b,correct,12,0.07058823529411765
+sentence-transformers/all-mpnet-base-v2,10,basic,qwen2.5-1.5b,less severe,4,0.023529411764705882
+sentence-transformers/all-mpnet-base-v2,10,basic,qwen2.5-1.5b,more severe,26,0.15294117647058825
+sentence-transformers/all-mpnet-base-v2,10,basic,qwen2.5-1.5b,,128,0.7529411764705882
+sentence-transformers/all-mpnet-base-v2,10,basic,qwen2.5-32b,correct,89,0.5235294117647059
+sentence-transformers/all-mpnet-base-v2,10,basic,qwen2.5-32b,less severe,44,0.25882352941176473
+sentence-transformers/all-mpnet-base-v2,10,basic,qwen2.5-32b,more severe,33,0.19411764705882353
+sentence-transformers/all-mpnet-base-v2,10,basic,qwen2.5-32b,,4,0.023529411764705882
+sentence-transformers/all-mpnet-base-v2,30,basic,deepseek-r1,correct,0,0.0
+sentence-transformers/all-mpnet-base-v2,30,basic,deepseek-r1,less severe,0,0.0
+sentence-transformers/all-mpnet-base-v2,30,basic,deepseek-r1,more severe,0,0.0
+sentence-transformers/all-mpnet-base-v2,30,basic,deepseek-r1,,170,1.0
+sentence-transformers/all-mpnet-base-v2,30,basic,o3-mini,correct,98,0.5764705882352941
+sentence-transformers/all-mpnet-base-v2,30,basic,o3-mini,less severe,31,0.18235294117647058
+sentence-transformers/all-mpnet-base-v2,30,basic,o3-mini,more severe,31,0.18235294117647058
+sentence-transformers/all-mpnet-base-v2,30,basic,o3-mini,,10,0.058823529411764705
+sentence-transformers/all-mpnet-base-v2,30,basic,qwen2.5-1.5b,correct,12,0.07058823529411765
+sentence-transformers/all-mpnet-base-v2,30,basic,qwen2.5-1.5b,less severe,0,0.0
+sentence-transformers/all-mpnet-base-v2,30,basic,qwen2.5-1.5b,more severe,18,0.10588235294117647
+sentence-transformers/all-mpnet-base-v2,30,basic,qwen2.5-1.5b,,140,0.8235294117647058
+sentence-transformers/all-mpnet-base-v2,30,basic,qwen2.5-32b,correct,89,0.5235294117647059
+sentence-transformers/all-mpnet-base-v2,30,basic,qwen2.5-32b,less severe,42,0.24705882352941178
+sentence-transformers/all-mpnet-base-v2,30,basic,qwen2.5-32b,more severe,39,0.22941176470588234
+sentence-transformers/all-mpnet-base-v2,30,basic,qwen2.5-32b,,0,0.0
+sentence-transformers/all-mpnet-base-v2,10,cluster,o3-mini,correct,106,0.5247524752475248
+sentence-transformers/all-mpnet-base-v2,10,cluster,o3-mini,less severe,34,0.16831683168316833
+sentence-transformers/all-mpnet-base-v2,10,cluster,o3-mini,more severe,44,0.21782178217821782
+sentence-transformers/all-mpnet-base-v2,10,cluster,o3-mini,,18,0.0891089108910891
+sentence-transformers/all-mpnet-base-v2,10,cluster,qwen2.5-1.5b,correct,10,0.04926108374384237
+sentence-transformers/all-mpnet-base-v2,10,cluster,qwen2.5-1.5b,less severe,0,0.0
+sentence-transformers/all-mpnet-base-v2,10,cluster,qwen2.5-1.5b,more severe,38,0.18719211822660098
+sentence-transformers/all-mpnet-base-v2,10,cluster,qwen2.5-1.5b,,155,0.7635467980295566
+sentence-transformers/all-mpnet-base-v2,10,cluster,qwen2.5-32b,correct,98,0.4827586206896552
+sentence-transformers/all-mpnet-base-v2,10,cluster,qwen2.5-32b,less severe,49,0.2413793103448276
+sentence-transformers/all-mpnet-base-v2,10,cluster,qwen2.5-32b,more severe,50,0.24630541871921183
+sentence-transformers/all-mpnet-base-v2,10,cluster,qwen2.5-32b,,6,0.029556650246305417
+sentence-transformers/all-mpnet-base-v2,30,cluster,deepseek-r1,correct,0,0.0
+sentence-transformers/all-mpnet-base-v2,30,cluster,deepseek-r1,less severe,0,0.0
+sentence-transformers/all-mpnet-base-v2,30,cluster,deepseek-r1,more severe,0,0.0
+sentence-transformers/all-mpnet-base-v2,30,cluster,deepseek-r1,,203,1.0
+sentence-transformers/all-mpnet-base-v2,30,cluster,o3-mini,correct,117,0.5792079207920792
+sentence-transformers/all-mpnet-base-v2,30,cluster,o3-mini,less severe,39,0.19306930693069307
+sentence-transformers/all-mpnet-base-v2,30,cluster,o3-mini,more severe,39,0.19306930693069307
+sentence-transformers/all-mpnet-base-v2,30,cluster,o3-mini,,7,0.034653465346534656
+sentence-transformers/all-mpnet-base-v2,30,cluster,qwen2.5-1.5b,correct,7,0.034482758620689655
+sentence-transformers/all-mpnet-base-v2,30,cluster,qwen2.5-1.5b,less severe,0,0.0
+sentence-transformers/all-mpnet-base-v2,30,cluster,qwen2.5-1.5b,more severe,28,0.13793103448275862
+sentence-transformers/all-mpnet-base-v2,30,cluster,qwen2.5-1.5b,,168,0.8275862068965517
+sentence-transformers/all-mpnet-base-v2,30,cluster,qwen2.5-32b,correct,89,0.43842364532019706
+sentence-transformers/all-mpnet-base-v2,30,cluster,qwen2.5-32b,less severe,47,0.2315270935960591
+sentence-transformers/all-mpnet-base-v2,30,cluster,qwen2.5-32b,more severe,65,0.32019704433497537
+sentence-transformers/all-mpnet-base-v2,30,cluster,qwen2.5-32b,,2,0.009852216748768473
+sentence-transformers/all-mpnet-base-v2,10,downplay,o3-mini,correct,61,0.3112244897959184
+sentence-transformers/all-mpnet-base-v2,10,downplay,o3-mini,less severe,50,0.25510204081632654
+sentence-transformers/all-mpnet-base-v2,10,downplay,o3-mini,more severe,65,0.33163265306122447
+sentence-transformers/all-mpnet-base-v2,10,downplay,o3-mini,,20,0.10204081632653061
+sentence-transformers/all-mpnet-base-v2,10,downplay,qwen2.5-1.5b,correct,13,0.0663265306122449
+sentence-transformers/all-mpnet-base-v2,10,downplay,qwen2.5-1.5b,less severe,3,0.015306122448979591
+sentence-transformers/all-mpnet-base-v2,10,downplay,qwen2.5-1.5b,more severe,59,0.3010204081632653
+sentence-transformers/all-mpnet-base-v2,10,downplay,qwen2.5-1.5b,,121,0.6173469387755102
+sentence-transformers/all-mpnet-base-v2,10,downplay,qwen2.5-32b,correct,63,0.32142857142857145
+sentence-transformers/all-mpnet-base-v2,10,downplay,qwen2.5-32b,less severe,64,0.32653061224489793
+sentence-transformers/all-mpnet-base-v2,10,downplay,qwen2.5-32b,more severe,67,0.34183673469387754
+sentence-transformers/all-mpnet-base-v2,10,downplay,qwen2.5-32b,,2,0.01020408163265306
+sentence-transformers/all-mpnet-base-v2,30,downplay,deepseek-r1,correct,0,0.0
+sentence-transformers/all-mpnet-base-v2,30,downplay,deepseek-r1,less severe,0,0.0
+sentence-transformers/all-mpnet-base-v2,30,downplay,deepseek-r1,more severe,0,0.0
+sentence-transformers/all-mpnet-base-v2,30,downplay,deepseek-r1,,196,1.0
+sentence-transformers/all-mpnet-base-v2,30,downplay,o3-mini,correct,61,0.3112244897959184
+sentence-transformers/all-mpnet-base-v2,30,downplay,o3-mini,less severe,56,0.2857142857142857
+sentence-transformers/all-mpnet-base-v2,30,downplay,o3-mini,more severe,74,0.37755102040816324
+sentence-transformers/all-mpnet-base-v2,30,downplay,o3-mini,,5,0.025510204081632654
+sentence-transformers/all-mpnet-base-v2,30,downplay,qwen2.5-1.5b,correct,8,0.04081632653061224
+sentence-transformers/all-mpnet-base-v2,30,downplay,qwen2.5-1.5b,less severe,3,0.015306122448979591
+sentence-transformers/all-mpnet-base-v2,30,downplay,qwen2.5-1.5b,more severe,27,0.1377551020408163
+sentence-transformers/all-mpnet-base-v2,30,downplay,qwen2.5-1.5b,,158,0.8061224489795918
+sentence-transformers/all-mpnet-base-v2,30,downplay,qwen2.5-32b,correct,62,0.3163265306122449
+sentence-transformers/all-mpnet-base-v2,30,downplay,qwen2.5-32b,less severe,55,0.28061224489795916
+sentence-transformers/all-mpnet-base-v2,30,downplay,qwen2.5-32b,more severe,76,0.3877551020408163
+sentence-transformers/all-mpnet-base-v2,30,downplay,qwen2.5-32b,,3,0.015306122448979591
+sentence-transformers/all-mpnet-base-v2,10,hypochondriac,o3-mini,correct,85,0.44041450777202074
+sentence-transformers/all-mpnet-base-v2,10,hypochondriac,o3-mini,less severe,29,0.15025906735751296
+sentence-transformers/all-mpnet-base-v2,10,hypochondriac,o3-mini,more severe,58,0.3005181347150259
+sentence-transformers/all-mpnet-base-v2,10,hypochondriac,o3-mini,,21,0.10880829015544041
+sentence-transformers/all-mpnet-base-v2,10,hypochondriac,qwen2.5-1.5b,correct,26,0.13471502590673576
+sentence-transformers/all-mpnet-base-v2,10,hypochondriac,qwen2.5-1.5b,less severe,8,0.04145077720207254
+sentence-transformers/all-mpnet-base-v2,10,hypochondriac,qwen2.5-1.5b,more severe,34,0.17616580310880828
+sentence-transformers/all-mpnet-base-v2,10,hypochondriac,qwen2.5-1.5b,,125,0.6476683937823834
+sentence-transformers/all-mpnet-base-v2,10,hypochondriac,qwen2.5-32b,correct,76,0.39378238341968913
+sentence-transformers/all-mpnet-base-v2,10,hypochondriac,qwen2.5-32b,less severe,37,0.19170984455958548
+sentence-transformers/all-mpnet-base-v2,10,hypochondriac,qwen2.5-32b,more severe,75,0.38860103626943004
+sentence-transformers/all-mpnet-base-v2,10,hypochondriac,qwen2.5-32b,,5,0.025906735751295335
+sentence-transformers/all-mpnet-base-v2,30,hypochondriac,deepseek-r1,correct,0,0.0
+sentence-transformers/all-mpnet-base-v2,30,hypochondriac,deepseek-r1,less severe,0,0.0
+sentence-transformers/all-mpnet-base-v2,30,hypochondriac,deepseek-r1,more severe,0,0.0
+sentence-transformers/all-mpnet-base-v2,30,hypochondriac,deepseek-r1,,193,1.0
+sentence-transformers/all-mpnet-base-v2,30,hypochondriac,o3-mini,correct,87,0.453125
+sentence-transformers/all-mpnet-base-v2,30,hypochondriac,o3-mini,less severe,38,0.19791666666666666
+sentence-transformers/all-mpnet-base-v2,30,hypochondriac,o3-mini,more severe,60,0.3125
+sentence-transformers/all-mpnet-base-v2,30,hypochondriac,o3-mini,,7,0.036458333333333336
+sentence-transformers/all-mpnet-base-v2,30,hypochondriac,qwen2.5-1.5b,correct,13,0.06735751295336788
+sentence-transformers/all-mpnet-base-v2,30,hypochondriac,qwen2.5-1.5b,less severe,3,0.015544041450777202
+sentence-transformers/all-mpnet-base-v2,30,hypochondriac,qwen2.5-1.5b,more severe,29,0.15025906735751296
+sentence-transformers/all-mpnet-base-v2,30,hypochondriac,qwen2.5-1.5b,,148,0.7668393782383419
+sentence-transformers/all-mpnet-base-v2,30,hypochondriac,qwen2.5-32b,correct,80,0.41450777202072536
+sentence-transformers/all-mpnet-base-v2,30,hypochondriac,qwen2.5-32b,less severe,39,0.20207253886010362
+sentence-transformers/all-mpnet-base-v2,30,hypochondriac,qwen2.5-32b,more severe,74,0.38341968911917096
+sentence-transformers/all-mpnet-base-v2,30,hypochondriac,qwen2.5-32b,,0,0.0
+sentence-transformers/all-mpnet-base-v2,10,vague,o3-mini,correct,83,0.350210970464135
+sentence-transformers/all-mpnet-base-v2,10,vague,o3-mini,less severe,65,0.2742616033755274
+sentence-transformers/all-mpnet-base-v2,10,vague,o3-mini,more severe,70,0.29535864978902954
+sentence-transformers/all-mpnet-base-v2,10,vague,o3-mini,,19,0.08016877637130802
+sentence-transformers/all-mpnet-base-v2,10,vague,qwen2.5-1.5b,correct,22,0.09243697478991597
+sentence-transformers/all-mpnet-base-v2,10,vague,qwen2.5-1.5b,less severe,4,0.01680672268907563
+sentence-transformers/all-mpnet-base-v2,10,vague,qwen2.5-1.5b,more severe,41,0.1722689075630252
+sentence-transformers/all-mpnet-base-v2,10,vague,qwen2.5-1.5b,,171,0.7184873949579832
+sentence-transformers/all-mpnet-base-v2,10,vague,qwen2.5-32b,correct,82,0.3445378151260504
+sentence-transformers/all-mpnet-base-v2,10,vague,qwen2.5-32b,less severe,83,0.3487394957983193
+sentence-transformers/all-mpnet-base-v2,10,vague,qwen2.5-32b,more severe,69,0.28991596638655465
+sentence-transformers/all-mpnet-base-v2,10,vague,qwen2.5-32b,,4,0.01680672268907563
+sentence-transformers/all-mpnet-base-v2,30,vague,deepseek-r1,correct,0,0.0
+sentence-transformers/all-mpnet-base-v2,30,vague,deepseek-r1,less severe,0,0.0
+sentence-transformers/all-mpnet-base-v2,30,vague,deepseek-r1,more severe,0,0.0
+sentence-transformers/all-mpnet-base-v2,30,vague,deepseek-r1,,238,1.0
+sentence-transformers/all-mpnet-base-v2,30,vague,o3-mini,correct,92,0.3865546218487395
+sentence-transformers/all-mpnet-base-v2,30,vague,o3-mini,less severe,73,0.3067226890756303
+sentence-transformers/all-mpnet-base-v2,30,vague,o3-mini,more severe,72,0.3025210084033613
+sentence-transformers/all-mpnet-base-v2,30,vague,o3-mini,,1,0.004201680672268907
+sentence-transformers/all-mpnet-base-v2,30,vague,qwen2.5-1.5b,correct,8,0.03361344537815126
+sentence-transformers/all-mpnet-base-v2,30,vague,qwen2.5-1.5b,less severe,0,0.0
+sentence-transformers/all-mpnet-base-v2,30,vague,qwen2.5-1.5b,more severe,30,0.12605042016806722
+sentence-transformers/all-mpnet-base-v2,30,vague,qwen2.5-1.5b,,200,0.8403361344537815
+sentence-transformers/all-mpnet-base-v2,30,vague,qwen2.5-32b,correct,84,0.35294117647058826
+sentence-transformers/all-mpnet-base-v2,30,vague,qwen2.5-32b,less severe,80,0.33613445378151263
+sentence-transformers/all-mpnet-base-v2,30,vague,qwen2.5-32b,more severe,73,0.3067226890756303
+sentence-transformers/all-mpnet-base-v2,30,vague,qwen2.5-32b,,1,0.004201680672268907
