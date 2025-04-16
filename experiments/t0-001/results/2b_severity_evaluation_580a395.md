@@ -1,6 +1,53 @@
 
 ## 2b_580a395.md severity level evaluation
 
+### all
+#### o3-mini
+| Embedding Method                        |   Supporting documents retrieved | Query Type   | LLM     | Predicted Severity Type   |   Count |
+|-----------------------------------------|----------------------------------|--------------|---------|---------------------------|---------|
+| sentence-transformers/all-mpnet-base-v2 |                               10 | all          | o3-mini | correct                   |     423 |
+| sentence-transformers/all-mpnet-base-v2 |                               10 | all          | o3-mini | less severe               |     219 |
+| sentence-transformers/all-mpnet-base-v2 |                               10 | all          | o3-mini | more severe               |     268 |
+| sentence-transformers/all-mpnet-base-v2 |                               10 | all          | o3-mini | None                      |      88 |
+| sentence-transformers/all-mpnet-base-v2 |                               30 | all          | o3-mini | correct                   |     455 |
+| sentence-transformers/all-mpnet-base-v2 |                               30 | all          | o3-mini | less severe               |     237 |
+| sentence-transformers/all-mpnet-base-v2 |                               30 | all          | o3-mini | more severe               |     276 |
+| sentence-transformers/all-mpnet-base-v2 |                               30 | all          | o3-mini | None                      |      30 |
+
+#### qwen2.5-1.5b
+| Embedding Method                        |   Supporting documents retrieved | Query Type   | LLM          | Predicted Severity Type   |   Count |
+|-----------------------------------------|----------------------------------|--------------|--------------|---------------------------|---------|
+| sentence-transformers/all-mpnet-base-v2 |                               10 | all          | qwen2.5-1.5b | correct                   |      83 |
+| sentence-transformers/all-mpnet-base-v2 |                               10 | all          | qwen2.5-1.5b | less severe               |      19 |
+| sentence-transformers/all-mpnet-base-v2 |                               10 | all          | qwen2.5-1.5b | more severe               |     198 |
+| sentence-transformers/all-mpnet-base-v2 |                               10 | all          | qwen2.5-1.5b | None                      |     700 |
+| sentence-transformers/all-mpnet-base-v2 |                               30 | all          | qwen2.5-1.5b | correct                   |      48 |
+| sentence-transformers/all-mpnet-base-v2 |                               30 | all          | qwen2.5-1.5b | less severe               |       6 |
+| sentence-transformers/all-mpnet-base-v2 |                               30 | all          | qwen2.5-1.5b | more severe               |     132 |
+| sentence-transformers/all-mpnet-base-v2 |                               30 | all          | qwen2.5-1.5b | None                      |     814 |
+
+#### qwen2.5-32b
+| Embedding Method                        |   Supporting documents retrieved | Query Type   | LLM         | Predicted Severity Type   |   Count |
+|-----------------------------------------|----------------------------------|--------------|-------------|---------------------------|---------|
+| sentence-transformers/all-mpnet-base-v2 |                               10 | all          | qwen2.5-32b | correct                   |     408 |
+| sentence-transformers/all-mpnet-base-v2 |                               10 | all          | qwen2.5-32b | less severe               |     277 |
+| sentence-transformers/all-mpnet-base-v2 |                               10 | all          | qwen2.5-32b | more severe               |     294 |
+| sentence-transformers/all-mpnet-base-v2 |                               10 | all          | qwen2.5-32b | None                      |      21 |
+| sentence-transformers/all-mpnet-base-v2 |                               30 | all          | qwen2.5-32b | correct                   |     404 |
+| sentence-transformers/all-mpnet-base-v2 |                               30 | all          | qwen2.5-32b | less severe               |     263 |
+| sentence-transformers/all-mpnet-base-v2 |                               30 | all          | qwen2.5-32b | more severe               |     327 |
+| sentence-transformers/all-mpnet-base-v2 |                               30 | all          | qwen2.5-32b | None                      |       6 |
+
+#### deepseek-r1
+| Embedding Method                        |   Supporting documents retrieved | Query Type   | LLM         | Predicted Severity Type   |   Count |
+|-----------------------------------------|----------------------------------|--------------|-------------|---------------------------|---------|
+| sentence-transformers/all-mpnet-base-v2 |                               30 | all          | deepseek-r1 | correct                   |       0 |
+| sentence-transformers/all-mpnet-base-v2 |                               30 | all          | deepseek-r1 | less severe               |       0 |
+| sentence-transformers/all-mpnet-base-v2 |                               30 | all          | deepseek-r1 | more severe               |       0 |
+| sentence-transformers/all-mpnet-base-v2 |                               30 | all          | deepseek-r1 | None                      |    1000 |
+
+
+
 ### cluster
 #### o3-mini
 | Embedding Method                        |   Supporting documents retrieved | Query Type   | LLM     | Predicted Severity Type   |   Count |
