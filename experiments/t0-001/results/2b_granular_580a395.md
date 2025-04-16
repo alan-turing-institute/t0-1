@@ -1,22 +1,51 @@
+
+## 2b_580a395.md split by query type
+### cluster
+| Embedding Method                        |   Supporting documents retrieved | Query Type   |   Condition baseline (p@1) | LLM          |   Conditions accuracy |   Severity accuracy |
+|-----------------------------------------|----------------------------------|--------------|----------------------------|--------------|-----------------------|---------------------|
+| sentence-transformers/all-mpnet-base-v2 |                               10 | cluster      |                       0.66 | o3-mini      |                  0.43 |                0.52 |
+| sentence-transformers/all-mpnet-base-v2 |                               30 | cluster      |                       0.81 | o3-mini      |                  0.46 |                0.58 |
+| sentence-transformers/all-mpnet-base-v2 |                               10 | cluster      |                       0.66 | qwen2.5-1.5b |                  0.23 |                0.05 |
+| sentence-transformers/all-mpnet-base-v2 |                               30 | cluster      |                       0.82 | qwen2.5-1.5b |                  0.16 |                0.04 |
+| sentence-transformers/all-mpnet-base-v2 |                               10 | cluster      |                       0.66 | qwen2.5-32b  |                  0.39 |                0.48 |
+| sentence-transformers/all-mpnet-base-v2 |                               30 | cluster      |                       0.82 | qwen2.5-32b  |                  0.41 |                0.44 |
+
+### vague
+| Embedding Method                        |   Supporting documents retrieved | Query Type   |   Condition baseline (p@1) | LLM          |   Conditions accuracy |   Severity accuracy |
+|-----------------------------------------|----------------------------------|--------------|----------------------------|--------------|-----------------------|---------------------|
+| sentence-transformers/all-mpnet-base-v2 |                               10 | vague        |                       0.61 | o3-mini      |                  0.44 |                0.35 |
+| sentence-transformers/all-mpnet-base-v2 |                               30 | vague        |                       0.73 | o3-mini      |                  0.44 |                0.39 |
+| sentence-transformers/all-mpnet-base-v2 |                               10 | vague        |                       0.61 | qwen2.5-1.5b |                  0.21 |                0.09 |
+| sentence-transformers/all-mpnet-base-v2 |                               30 | vague        |                       0.73 | qwen2.5-1.5b |                  0.10 |                0.03 |
+| sentence-transformers/all-mpnet-base-v2 |                               10 | vague        |                       0.61 | qwen2.5-32b  |                  0.37 |                0.34 |
+| sentence-transformers/all-mpnet-base-v2 |                               30 | vague        |                       0.73 | qwen2.5-32b  |                  0.42 |                0.35 |
+
+### hypochondriac
 | Embedding Method                        |   Supporting documents retrieved | Query Type    |   Condition baseline (p@1) | LLM          |   Conditions accuracy |   Severity accuracy |
-|:----------------------------------------|---------------------------------:|:--------------|---------------------------:|:-------------|----------------------:|--------------------:|
-| sentence-transformers/all-mpnet-base-v2 |                               30 | cluster       |                   0.82266  | qwen2.5-1.5b |             0.162562  |           0.044335  |
-| sentence-transformers/all-mpnet-base-v2 |                               30 | vague         |                   0.731092 | qwen2.5-1.5b |             0.0966387 |           0.0336134 |
-| sentence-transformers/all-mpnet-base-v2 |                               30 | hypochondriac |                   0.948187 | qwen2.5-1.5b |             0.243523  |           0.0725389 |
-| sentence-transformers/all-mpnet-base-v2 |                               30 | basic         |                   0.864706 | qwen2.5-1.5b |             0.182353  |           0.0764706 |
-| sentence-transformers/all-mpnet-base-v2 |                               30 | downplay      |                   0.80102  | qwen2.5-1.5b |             0.122449  |           0.0459184 |
-| sentence-transformers/all-mpnet-base-v2 |                               10 | cluster       |                   0.660099 | qwen2.5-1.5b |             0.231527  |           0.0492611 |
-| sentence-transformers/all-mpnet-base-v2 |                               10 | vague         |                   0.609244 | qwen2.5-1.5b |             0.205882  |           0.092437  |
-| sentence-transformers/all-mpnet-base-v2 |                               10 | hypochondriac |                   0.875648 | qwen2.5-1.5b |             0.404145  |           0.134715  |
-| sentence-transformers/all-mpnet-base-v2 |                               10 | basic         |                   0.723529 | qwen2.5-1.5b |             0.294118  |           0.0705882 |
-| sentence-transformers/all-mpnet-base-v2 |                               10 | downplay      |                   0.627551 | qwen2.5-1.5b |             0.163265  |           0.0663265 |
-| sentence-transformers/all-mpnet-base-v2 |                               10 | cluster       |                   0.655172 | qwen2.5-32b  |             0.394089  |           0.482759  |
-| sentence-transformers/all-mpnet-base-v2 |                               10 | vague         |                   0.613445 | qwen2.5-32b  |             0.37395   |           0.344538  |
-| sentence-transformers/all-mpnet-base-v2 |                               10 | hypochondriac |                   0.875648 | qwen2.5-32b  |             0.492228  |           0.393782  |
-| sentence-transformers/all-mpnet-base-v2 |                               10 | basic         |                   0.723529 | qwen2.5-32b  |             0.482353  |           0.523529  |
-| sentence-transformers/all-mpnet-base-v2 |                               10 | downplay      |                   0.627551 | qwen2.5-32b  |             0.377551  |           0.321429  |
-| sentence-transformers/all-mpnet-base-v2 |                               30 | cluster       |                   0.82266  | qwen2.5-32b  |             0.413793  |           0.438424  |
-| sentence-transformers/all-mpnet-base-v2 |                               30 | vague         |                   0.731092 | qwen2.5-32b  |             0.415966  |           0.352941  |
-| sentence-transformers/all-mpnet-base-v2 |                               30 | hypochondriac |                   0.948187 | qwen2.5-32b  |             0.492228  |           0.414508  |
-| sentence-transformers/all-mpnet-base-v2 |                               30 | basic         |                   0.864706 | qwen2.5-32b  |             0.505882  |           0.523529  |
-| sentence-transformers/all-mpnet-base-v2 |                               30 | downplay      |                   0.80102  | qwen2.5-32b  |             0.418367  |           0.316327  |
+|-----------------------------------------|----------------------------------|---------------|----------------------------|--------------|-----------------------|---------------------|
+| sentence-transformers/all-mpnet-base-v2 |                               10 | hypochondriac |                       0.88 | o3-mini      |                  0.58 |                0.44 |
+| sentence-transformers/all-mpnet-base-v2 |                               30 | hypochondriac |                       0.95 | o3-mini      |                  0.56 |                0.45 |
+| sentence-transformers/all-mpnet-base-v2 |                               10 | hypochondriac |                       0.88 | qwen2.5-1.5b |                  0.40 |                0.13 |
+| sentence-transformers/all-mpnet-base-v2 |                               30 | hypochondriac |                       0.95 | qwen2.5-1.5b |                  0.24 |                0.07 |
+| sentence-transformers/all-mpnet-base-v2 |                               10 | hypochondriac |                       0.88 | qwen2.5-32b  |                  0.49 |                0.39 |
+| sentence-transformers/all-mpnet-base-v2 |                               30 | hypochondriac |                       0.95 | qwen2.5-32b  |                  0.49 |                0.41 |
+
+### basic
+| Embedding Method                        |   Supporting documents retrieved | Query Type   |   Condition baseline (p@1) | LLM          |   Conditions accuracy |   Severity accuracy |
+|-----------------------------------------|----------------------------------|--------------|----------------------------|--------------|-----------------------|---------------------|
+| sentence-transformers/all-mpnet-base-v2 |                               10 | basic        |                       0.72 | o3-mini      |                  0.52 |                0.52 |
+| sentence-transformers/all-mpnet-base-v2 |                               30 | basic        |                       0.86 | o3-mini      |                  0.54 |                0.58 |
+| sentence-transformers/all-mpnet-base-v2 |                               10 | basic        |                       0.72 | qwen2.5-1.5b |                  0.29 |                0.07 |
+| sentence-transformers/all-mpnet-base-v2 |                               30 | basic        |                       0.86 | qwen2.5-1.5b |                  0.18 |                0.08 |
+| sentence-transformers/all-mpnet-base-v2 |                               10 | basic        |                       0.72 | qwen2.5-32b  |                  0.48 |                0.52 |
+| sentence-transformers/all-mpnet-base-v2 |                               30 | basic        |                       0.86 | qwen2.5-32b  |                  0.51 |                0.52 |
+
+### downplay
+| Embedding Method                        |   Supporting documents retrieved | Query Type   |   Condition baseline (p@1) | LLM          |   Conditions accuracy |   Severity accuracy |
+|-----------------------------------------|----------------------------------|--------------|----------------------------|--------------|-----------------------|---------------------|
+| sentence-transformers/all-mpnet-base-v2 |                               10 | downplay     |                       0.63 | o3-mini      |                  0.40 |                0.31 |
+| sentence-transformers/all-mpnet-base-v2 |                               30 | downplay     |                       0.80 | o3-mini      |                  0.44 |                0.31 |
+| sentence-transformers/all-mpnet-base-v2 |                               10 | downplay     |                       0.63 | qwen2.5-1.5b |                  0.16 |                0.07 |
+| sentence-transformers/all-mpnet-base-v2 |                               30 | downplay     |                       0.80 | qwen2.5-1.5b |                  0.12 |                0.05 |
+| sentence-transformers/all-mpnet-base-v2 |                               10 | downplay     |                       0.63 | qwen2.5-32b  |                  0.38 |                0.32 |
+| sentence-transformers/all-mpnet-base-v2 |                               30 | downplay     |                       0.80 | qwen2.5-32b  |                  0.42 |                0.32 |
