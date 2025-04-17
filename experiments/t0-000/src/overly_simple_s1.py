@@ -6,7 +6,7 @@ from dataclasses import asdict, dataclass
 import torch
 import transformers
 import trl
-from datasets import load_dataset
+from datasets import load_from_disk
 
 warnings.filterwarnings("ignore", category=FutureWarning)
 
@@ -23,7 +23,7 @@ class TrainingConfig:
     block_size: int = 2048  # Original: 32768
     dagger: bool = False
     small_sample: bool = True  # Flag to train on a small sample
-    train_file_path: str = "simplescaling/s1K_tokenized"
+    train_file_path: str = "2k-deepseek-traces-k3.hf"
 
     def __post_init__(self):
         os.environ["WANDB_MODE"] = "disabled"  # Prevents wandb from running
@@ -49,7 +49,7 @@ def train():
 
     model.gradient_checkpointing_enable()  # Original didn't have this
 
-    dataset = load_dataset(config.train_file_path)
+    dataset = load_from_disk(config.train_file_path)
 
     # Select a small sample for testing purposes if the flag is set
     if config.small_sample:
