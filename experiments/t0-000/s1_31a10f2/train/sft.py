@@ -81,6 +81,8 @@ def train():
     )
 
     trainer.train()
+
+    logging.info("Training completed. Saving model and tokenizer...")
     trainer.save_model(output_dir=args.output_dir)
     tokenizer.save_pretrained(args.output_dir)
     trainer.accelerator.wait_for_everyone()
