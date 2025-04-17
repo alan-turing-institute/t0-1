@@ -14,10 +14,10 @@ push_to_hub=false
 
 torchrun --nproc-per-node ${gpu_count} --master_port 12345 \
     train/sft.py \
-    --block_size=8192 \
+    --block_size=65536 \
     --per_device_train_batch_size=${micro_batch_size} \
     --per_device_eval_batch_size=${micro_batch_size} \
-    --train_file_path="/home/rchan/t0/experiments/t0-000/new_dataset_cut" \
+    --train_file_path="/home/rchan/t0/experiments/t0-000/new_dataset_cut_v2" \
     --gradient_accumulation_steps=${gradient_accumulation_steps} \
     --num_train_epochs=${epochs} \
     --model_name=${base_model} \
@@ -37,5 +37,7 @@ torchrun --nproc-per-node ${gpu_count} --master_port 12345 \
     --adam_beta2=0.95 \
     --output_dir="ckpts/t0_r1-${uid}" \
     --push_to_hub=${push_to_hub} \
-    --save_only_model=True
+    --save_only_model=True \
+    --wandb_project="t0" \
+    --wandb_entity="rychan"
     # --accelerator_config='{"gradient_accumulation_kwargs": {"sync_each_batch": true}}'
