@@ -1,0 +1,954 @@
+[
+    {
+        "code": "03",
+        "title": "Mathematical logic and foundations",
+        "descriptions": [
+            " Philosophical aspects of logic and foundations",
+            " General logic",
+            " Model theory",
+            " Computability and recursion theory",
+            " Set theory",
+            " Proof theory and constructive mathematics",
+            " Algebraic logic",
+            " Nonstandard models"
+        ],
+        "prompt": "### Mathematical logic and foundations\n* Code: 03\n* Description: Philosophical aspects of logic and foundations; General logic; Model theory; Computability and recursion theory; Set theory; Proof theory and constructive mathematics; Algebraic logic; Nonstandard models"
+    },
+    {
+        "code": "05",
+        "title": "Combinatorics",
+        "descriptions": [
+            " Enumerative combinatorics",
+            " Designs and configurations",
+            " Graph theory",
+            " Extremal combinatorics",
+            " Algebraic combinatorics"
+        ],
+        "prompt": "### Combinatorics\n* Code: 05\n* Description: Enumerative combinatorics; Designs and configurations; Graph theory; Extremal combinatorics; Algebraic combinatorics"
+    },
+    {
+        "code": "06",
+        "title": "Order, lattices, ordered algebraic structures",
+        "descriptions": [
+            " Ordered sets",
+            " Lattices",
+            " Modular lattices, complemented lattices",
+            " Distributive lattices",
+            " Boolean algebras (Boolean rings)",
+            " Ordered structures"
+        ],
+        "prompt": "### Order, lattices, ordered algebraic structures\n* Code: 06\n* Description: Ordered sets; Lattices; Modular lattices, complemented lattices; Distributive lattices; Boolean algebras (Boolean rings); Ordered structures"
+    },
+    {
+        "code": "08",
+        "title": "General algebraic systems",
+        "descriptions": [
+            " Algebraic structures",
+            " Varieties",
+            " Other classes of algebras"
+        ],
+        "prompt": "### General algebraic systems\n* Code: 08\n* Description: Algebraic structures; Varieties; Other classes of algebras"
+    },
+    {
+        "code": "11",
+        "title": "Number theory",
+        "descriptions": [
+            " Elementary number theory",
+            " Sequences and sets",
+            " Polynomials and matrices",
+            " Diophantine equations",
+            " Forms and linear algebraic groups",
+            " Discontinuous groups and automorphic forms",
+            " Arithmetic algebraic geometry (Diophantine geometry)",
+            " Geometry of numbers",
+            " Diophantine approximation, transcendental number theory",
+            " Probabilistic theory",
+            " Exponential sums and character sums",
+            " Zeta and $L$-functions",
+            " Multiplicative number theory",
+            " Additive number theory; partitions",
+            " Algebraic number theory",
+            " Algebraic number theory",
+            " Finite fields and commutative rings (number-theoretic aspects)",
+            " Connections with logic",
+            " Computational number theory",
+            " Miscellaneous applications of number theory"
+        ],
+        "prompt": "### Number theory\n* Code: 11\n* Description: Elementary number theory; Sequences and sets; Polynomials and matrices; Diophantine equations; Forms and linear algebraic groups; Discontinuous groups and automorphic forms; Arithmetic algebraic geometry (Diophantine geometry); Geometry of numbers; Diophantine approximation, transcendental number theory; Probabilistic theory; Exponential sums and character sums; Zeta and $L$-functions; Multiplicative number theory; Additive number theory; partitions; Algebraic number theory; Algebraic number theory; Finite fields and commutative rings (number-theoretic aspects); Connections with logic; Computational number theory; Miscellaneous applications of number theory"
+    },
+    {
+        "code": "12",
+        "title": "Field theory and polynomials",
+        "descriptions": [
+            " Real and complex fields",
+            " General field theory",
+            " Field extensions",
+            " Homological methods (field theory)",
+            " Differential and difference algebra",
+            " Topological fields",
+            " Generalizations of fields",
+            " Connections with logic",
+            " Computational aspects of field theory and polynomials"
+        ],
+        "prompt": "### Field theory and polynomials\n* Code: 12\n* Description: Real and complex fields; General field theory; Field extensions; Homological methods (field theory); Differential and difference algebra; Topological fields; Generalizations of fields; Connections with logic; Computational aspects of field theory and polynomials"
+    },
+    {
+        "code": "13",
+        "title": "Commutative algebra",
+        "descriptions": [
+            " General commutative ring theory",
+            " Ring extensions and related topics",
+            " Theory of modules and ideals",
+            " Homological methods",
+            " Chain conditions, finiteness conditions",
+            " Arithmetic rings and other special rings",
+            " Integral domains",
+            " Local rings and semilocal rings",
+            " Topological rings and modules",
+            " Applications of logic to commutative algebra",
+            " Finite commutative rings",
+            " Differential algebra",
+            " Computational aspects and applications"
+        ],
+        "prompt": "### Commutative algebra\n* Code: 13\n* Description: General commutative ring theory; Ring extensions and related topics; Theory of modules and ideals; Homological methods; Chain conditions, finiteness conditions; Arithmetic rings and other special rings; Integral domains; Local rings and semilocal rings; Topological rings and modules; Applications of logic to commutative algebra; Finite commutative rings; Differential algebra; Computational aspects and applications"
+    },
+    {
+        "code": "14",
+        "title": "Algebraic geometry",
+        "descriptions": [
+            " Foundations",
+            " Local theory",
+            " Cycles and subschemes",
+            " Families, fibrations",
+            " Birational geometry",
+            " (Co)homology theory",
+            " Arithmetic problems. Diophantine geometry",
+            " Curves",
+            " Surfaces and higher-dimensional varieties",
+            " Abelian varieties and schemes",
+            " Algebraic groups",
+            " Special varieties",
+            " Projective and enumerative geometry",
+            " Real algebraic and real analytic geometry",
+            " Computational aspects in algebraic geometry",
+            " Affine geometry",
+            " Tropical geometry"
+        ],
+        "prompt": "### Algebraic geometry\n* Code: 14\n* Description: Foundations; Local theory; Cycles and subschemes; Families, fibrations; Birational geometry; (Co)homology theory; Arithmetic problems. Diophantine geometry; Curves; Surfaces and higher-dimensional varieties; Abelian varieties and schemes; Algebraic groups; Special varieties; Projective and enumerative geometry; Real algebraic and real analytic geometry; Computational aspects in algebraic geometry; Affine geometry; Tropical geometry"
+    },
+    {
+        "code": "15",
+        "title": "Linear and multilinear algebra; matrix theory",
+        "descriptions": [
+            " Basic linear algebra",
+            " Special matrices"
+        ],
+        "prompt": "### Linear and multilinear algebra; matrix theory\n* Code: 15\n* Description: Basic linear algebra; Special matrices"
+    },
+    {
+        "code": "16",
+        "title": "Associative rings and algebras",
+        "descriptions": [
+            " General and miscellaneous",
+            " Modules, bimodules and ideals",
+            " Homological methods",
+            " Representation theory of rings and algebras",
+            " Algebras and orders",
+            " Division rings and semisimple Artin rings",
+            " Local rings and generalizations",
+            " Radicals and radical properties of rings",
+            " Chain conditions, growth conditions, and other forms of finiteness",
+            " Rings with polynomial identity",
+            " Rings and algebras arising under various constructions",
+            " Hopf algebras, quantum groups and related topics",
+            " Conditions on elements",
+            " Rings and algebras with additional structure",
+            " Generalizations",
+            " Computational aspects of associative rings"
+        ],
+        "prompt": "### Associative rings and algebras\n* Code: 16\n* Description: General and miscellaneous; Modules, bimodules and ideals; Homological methods; Representation theory of rings and algebras; Algebras and orders; Division rings and semisimple Artin rings; Local rings and generalizations; Radicals and radical properties of rings; Chain conditions, growth conditions, and other forms of finiteness; Rings with polynomial identity; Rings and algebras arising under various constructions; Hopf algebras, quantum groups and related topics; Conditions on elements; Rings and algebras with additional structure; Generalizations; Computational aspects of associative rings"
+    },
+    {
+        "code": "17",
+        "title": "Nonassociative rings and algebras",
+        "descriptions": [
+            " General nonassociative rings",
+            " Lie algebras and Lie superalgebras",
+            " Jordan algebras (algebras, triples and pairs)",
+            " Other nonassociative rings and algebras"
+        ],
+        "prompt": "### Nonassociative rings and algebras\n* Code: 17\n* Description: General nonassociative rings; Lie algebras and Lie superalgebras; Jordan algebras (algebras, triples and pairs); Other nonassociative rings and algebras"
+    },
+    {
+        "code": "18",
+        "title": "Category theory; homological algebra",
+        "descriptions": [
+            " General theory of categories and functors",
+            " Special categories",
+            " Categories and theories",
+            " Categories with structure",
+            " Abelian categories",
+            " Categories and geometry",
+            " Homological algebra"
+        ],
+        "prompt": "### Category theory; homological algebra\n* Code: 18\n* Description: General theory of categories and functors; Special categories; Categories and theories; Categories with structure; Abelian categories; Categories and geometry; Homological algebra"
+    },
+    {
+        "code": "19",
+        "title": "$K$-theory",
+        "descriptions": [
+            " Grothendieck groups and $K_0$",
+            " Whitehead groups and $K_1$",
+            " Steinberg groups and $K_2$",
+            " Higher algebraic $K$-theory",
+            " $K$-theory in geometry",
+            " $K$-theory in number theory",
+            " $K$-theory of forms",
+            " Obstructions from topology",
+            " $K$-theory and operator algebras",
+            " Topological $K$-theory",
+            " Miscellaneous applications of $K$-theory"
+        ],
+        "prompt": "### $K$-theory\n* Code: 19\n* Description: Grothendieck groups and $K_0$; Whitehead groups and $K_1$; Steinberg groups and $K_2$; Higher algebraic $K$-theory; $K$-theory in geometry; $K$-theory in number theory; $K$-theory of forms; Obstructions from topology; $K$-theory and operator algebras; Topological $K$-theory; Miscellaneous applications of $K$-theory"
+    },
+    {
+        "code": "20",
+        "title": "Group theory and generalizations",
+        "descriptions": [
+            " Foundations",
+            " Permutation groups",
+            " Representation theory of groups",
+            " Abstract finite groups",
+            " Structure and classification of infinite or finite groups",
+            " Special aspects of infinite or finite groups",
+            " Linear algebraic groups and related topics",
+            " Other groups of matrices",
+            " Connections with homological algebra and category theory",
+            " Abelian groups",
+            " Groupoids (i.e. small categories in which all morphisms are isomorphisms)",
+            " Semigroups",
+            " Other generalizations of groups",
+            " Probabilistic methods in group theory"
+        ],
+        "prompt": "### Group theory and generalizations\n* Code: 20\n* Description: Foundations; Permutation groups; Representation theory of groups; Abstract finite groups; Structure and classification of infinite or finite groups; Special aspects of infinite or finite groups; Linear algebraic groups and related topics; Other groups of matrices; Connections with homological algebra and category theory; Abelian groups; Groupoids (i.e. small categories in which all morphisms are isomorphisms); Semigroups; Other generalizations of groups; Probabilistic methods in group theory"
+    },
+    {
+        "code": "22",
+        "title": "Topological groups, Lie groups",
+        "descriptions": [
+            " Topological and differentiable algebraic systems",
+            " Locally compact abelian groups (LCA groups)",
+            " Compact groups",
+            " Locally compact groups and their algebras",
+            " Lie groups",
+            " Noncompact transformation groups"
+        ],
+        "prompt": "### Topological groups, Lie groups\n* Code: 22\n* Description: Topological and differentiable algebraic systems; Locally compact abelian groups (LCA groups); Compact groups; Locally compact groups and their algebras; Lie groups; Noncompact transformation groups"
+    },
+    {
+        "code": "26",
+        "title": "Real functions",
+        "descriptions": [
+            " Functions of one variable",
+            " Functions of several variables",
+            " Polynomials, rational functions",
+            " Inequalities",
+            " Miscellaneous topics"
+        ],
+        "prompt": "### Real functions\n* Code: 26\n* Description: Functions of one variable; Functions of several variables; Polynomials, rational functions; Inequalities; Miscellaneous topics"
+    },
+    {
+        "code": "28",
+        "title": "Measure and integration",
+        "descriptions": [
+            " Classical measure theory",
+            " Set functions, measures and integrals with values in abstract spaces",
+            " Set functions and measures on spaces with additional structure",
+            " Measure-theoretic ergodic theory",
+            " Miscellaneous topics in measure theory"
+        ],
+        "prompt": "### Measure and integration\n* Code: 28\n* Description: Classical measure theory; Set functions, measures and integrals with values in abstract spaces; Set functions and measures on spaces with additional structure; Measure-theoretic ergodic theory; Miscellaneous topics in measure theory"
+    },
+    {
+        "code": "30",
+        "title": "Functions of a complex variable",
+        "descriptions": [
+            " General properties",
+            " Series expansions",
+            " Geometric function theory",
+            " Entire and meromorphic functions, and related topics",
+            " Miscellaneous topics of analysis in the complex domain",
+            " Riemann surfaces",
+            " Generalized function theory",
+            " Spaces and algebras of analytic functions",
+            " Function theory on the disc",
+            " Universal holomorphic functions",
+            " Analysis on metric spaces"
+        ],
+        "prompt": "### Functions of a complex variable\n* Code: 30\n* Description: General properties; Series expansions; Geometric function theory; Entire and meromorphic functions, and related topics; Miscellaneous topics of analysis in the complex domain; Riemann surfaces; Generalized function theory; Spaces and algebras of analytic functions; Function theory on the disc; Universal holomorphic functions; Analysis on metric spaces"
+    },
+    {
+        "code": "31",
+        "title": "Potential theory",
+        "descriptions": [
+            " Two-dimensional theory",
+            " Higher-dimensional theory",
+            " Other generalizations",
+            "  Axiomatic potential theory",
+            "  Potential theory on metric spaces"
+        ],
+        "prompt": "### Potential theory\n* Code: 31\n* Description: Two-dimensional theory; Higher-dimensional theory; Other generalizations;  Axiomatic potential theory;  Potential theory on metric spaces"
+    },
+    {
+        "code": "32",
+        "title": "Several complex variables and analytic spaces",
+        "descriptions": [
+            " Holomorphic functions of several complex variables",
+            " Local analytic geometry",
+            " Analytic spaces",
+            " Analytic continuation",
+            " Holomorphic convexity",
+            " Geometric convexity",
+            " Deformations of analytic structures",
+            " Holomorphic mappings and correspondences",
+            " Compact analytic spaces",
+            " Generalizations of analytic spaces (should also be assigned at least one other classification number from Section 32 describing the type of problem)",
+            " Holomorphic fiber spaces",
+            " Complex spaces with a group of automorphisms",
+            " Automorphic functions",
+            " Non-Archimedean analysis (should also be assigned at least one other classification number from Section 32 describing the type of problem)",
+            " Complex manifolds",
+            " Singularities",
+            " Pseudoconvex domains",
+            " Pluripotential theory",
+            " CR manifolds",
+            " Differential operators in several variables"
+        ],
+        "prompt": "### Several complex variables and analytic spaces\n* Code: 32\n* Description: Holomorphic functions of several complex variables; Local analytic geometry; Analytic spaces; Analytic continuation; Holomorphic convexity; Geometric convexity; Deformations of analytic structures; Holomorphic mappings and correspondences; Compact analytic spaces; Generalizations of analytic spaces (should also be assigned at least one other classification number from Section 32 describing the type of problem); Holomorphic fiber spaces; Complex spaces with a group of automorphisms; Automorphic functions; Non-Archimedean analysis (should also be assigned at least one other classification number from Section 32 describing the type of problem); Complex manifolds; Singularities; Pseudoconvex domains; Pluripotential theory; CR manifolds; Differential operators in several variables"
+    },
+    {
+        "code": "33",
+        "title": "Special functions (33-XX deals with the properties of functions as functions)",
+        "descriptions": [
+            " Elementary classical functions",
+            " Hypergeometric functions",
+            " Basic hypergeometric functions",
+            " Other special functions",
+            " Computational aspects"
+        ],
+        "prompt": "### Special functions (33-XX deals with the properties of functions as functions)\n* Code: 33\n* Description: Elementary classical functions; Hypergeometric functions; Basic hypergeometric functions; Other special functions; Computational aspects"
+    },
+    {
+        "code": "34",
+        "title": "Ordinary differential equations",
+        "descriptions": [
+            " General theory",
+            " Boundary value problems",
+            " Qualitative theory",
+            " Stability theory",
+            " Asymptotic theory",
+            " Equations and systems with randomness",
+            " Differential equations in abstract spaces",
+            "  Control problems",
+            " Functional-differential and differential-difference equations",
+            " Ordinary differential operators",
+            " Differential equations in the complex domain",
+            " Dynamic equations on time scales or measure chains"
+        ],
+        "prompt": "### Ordinary differential equations\n* Code: 34\n* Description: General theory; Boundary value problems; Qualitative theory; Stability theory; Asymptotic theory; Equations and systems with randomness; Differential equations in abstract spaces;  Control problems; Functional-differential and differential-difference equations; Ordinary differential operators; Differential equations in the complex domain; Dynamic equations on time scales or measure chains"
+    },
+    {
+        "code": "35",
+        "title": "Partial differential equations",
+        "descriptions": [
+            " General topics",
+            " Qualitative properties of solutions",
+            " Representations of solutions",
+            " Generalized solutions",
+            " Equations and systems with constant coefficients",
+            " General first-order equations and systems",
+            " General higher-order equations and systems",
+            " Close-to-elliptic equations and systems",
+            " Elliptic equations and systems",
+            " Parabolic equations and systems",
+            " Hyperbolic equations and systems",
+            " Equations and systems of special type (mixed, composite, etc.)",
+            " Overdetermined systems",
+            " Spectral theory and eigenvalue problems",
+            " Equations of mathematical physics and other areas of application",
+            " Miscellaneous topics",
+            " Pseudodifferential operators and other generalizations of partial differential operators"
+        ],
+        "prompt": "### Partial differential equations\n* Code: 35\n* Description: General topics; Qualitative properties of solutions; Representations of solutions; Generalized solutions; Equations and systems with constant coefficients; General first-order equations and systems; General higher-order equations and systems; Close-to-elliptic equations and systems; Elliptic equations and systems; Parabolic equations and systems; Hyperbolic equations and systems; Equations and systems of special type (mixed, composite, etc.); Overdetermined systems; Spectral theory and eigenvalue problems; Equations of mathematical physics and other areas of application; Miscellaneous topics; Pseudodifferential operators and other generalizations of partial differential operators"
+    },
+    {
+        "code": "37",
+        "title": "Dynamical systems and ergodic theory",
+        "descriptions": [
+            " Ergodic theory",
+            " Topological dynamics",
+            " Smooth dynamical systems",
+            " Dynamical systems with hyperbolic behavior",
+            " Low-dimensional dynamical systems",
+            " Complex dynamical systems",
+            " Local and nonlocal bifurcation theory",
+            " Random dynamical systems",
+            " Finite-dimensional Hamiltonian, Lagrangian, contact, and nonholonomic systems",
+            " Infinite-dimensional Hamiltonian systems",
+            " Infinite-dimensional dissipative dynamical systems",
+            " Approximation methods and numerical treatment of dynamical systems",
+            " Applications",
+            " Arithmetic and non-Archimedean dynamical systems"
+        ],
+        "prompt": "### Dynamical systems and ergodic theory\n* Code: 37\n* Description: Ergodic theory; Topological dynamics; Smooth dynamical systems; Dynamical systems with hyperbolic behavior; Low-dimensional dynamical systems; Complex dynamical systems; Local and nonlocal bifurcation theory; Random dynamical systems; Finite-dimensional Hamiltonian, Lagrangian, contact, and nonholonomic systems; Infinite-dimensional Hamiltonian systems; Infinite-dimensional dissipative dynamical systems; Approximation methods and numerical treatment of dynamical systems; Applications; Arithmetic and non-Archimedean dynamical systems"
+    },
+    {
+        "code": "39",
+        "title": "Difference and functional equations",
+        "descriptions": [
+            " Difference equations",
+            " Functional equations and inequalities"
+        ],
+        "prompt": "### Difference and functional equations\n* Code: 39\n* Description: Difference equations; Functional equations and inequalities"
+    },
+    {
+        "code": "40",
+        "title": "Sequences, series, summability",
+        "descriptions": [
+            " Convergence and divergence of infinite limiting processes",
+            " Multiple sequences and series",
+            " General summability methods",
+            " Direct theorems on summability",
+            " Inversion theorems",
+            " Absolute and strong summability (should also be assigned at least one other classification number in Section 40)",
+            " Special methods of summability",
+            " Functional analytic methods in summability",
+            " Summability in abstract structures"
+        ],
+        "prompt": "### Sequences, series, summability\n* Code: 40\n* Description: Convergence and divergence of infinite limiting processes; Multiple sequences and series; General summability methods; Direct theorems on summability; Inversion theorems; Absolute and strong summability (should also be assigned at least one other classification number in Section 40); Special methods of summability; Functional analytic methods in summability; Summability in abstract structures"
+    },
+    {
+        "code": "41",
+        "title": "Approximations and expansions",
+        "descriptions": [
+            " Approximations and expansions"
+        ],
+        "prompt": "### Approximations and expansions\n* Code: 41\n* Description: Approximations and expansions"
+    },
+    {
+        "code": "42",
+        "title": "Harmonic analysis on Euclidean spaces",
+        "descriptions": [
+            " Harmonic analysis in one variable",
+            " Harmonic analysis in several variables",
+            " Nontrigonometric harmonic analysis"
+        ],
+        "prompt": "### Harmonic analysis on Euclidean spaces\n* Code: 42\n* Description: Harmonic analysis in one variable; Harmonic analysis in several variables; Nontrigonometric harmonic analysis"
+    },
+    {
+        "code": "43",
+        "title": "Abstract harmonic analysis",
+        "descriptions": [
+            " Abstract harmonic analysis"
+        ],
+        "prompt": "### Abstract harmonic analysis\n* Code: 43\n* Description: Abstract harmonic analysis"
+    },
+    {
+        "code": "44",
+        "title": "Integral transforms, operational calculus",
+        "descriptions": [
+            " Integral transforms, operational calculus"
+        ],
+        "prompt": "### Integral transforms, operational calculus\n* Code: 44\n* Description: Integral transforms, operational calculus"
+    },
+    {
+        "code": "45",
+        "title": "Integral equations",
+        "descriptions": [
+            " Linear integral equations",
+            " Fredholm integral equations",
+            " Eigenvalue problems",
+            " Volterra integral equations",
+            " Singular integral equations",
+            " Systems of linear integral equations",
+            " Nonlinear integral equations",
+            " Miscellaneous special kernels",
+            " Integro-ordinary differential equations",
+            " Integro-partial differential equations",
+            " Theoretical approximation of solutions",
+            " Qualitative behavior",
+            " Abstract integral equations, integral equations in abstract spaces",
+            " Integral operators",
+            " Inverse problems",
+            " Random integral equations"
+        ],
+        "prompt": "### Integral equations\n* Code: 45\n* Description: Linear integral equations; Fredholm integral equations; Eigenvalue problems; Volterra integral equations; Singular integral equations; Systems of linear integral equations; Nonlinear integral equations; Miscellaneous special kernels; Integro-ordinary differential equations; Integro-partial differential equations; Theoretical approximation of solutions; Qualitative behavior; Abstract integral equations, integral equations in abstract spaces; Integral operators; Inverse problems; Random integral equations"
+    },
+    {
+        "code": "46",
+        "title": "Functional analysis",
+        "descriptions": [
+            " Topological linear spaces and related structures",
+            " Normed linear spaces and Banach spaces; Banach lattices",
+            " Inner product spaces and their generalizations, Hilbert spaces",
+            " Linear function spaces and their duals",
+            " Distributions, generalized functions, distribution spaces",
+            " Measures, integration, derivative, holomorphy (all involving infinite-dimensional spaces)",
+            " Topological algebras, normed rings and algebras, Banach algebras",
+            " Commutative Banach algebras and commutative topological algebras",
+            " Topological (rings and) algebras with an involution",
+            " Selfadjoint operator algebras ($C^*$-algebras, von Neumann ($W^*$-) algebras, etc.)",
+            " Methods of category theory in functional analysis",
+            " Miscellaneous applications of functional analysis",
+            " Other (nonclassical) types of functional analysis",
+            " Nonlinear functional analysis"
+        ],
+        "prompt": "### Functional analysis\n* Code: 46\n* Description: Topological linear spaces and related structures; Normed linear spaces and Banach spaces; Banach lattices; Inner product spaces and their generalizations, Hilbert spaces; Linear function spaces and their duals; Distributions, generalized functions, distribution spaces; Measures, integration, derivative, holomorphy (all involving infinite-dimensional spaces); Topological algebras, normed rings and algebras, Banach algebras; Commutative Banach algebras and commutative topological algebras; Topological (rings and) algebras with an involution; Selfadjoint operator algebras ($C^*$-algebras, von Neumann ($W^*$-) algebras, etc.); Methods of category theory in functional analysis; Miscellaneous applications of functional analysis; Other (nonclassical) types of functional analysis; Nonlinear functional analysis"
+    },
+    {
+        "code": "47",
+        "title": "Operator theory",
+        "descriptions": [
+            " General theory of linear operators",
+            " Special classes of linear operators",
+            " Individual linear operators as elements of algebraic systems",
+            " Groups and semigroups of linear operators, their generalizations and applications",
+            " Ordinary differential operators",
+            " Partial differential operators",
+            " Integral, integro-differential, and pseudodifferential operators",
+            " Nonlinear operators and their properties",
+            " Equations and inequalities involving nonlinear operators",
+            " Linear spaces and algebras of operators",
+            " Miscellaneous applications of operator theory",
+            " Other (nonclassical) types of operator theory"
+        ],
+        "prompt": "### Operator theory\n* Code: 47\n* Description: General theory of linear operators; Special classes of linear operators; Individual linear operators as elements of algebraic systems; Groups and semigroups of linear operators, their generalizations and applications; Ordinary differential operators; Partial differential operators; Integral, integro-differential, and pseudodifferential operators; Nonlinear operators and their properties; Equations and inequalities involving nonlinear operators; Linear spaces and algebras of operators; Miscellaneous applications of operator theory; Other (nonclassical) types of operator theory"
+    },
+    {
+        "code": "49",
+        "title": "Calculus of variations and optimal control; optimization",
+        "descriptions": [
+            " Existence theories",
+            " Optimality conditions",
+            " Hamilton-Jacobi theories, including dynamic programming",
+            " Numerical methods",
+            " Miscellaneous topics",
+            " Manifolds",
+            " Variational methods for eigenvalues of operators",
+            " Variational principles of physics"
+        ],
+        "prompt": "### Calculus of variations and optimal control; optimization\n* Code: 49\n* Description: Existence theories; Optimality conditions; Hamilton-Jacobi theories, including dynamic programming; Numerical methods; Miscellaneous topics; Manifolds; Variational methods for eigenvalues of operators; Variational principles of physics"
+    },
+    {
+        "code": "51",
+        "title": "Geometry",
+        "descriptions": [
+            " Linear incidence geometry",
+            " Nonlinear incidence geometry",
+            " Ring geometry (Hjelmslev, Barbilian, etc.)",
+            " Geometric closure systems",
+            " Finite geometry and special incidence structures",
+            " Metric geometry",
+            " Ordered geometries (ordered incidence structures, etc.)",
+            " Topological geometry",
+            " Incidence groups",
+            " Distance geometry",
+            " Geometric order structures",
+            " Real and complex geometry",
+            " Analytic and descriptive geometry",
+            " Geometry and physics (should also be assigned at least one other classification number from Sections 70--86)"
+        ],
+        "prompt": "### Geometry\n* Code: 51\n* Description: Linear incidence geometry; Nonlinear incidence geometry; Ring geometry (Hjelmslev, Barbilian, etc.); Geometric closure systems; Finite geometry and special incidence structures; Metric geometry; Ordered geometries (ordered incidence structures, etc.); Topological geometry; Incidence groups; Distance geometry; Geometric order structures; Real and complex geometry; Analytic and descriptive geometry; Geometry and physics (should also be assigned at least one other classification number from Sections 70--86)"
+    },
+    {
+        "code": "52",
+        "title": "Convex and discrete geometry",
+        "descriptions": [
+            " General convexity",
+            " Polytopes and polyhedra",
+            " Discrete geometry"
+        ],
+        "prompt": "### Convex and discrete geometry\n* Code: 52\n* Description: General convexity; Polytopes and polyhedra; Discrete geometry"
+    },
+    {
+        "code": "53",
+        "title": "Differential geometry",
+        "descriptions": [
+            " Classical differential geometry",
+            " Local differential geometry",
+            " Global differential geometry",
+            " Symplectic geometry, contact geometry",
+            " Applications to physics"
+        ],
+        "prompt": "### Differential geometry\n* Code: 53\n* Description: Classical differential geometry; Local differential geometry; Global differential geometry; Symplectic geometry, contact geometry; Applications to physics"
+    },
+    {
+        "code": "54",
+        "title": "General topology",
+        "descriptions": [
+            " Generalities",
+            " Basic constructions",
+            " Maps and general types of spaces defined by maps",
+            " Fairly general properties",
+            " Spaces with richer structures",
+            " Special properties",
+            " Peculiar spaces",
+            " Connections with other structures, applications",
+            " Nonstandard topology"
+        ],
+        "prompt": "### General topology\n* Code: 54\n* Description: Generalities; Basic constructions; Maps and general types of spaces defined by maps; Fairly general properties; Spaces with richer structures; Special properties; Peculiar spaces; Connections with other structures, applications; Nonstandard topology"
+    },
+    {
+        "code": "55",
+        "title": "Algebraic topology",
+        "descriptions": [
+            " Classical topics",
+            " Homology and cohomology theories",
+            " Homotopy theory",
+            " Homotopy groups",
+            " Fiber spaces and bundles",
+            " Operations and obstructions",
+            " Spectral sequences",
+            " Applied homological algebra and category theory"
+        ],
+        "prompt": "### Algebraic topology\n* Code: 55\n* Description: Classical topics; Homology and cohomology theories; Homotopy theory; Homotopy groups; Fiber spaces and bundles; Operations and obstructions; Spectral sequences; Applied homological algebra and category theory"
+    },
+    {
+        "code": "57",
+        "title": "Manifolds and cell complexes",
+        "descriptions": [
+            " Low-dimensional topology",
+            " Topological manifolds",
+            " Generalized manifolds",
+            " PL-topology",
+            " Differential topology",
+            " Topological transformation groups",
+            " Homology and homotopy of topological groups and related structures"
+        ],
+        "prompt": "### Manifolds and cell complexes\n* Code: 57\n* Description: Low-dimensional topology; Topological manifolds; Generalized manifolds; PL-topology; Differential topology; Topological transformation groups; Homology and homotopy of topological groups and related structures"
+    },
+    {
+        "code": "58",
+        "title": "Global analysis, analysis on manifolds",
+        "descriptions": [
+            " General theory of differentiable manifolds",
+            " Infinite-dimensional manifolds",
+            " Calculus on manifolds; nonlinear operators",
+            " Spaces and manifolds of mappings (including nonlinear versions of 46Exx)",
+            " Variational problems in infinite-dimensional spaces",
+            " Pseudogroups, differentiable groupoids and general structures on manifolds",
+            " Partial differential equations on manifolds; differential operators",
+            " Theory of singularities and catastrophe theory",
+            " Applications to physics"
+        ],
+        "prompt": "### Global analysis, analysis on manifolds\n* Code: 58\n* Description: General theory of differentiable manifolds; Infinite-dimensional manifolds; Calculus on manifolds; nonlinear operators; Spaces and manifolds of mappings (including nonlinear versions of 46Exx); Variational problems in infinite-dimensional spaces; Pseudogroups, differentiable groupoids and general structures on manifolds; Partial differential equations on manifolds; differential operators; Theory of singularities and catastrophe theory; Applications to physics"
+    },
+    {
+        "code": "60",
+        "title": "Probability theory and stochastic processes",
+        "descriptions": [
+            " Foundations of probability theory",
+            " Probability theory on algebraic and topological structures",
+            " Combinatorial probability",
+            " Geometric probability and stochastic geometry",
+            " Distribution theory",
+            " Limit theorems",
+            " Stochastic processes",
+            " Stochastic analysis",
+            " Markov processes",
+            " Special processes"
+        ],
+        "prompt": "### Probability theory and stochastic processes\n* Code: 60\n* Description: Foundations of probability theory; Probability theory on algebraic and topological structures; Combinatorial probability; Geometric probability and stochastic geometry; Distribution theory; Limit theorems; Stochastic processes; Stochastic analysis; Markov processes; Special processes"
+    },
+    {
+        "code": "62",
+        "title": "Statistics",
+        "descriptions": [
+            " Foundational and philosophical topics",
+            " Sufficiency and information",
+            " Decision theory",
+            " Sampling theory, sample surveys",
+            " Distribution theory",
+            " Parametric inference",
+            " Nonparametric inference",
+            " Multivariate analysis",
+            " Linear inference, regression",
+            " Design of experiments",
+            " Sequential methods",
+            " Inference from stochastic processes",
+            " Survival analysis and censored data",
+            " Applications",
+            " Statistical tables"
+        ],
+        "prompt": "### Statistics\n* Code: 62\n* Description: Foundational and philosophical topics; Sufficiency and information; Decision theory; Sampling theory, sample surveys; Distribution theory; Parametric inference; Nonparametric inference; Multivariate analysis; Linear inference, regression; Design of experiments; Sequential methods; Inference from stochastic processes; Survival analysis and censored data; Applications; Statistical tables"
+    },
+    {
+        "code": "65",
+        "title": "Numerical analysis",
+        "descriptions": [
+            " Tables",
+            " Acceleration of convergence",
+            " Probabilistic methods, simulation and stochastic differential equations",
+            " Numerical approximation and computational geometry (primarily algorithms)",
+            " Numerical methods in complex analysis (potential theory, etc.)",
+            " Numerical linear algebra",
+            " Error analysis and interval analysis",
+            " Nonlinear algebraic or transcendental equations",
+            " Numerical analysis in abstract spaces",
+            " Mathematical programming, optimization and variational techniques",
+            " Ordinary differential equations",
+            " Partial differential equations, initial value and time-dependent initial-boundary value problems",
+            " Partial differential equations, boundary value problems",
+            " Numerical problems in dynamical systems",
+            " Difference and functional equations, recurrence relations",
+            " Integral equations, integral transforms",
+            " Graphical methods",
+            " Numerical methods in Fourier analysis",
+            " Computer aspects of numerical algorithms",
+            " Applications to physics"
+        ],
+        "prompt": "### Numerical analysis\n* Code: 65\n* Description: Tables; Acceleration of convergence; Probabilistic methods, simulation and stochastic differential equations; Numerical approximation and computational geometry (primarily algorithms); Numerical methods in complex analysis (potential theory, etc.); Numerical linear algebra; Error analysis and interval analysis; Nonlinear algebraic or transcendental equations; Numerical analysis in abstract spaces; Mathematical programming, optimization and variational techniques; Ordinary differential equations; Partial differential equations, initial value and time-dependent initial-boundary value problems; Partial differential equations, boundary value problems; Numerical problems in dynamical systems; Difference and functional equations, recurrence relations; Integral equations, integral transforms; Graphical methods; Numerical methods in Fourier analysis; Computer aspects of numerical algorithms; Applications to physics"
+    },
+    {
+        "code": "68",
+        "title": "Computer science",
+        "descriptions": [
+            " Computer system organization",
+            " Software",
+            " Theory of data",
+            " Theory of computing",
+            " Discrete mathematics in relation to computer science",
+            " Artificial intelligence",
+            " Computing methodologies and applications",
+            " Algorithms"
+        ],
+        "prompt": "### Computer science\n* Code: 68\n* Description: Computer system organization; Software; Theory of data; Theory of computing; Discrete mathematics in relation to computer science; Artificial intelligence; Computing methodologies and applications; Algorithms"
+    },
+    {
+        "code": "70",
+        "title": "Mechanics of particles and systems",
+        "descriptions": [
+            " Axiomatics, foundations",
+            " Kinematics",
+            " Statics",
+            " Dynamics of a rigid body and of multibody systems",
+            " Dynamics of a system of particles, including celestial mechanics",
+            " General models, approaches, and methods",
+            " Hamiltonian and Lagrangian mechanics",
+            " Linear vibration theory",
+            " Nonlinear dynamics",
+            " Random vibrations",
+            " Orbital mechanics",
+            " Variable mass, rockets",
+            " Control of mechanical systems",
+            " Classical field theories"
+        ],
+        "prompt": "### Mechanics of particles and systems\n* Code: 70\n* Description: Axiomatics, foundations; Kinematics; Statics; Dynamics of a rigid body and of multibody systems; Dynamics of a system of particles, including celestial mechanics; General models, approaches, and methods; Hamiltonian and Lagrangian mechanics; Linear vibration theory; Nonlinear dynamics; Random vibrations; Orbital mechanics; Variable mass, rockets; Control of mechanical systems; Classical field theories"
+    },
+    {
+        "code": "74",
+        "title": "Mechanics of deformable solids",
+        "descriptions": [
+            " Generalities, axiomatics, foundations of continuum mechanics of solids",
+            " Elastic materials",
+            " Plastic materials, materials of stress-rate and internal-variable type",
+            " Materials of strain-rate type and history type, other materials with memory (including elastic materials with viscous damping, various viscoelastic materials)",
+            " Material properties given special treatment",
+            " Coupling of solid mechanics with other effects",
+            " Equilibrium (steady-state) problems",
+            " Dynamical problems",
+            " Waves",
+            " Thin bodies, structures",
+            " Special subfields of solid mechanics",
+            " Special kinds of problems",
+            " Phase transformations in solids",
+            " Optimization",
+            " Homogenization, determination of effective properties",
+            " Fracture and damage",
+            " Numerical methods"
+        ],
+        "prompt": "### Mechanics of deformable solids\n* Code: 74\n* Description: Generalities, axiomatics, foundations of continuum mechanics of solids; Elastic materials; Plastic materials, materials of stress-rate and internal-variable type; Materials of strain-rate type and history type, other materials with memory (including elastic materials with viscous damping, various viscoelastic materials); Material properties given special treatment; Coupling of solid mechanics with other effects; Equilibrium (steady-state) problems; Dynamical problems; Waves; Thin bodies, structures; Special subfields of solid mechanics; Special kinds of problems; Phase transformations in solids; Optimization; Homogenization, determination of effective properties; Fracture and damage; Numerical methods"
+    },
+    {
+        "code": "76",
+        "title": "Fluid mechanics",
+        "descriptions": [
+            " Foundations, constitutive equations, rheology",
+            " Incompressible inviscid fluids",
+            " Incompressible viscous fluids",
+            " Hydrodynamic stability",
+            " Turbulence",
+            " General aerodynamics and subsonic flows",
+            " Transonic flows",
+            " Supersonic flows",
+            " Hypersonic flows",
+            " Shock waves and blast waves",
+            " Basic methods in fluid mechanics",
+            " Compressible fluids and gas dynamics, general",
+            " Rarefied gas flows, Boltzmann equation",
+            " Hydro- and aero-acoustics",
+            " Diffusion and convection",
+            " Flows in porous media; filtration; seepage",
+            " Two-phase and multiphase flows",
+            " Rotating fluids",
+            " Reaction effects in flows",
+            " Magnetohydrodynamics and electrohydrodynamics",
+            " Ionized gas flow in electromagnetic fields; plasmic flow",
+            " Quantum hydrodynamics and relativistic hydrodynamics",
+            " Biological fluid mechanics"
+        ],
+        "prompt": "### Fluid mechanics\n* Code: 76\n* Description: Foundations, constitutive equations, rheology; Incompressible inviscid fluids; Incompressible viscous fluids; Hydrodynamic stability; Turbulence; General aerodynamics and subsonic flows; Transonic flows; Supersonic flows; Hypersonic flows; Shock waves and blast waves; Basic methods in fluid mechanics; Compressible fluids and gas dynamics, general; Rarefied gas flows, Boltzmann equation; Hydro- and aero-acoustics; Diffusion and convection; Flows in porous media; filtration; seepage; Two-phase and multiphase flows; Rotating fluids; Reaction effects in flows; Magnetohydrodynamics and electrohydrodynamics; Ionized gas flow in electromagnetic fields; plasmic flow; Quantum hydrodynamics and relativistic hydrodynamics; Biological fluid mechanics"
+    },
+    {
+        "code": "78",
+        "title": "Optics, electromagnetic theory",
+        "descriptions": [
+            " General",
+            " Basic methods"
+        ],
+        "prompt": "### Optics, electromagnetic theory\n* Code: 78\n* Description: General; Basic methods"
+    },
+    {
+        "code": "80",
+        "title": "Classical thermodynamics, heat transfer",
+        "descriptions": [
+            " Thermodynamics and heat transfer",
+            " Basic methods"
+        ],
+        "prompt": "### Classical thermodynamics, heat transfer\n* Code: 80\n* Description: Thermodynamics and heat transfer; Basic methods"
+    },
+    {
+        "code": "81",
+        "title": "Quantum theory",
+        "descriptions": [
+            " Axiomatics, foundations, philosophy",
+            " General mathematical topics and methods in quantum theory",
+            " Groups and algebras in quantum theory",
+            " General quantum mechanics and problems of quantization",
+            " Quantum field theory; related classical field theories",
+            " Scattering theory",
+            " Applications to specific physical systems"
+        ],
+        "prompt": "### Quantum theory\n* Code: 81\n* Description: Axiomatics, foundations, philosophy; General mathematical topics and methods in quantum theory; Groups and algebras in quantum theory; General quantum mechanics and problems of quantization; Quantum field theory; related classical field theories; Scattering theory; Applications to specific physical systems"
+    },
+    {
+        "code": "82",
+        "title": "Statistical mechanics, structure of matter",
+        "descriptions": [
+            " Equilibrium statistical mechanics",
+            " Time-dependent statistical mechanics (dynamic and nonequilibrium)",
+            " Applications to specific types of physical systems"
+        ],
+        "prompt": "### Statistical mechanics, structure of matter\n* Code: 82\n* Description: Equilibrium statistical mechanics; Time-dependent statistical mechanics (dynamic and nonequilibrium); Applications to specific types of physical systems"
+    },
+    {
+        "code": "83",
+        "title": "Relativity and gravitational theory",
+        "descriptions": [
+            " Special relativity",
+            " Observational and experimental questions",
+            " General relativity",
+            " Relativistic gravitational theories other than Einstein's, including asymmetric field theories",
+            " Unified, higher-dimensional and super field theories",
+            " Cosmology"
+        ],
+        "prompt": "### Relativity and gravitational theory\n* Code: 83\n* Description: Special relativity; Observational and experimental questions; General relativity; Relativistic gravitational theories other than Einstein's, including asymmetric field theories; Unified, higher-dimensional and super field theories; Cosmology"
+    },
+    {
+        "code": "85",
+        "title": "Astronomy and astrophysics",
+        "descriptions": [
+            " Astronomy and astrophysics"
+        ],
+        "prompt": "### Astronomy and astrophysics\n* Code: 85\n* Description: Astronomy and astrophysics"
+    },
+    {
+        "code": "86",
+        "title": "Geophysics",
+        "descriptions": [
+            " Geophysics"
+        ],
+        "prompt": "### Geophysics\n* Code: 86\n* Description: Geophysics"
+    },
+    {
+        "code": "90",
+        "title": "Operations research, mathematical programming",
+        "descriptions": [
+            " Operations research and management science",
+            " Mathematical programming"
+        ],
+        "prompt": "### Operations research, mathematical programming\n* Code: 90\n* Description: Operations research and management science; Mathematical programming"
+    },
+    {
+        "code": "91",
+        "title": "Game theory, economics, social and behavioral sciences",
+        "descriptions": [
+            " Game theory",
+            " Mathematical economics",
+            " Social and behavioral sciences",
+            " Mathematical sociology (including anthropology)",
+            " Mathematical psychology",
+            " Other social and behavioral sciences (mathematical treatment)",
+            " Mathematical finance"
+        ],
+        "prompt": "### Game theory, economics, social and behavioral sciences\n* Code: 91\n* Description: Game theory; Mathematical economics; Social and behavioral sciences; Mathematical sociology (including anthropology); Mathematical psychology; Other social and behavioral sciences (mathematical treatment); Mathematical finance"
+    },
+    {
+        "code": "92",
+        "title": "Biology and other natural sciences",
+        "descriptions": [
+            " Mathematical biology in general",
+            " Physiological, cellular and medical topics",
+            " Genetics and population dynamics",
+            " Chemistry",
+            " Other natural sciences (should also be assigned at least one other classification number in this section)"
+        ],
+        "prompt": "### Biology and other natural sciences\n* Code: 92\n* Description: Mathematical biology in general; Physiological, cellular and medical topics; Genetics and population dynamics; Chemistry; Other natural sciences (should also be assigned at least one other classification number in this section)"
+    },
+    {
+        "code": "93",
+        "title": "Systems theory; control",
+        "descriptions": [
+            " General",
+            " Controllability, observability, and system structure",
+            " Control systems",
+            " Stability",
+            " Stochastic systems and control"
+        ],
+        "prompt": "### Systems theory; control\n* Code: 93\n* Description: General; Controllability, observability, and system structure; Control systems; Stability; Stochastic systems and control"
+    },
+    {
+        "code": "94",
+        "title": "Information and communication, circuits",
+        "descriptions": [
+            " Communication, information",
+            " Theory of error-correcting codes and error-detecting codes",
+            " Circuits, networks",
+            " Fuzzy sets and logic (in connection with questions of Section 94)"
+        ],
+        "prompt": "### Information and communication, circuits\n* Code: 94\n* Description: Communication, information; Theory of error-correcting codes and error-detecting codes; Circuits, networks; Fuzzy sets and logic (in connection with questions of Section 94)"
+    },
+    {
+        "code": "97",
+        "title": "Mathematics education",
+        "descriptions": [
+            " General, mathematics and education",
+            " Educational policy and systems",
+            " Psychology of mathematics education, research in mathematics education",
+            " Education and instruction in mathematics",
+            " Foundations of mathematics",
+            " Arithmetic, number theory",
+            " Geometry",
+            " Algebra",
+            " Analysis",
+            " Combinatorics, graph theory, probability theory, statistics",
+            " Mathematical modeling, applications of mathematics",
+            " Numerical mathematics",
+            " Computer science",
+            " Computer science education",
+            " Computer science applications",
+            " Educational material and media, educational technology"
+        ],
+        "prompt": "### Mathematics education\n* Code: 97\n* Description: General, mathematics and education; Educational policy and systems; Psychology of mathematics education, research in mathematics education; Education and instruction in mathematics; Foundations of mathematics; Arithmetic, number theory; Geometry; Algebra; Analysis; Combinatorics, graph theory, probability theory, statistics; Mathematical modeling, applications of mathematics; Numerical mathematics; Computer science; Computer science education; Computer science applications; Educational material and media, educational technology"
+    }
+]
