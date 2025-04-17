@@ -37,7 +37,7 @@ def train():
         kwargs = {"device_map": "auto", "torch_dtype": "auto",
                   "attn_implementation": "flash_attention_2", "use_cache": False}
     else:
-        kwargs = {"use_cache": False, "attn_implementation": "flash_attention_2"}
+        kwargs = {"use_cache": False}
 
     model = transformers.AutoModelForCausalLM.from_pretrained(config.model_name, **kwargs)
 
