@@ -1,0 +1,81 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+abstract: "Minimal recipe for test-time scaling and strong reasoning performance matching o1-preview with just 1,000 examples & budget forcing"
+repository-code: "https://github.com/simplescaling/s1"
+authors:
+  - family-names: "Muennighoff"
+    given-names: "Niklas"
+  - family-names: "Yang"
+    given-names: "Zitong"
+  - family-names: "Shi"
+    given-names: "Weijia"
+  - family-names: "Li"
+    given-names: "Xiang Lisa"
+  - family-names: "Fei-Fei"
+    given-names: "Li"
+  - family-names: "Hajishirzi"
+    given-names: "Hannaneh"
+  - family-names: "Zettlemoyer"
+    given-names: "Luke"
+  - family-names: "Liang"
+    given-names: "Percy"
+  - family-names: "Candès"
+    given-names: "Emmanuel"
+  - family-names: "Hashimoto"
+    given-names: "Tatsunori"
+title: "s1: Simple test-time scaling"
+type: software
+keywords:
+  - "test-time scaling"
+  - "language models"
+  - "reasoning"
+  - "budget forcing"
+references:
+  - type: software
+    title: "s1-32B"
+    url: "https://hf.co/simplescaling/s1-32B"
+  - type: dataset
+    title: "s1K"
+    url: "https://hf.co/datasets/simplescaling/s1K"
+  - type: dataset
+    title: "s1-prob"
+    url: "https://hf.co/datasets/simplescaling/s1-prob"
+  - type: dataset
+    title: "s1-teasers"
+    url: "https://hf.co/datasets/simplescaling/s1-teasers"
+  - type: dataset
+    title: "data_ablation_full59K"
+    url: "https://hf.co/datasets/simplescaling/data_ablation_full59K"
+date-released: "2025"
+url: "https://arxiv.org/abs/2501.19393"
+identifiers:
+  - type: arxiv
+    value: 2501.19393
+    description: The ArXiv preprint
+preferred-citation:
+  type: misc
+  authors:
+    - family-names: "Muennighoff"
+      given-names: "Niklas"
+    - family-names: "Yang"
+      given-names: "Zitong"
+    - family-names: "Shi"
+      given-names: "Weijia"
+    - family-names: "Li"
+      given-names: "Xiang Lisa"
+    - family-names: "Fei-Fei"
+      given-names: "Li"
+    - family-names: "Hajishirzi"
+      given-names: "Hannaneh"
+    - family-names: "Zettlemoyer"
+      given-names: "Luke"
+    - family-names: "Liang"
+      given-names: "Percy"
+    - family-names: "Candès"
+      given-names: "Emmanuel"
+    - family-names: "Hashimoto"
+      given-names: "Tatsunori"
+  title: "s1: Simple test-time scaling"
+  year: 2025
+  url: "https://arxiv.org/abs/2501.19393"
+  arxiv: "2501.19393"
