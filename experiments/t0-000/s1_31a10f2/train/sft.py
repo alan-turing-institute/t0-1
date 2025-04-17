@@ -5,7 +5,7 @@ import warnings
 warnings.filterwarnings("ignore", category=FutureWarning)
 import logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-from datasets import load_dataset, concatenate_datasets, DatasetDict
+from datasets import load_dataset, load_from_disk
 import transformers
 import trl
 
@@ -36,11 +36,17 @@ def train():
         # it's more efficient to do  "cpu_ram_efficient_loading": true, in fsdp_config.json
         kwargs = {"device_map": "auto", "torch_dtype": "auto",
                   "attn_implementation": "flash_attention_2", "use_cache": False}
-        model = transformers.AutoModelForCausalLM.from_pretrained(config.model_name, **kwargs)
     else:
-        model = transformers.AutoModelForCausalLM.from_pretrained(config.model_name)
+        kwargs = {"use_cache": False, "attn_implementation": "flash_attention_2"}
 
-    dataset = load_dataset(config.train_file_path)
+    model = transformers.AutoModelForCausalLM.from_pretrained(config.model_name, **kwargs)
+
+    try:
+        dataset = load_dataset(config.train_file_path)
+    except Exception as e:
+        logging.error(f"Error loading dataset: {e}")
+        logging.info("Attempting to load dataset from disk...")
+        dataset = load_from_disk(config.train_file_path)
 
     # setting up trainer
     tokenizer = transformers.AutoTokenizer.from_pretrained(config.model_name, use_fast=True)
