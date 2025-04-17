@@ -20,6 +20,7 @@ tok = AutoTokenizer.from_pretrained(model_name)
 logging.info(f"Tokenizer loaded")
 
 stop_token_ids = tok("<|im_end|>")["input_ids"]
+logging.info(f"stop_token_ids: {stop_token_ids}")
 
 sampling_params = SamplingParams(
     max_tokens=32768,
