@@ -253,6 +253,7 @@ def main(
     prompt_template_path: str | None = None,
     system_prompt_path: str | None = None,
     deepseek_r1: bool = False,
+    extra_body: dict | str | None = None,
 ):
     rag = build_rag(
         conditions_file=conditions_file,
@@ -264,6 +265,7 @@ def main(
         tools=[submit_condition_recommendation],
         prompt_template_path=prompt_template_path,
         system_prompt_path=system_prompt_path,
+        extra_body=extra_body,
     )
 
     evaluate_rag(
