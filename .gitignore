@@ -198,3 +198,7 @@ experiments/t0-001/data/evaluation_results_*
 experiments/t0-001/scripts/gpt-4o_*
 *nhs_use_case_db_notebook
 experiments/t0-001/data/nhs-conditions*
+# persistent data
+lfs/
+db/
+eval_outputs/
