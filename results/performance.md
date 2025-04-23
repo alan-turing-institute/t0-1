@@ -45,7 +45,12 @@ condition is constrained to be one of the $k$ retrieved documents.
 
 ### Conclusion
 
-Chroma and FAISS perform very similarly on the large eval set, and Chroma is just slightly faster, so we'll use this as retrieval system for the rest of the evaluation. From now on, we'll consider two *k*, 10 and 50, as they provide an overview of performance when retrieving documents where at least one is relevant in respectivelly 70% and 86% of the queries.
+Chroma and FAISS perform very similarly on the large eval set, and
+Chroma is just slightly faster, so we'll use this as retrieval system
+for the rest of the evaluation. From now on, we'll consider two *k*,
+10 and 50, as they provide an overview of performance when retrieving
+documents where at least one is relevant in respectivelly 70% and 86%
+of the queries.
 
 ## 2. Baseline models (RAG)
 
@@ -74,19 +79,18 @@ NB. Qwen is Qwen2.5 Instruct.
 ### 2.b Large evaluation set (cross-check with 2a)
 
 
-| LLM        | $k$ | Condition Accuracy | Severity Accuracy |
-|------------|----:|-------------------:|------------------:|
-| Qwen (32B) |  10 |                  x |                 x |
-|            |  50 |                  x |                 x |
+| LLM         | $k$ | Condition Accuracy | Severity Accuracy |
+|-------------|----:|-------------------:|------------------:|
+| DeepSeek-r1 |  10 |               0.42 |              0.43 |
+|             |  30 |               0.44 |              0.42 |
+| o3-mini     |  10 |               0.47 |              0.42 |
+|             |  30 |               0.48 |              0.46 |
+| Qwen (1.5B) |  10 |               0.26 |              0.08 |
+|             |  30 |               0.16 |              0.05 |
+| Qwen (32B)  |  10 |               0.42 |              0.41 |
+|             |  50 |               0.45 |              0.40 |
 
-### 2.c Large evaluation set (as time allows)
-
-| LLM                    | $k$ | Condition Accuracy | Severity Accuracy |
-|------------------------|----:|-------------------:|------------------:|
-| o3-mini or DeepSeek-r1 |  10 |                  x |                 x |
-|                        |  50 |                  x |                 x |
-| Qwen (1.5B)            |  10 |                  x |                 x |
-|                        |  50 |                  x |                 x |
+### 2.c (Omitted)
 
 ### 2.d Large evaluation set (not essential)
 
