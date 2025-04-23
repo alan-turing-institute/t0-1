@@ -31,6 +31,7 @@ DEFAULT_RETRIEVER_CONFIG = RetrieverConfig(
     embedding_model_name="sentence-transformers/all-mpnet-base-v2",
     chunk_overlap=50,
     db_choice="chroma",
+    distance_metric="l2",
     persist_directory=None,
     local_file_store=None,
     search_type="similarity",

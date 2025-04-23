@@ -20,6 +20,7 @@ class VectorStoreConfig:
     embedding_model_name: str
     chunk_overlap: int
     db_choice: str
+    distance_metric: str
     persist_directory: str | Path | None
 
 
@@ -27,6 +28,7 @@ DEFAULT_VECTOR_STORE_CONFIG = VectorStoreConfig(
     embedding_model_name="sentence-transformers/all-mpnet-base-v2",
     chunk_overlap=50,
     db_choice="chroma",
+    distance_metric="l2",
     persist_directory=None,
 )
 
@@ -294,15 +296,19 @@ class VectorStoreCreator:
             from langchain_chroma import Chroma
 
             logging.info("Creating Chroma database...")
+            logging.info(
+                f"Creating Chroma database with distance metric: {config.distance_metric}"
+            )
             if config.persist_directory is not None:
                 logging.info(
                     f"Persisting Chroma database to '{config.persist_directory}'"
                 )
 
             self.db: VectorStore = Chroma.from_documents(
-                self.documents,
-                self.embedding_model,
+                documents=self.documents,
+                embedding=self.embedding_model,
                 persist_directory=config.persist_directory,
+                collection_metadata={"hnsw:space": config.distance_metric},
             )
         elif self.db_choice == "faiss":
             from langchain_community.vectorstores import FAISS
@@ -356,15 +362,21 @@ class VectorStoreCreator:
         if self.db_choice == "chroma":
             from langchain_chroma import Chroma
 
-            logging.info(f"Loading Chroma database from '{config.persist_directory}'")
+            logging.info(
+                f"Loading Chroma database from '{config.persist_directory}'..."
+            )
+            logging.info(
+                f"Loading Chroma database with distance metric: {config.distance_metric}"
+            )
             self.db = Chroma(
                 embedding_function=self.embedding_model,
                 persist_directory=config.persist_directory,
+                collection_metadata={"hnsw:space": config.distance_metric},
             )
         elif self.db_choice == "faiss":
             from langchain_community.vectorstores import FAISS
 
-            logging.info(f"Loading FAISS database from '{config.persist_directory}'")
+            logging.info(f"Loading FAISS database from '{config.persist_directory}'...")
             self.db = FAISS.load_local(
                 folder_path=config.persist_directory,
                 embeddings=self.embedding_model,
