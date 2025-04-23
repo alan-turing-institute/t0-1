@@ -14,6 +14,7 @@ HELP_TEXT = {
     "embedding_model_name": "Name of the embedding model.",
     "chunk_overlap": "Chunk overlap for the text splitter.",
     "db_choice": "Database choice.",
+    "distance_metric": "Distance metric for the vector store.",
     "persist_directory": "Path to the directory where the database is (or will be) stored.",
     "local_file_store": "Path to the directory where the local file store (or will be) stored.",
     "search_type": "Type of search to perform for retriever.",
@@ -60,6 +61,9 @@ def serve_vector_store(
     db_choice: Annotated[
         DBChoice, typer.Option(help=HELP_TEXT["db_choice"])
     ] = DEFAULTS["db_choice"],
+    distance_metric: Annotated[
+        str, typer.Option(help=HELP_TEXT["distance_metric"])
+    ] = DEFAULTS["distance_metric"],
     persist_directory: Annotated[
         str | None,
         typer.Option(help=HELP_TEXT["persist_directory"]),
@@ -94,6 +98,7 @@ def serve_vector_store(
             embedding_model_name=embedding_model_name,
             chunk_overlap=chunk_overlap,
             db_choice=db_choice,
+            distance_metric=distance_metric,
             persist_directory=persist_directory,
         ),
         force_create=force_create,
@@ -160,6 +165,9 @@ def evaluate_vector_store(
     db_choice: Annotated[
         DBChoice, typer.Option(help=HELP_TEXT["db_choice"])
     ] = DEFAULTS["db_choice"],
+    distance_metric: Annotated[
+        str, typer.Option(help=HELP_TEXT["distance_metric"])
+    ] = DEFAULTS["distance_metric"],
     persist_directory: Annotated[
         str | None,
         typer.Option(help=HELP_TEXT["persist_directory"]),
@@ -195,6 +203,7 @@ def evaluate_vector_store(
             embedding_model_name=embedding_model_name,
             chunk_overlap=chunk_overlap,
             db_choice=db_choice,
+            distance_metric=distance_metric,
             persist_directory=persist_directory,
         ),
         force_create=force_create,
@@ -218,6 +227,9 @@ def serve_retriever(
     db_choice: Annotated[
         DBChoice, typer.Option(help=HELP_TEXT["db_choice"])
     ] = DEFAULTS["db_choice"],
+    distance_metric: Annotated[
+        str, typer.Option(help=HELP_TEXT["distance_metric"])
+    ] = DEFAULTS["distance_metric"],
     persist_directory: Annotated[
         str | None,
         typer.Option(help=HELP_TEXT["persist_directory"]),
@@ -260,6 +272,7 @@ def serve_retriever(
             embedding_model_name=embedding_model_name,
             chunk_overlap=chunk_overlap,
             db_choice=db_choice,
+            distance_metric=distance_metric,
             persist_directory=persist_directory,
             local_file_store=local_file_store,
             search_type=search_type,
@@ -311,6 +324,9 @@ def serve_rag(
     db_choice: Annotated[
         DBChoice, typer.Option(help=HELP_TEXT["db_choice"])
     ] = DEFAULTS["db_choice"],
+    distance_metric: Annotated[
+        str, typer.Option(help=HELP_TEXT["distance_metric"])
+    ] = DEFAULTS["distance_metric"],
     persist_directory: Annotated[
         str | None,
         typer.Option(help=HELP_TEXT["persist_directory"]),
@@ -368,6 +384,7 @@ def serve_rag(
             embedding_model_name=embedding_model_name,
             chunk_overlap=chunk_overlap,
             db_choice=db_choice,
+            distance_metric=distance_metric,
             persist_directory=persist_directory,
             local_file_store=local_file_store,
             search_type=search_type,
@@ -437,6 +454,9 @@ def evaluate_rag(
     db_choice: Annotated[
         DBChoice, typer.Option(help=HELP_TEXT["db_choice"])
     ] = DEFAULTS["db_choice"],
+    distance_metric: Annotated[
+        str, typer.Option(help=HELP_TEXT["distance_metric"])
+    ] = DEFAULTS["distance_metric"],
     persist_directory: Annotated[
         str | None,
         typer.Option(help=HELP_TEXT["persist_directory"]),
@@ -505,6 +525,7 @@ def evaluate_rag(
             embedding_model_name=embedding_model_name,
             chunk_overlap=chunk_overlap,
             db_choice=db_choice,
+            distance_metric=distance_metric,
             persist_directory=persist_directory,
             local_file_store=local_file_store,
             search_type=search_type,
@@ -577,6 +598,9 @@ def rag_chat(
     db_choice: Annotated[
         DBChoice, typer.Option(help=HELP_TEXT["db_choice"])
     ] = DEFAULTS["db_choice"],
+    distance_metric: Annotated[
+        str, typer.Option(help=HELP_TEXT["distance_metric"])
+    ] = DEFAULTS["distance_metric"],
     persist_directory: Annotated[
         str | None,
         typer.Option(help=HELP_TEXT["persist_directory"]),
@@ -632,6 +656,7 @@ def rag_chat(
             embedding_model_name=embedding_model_name,
             chunk_overlap=chunk_overlap,
             db_choice=db_choice,
+            distance_metric=distance_metric,
             persist_directory=persist_directory,
             local_file_store=local_file_store,
             search_type=search_type,
