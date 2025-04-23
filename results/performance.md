@@ -40,8 +40,8 @@ condition is constrained to be one of the $k$ retrieved documents.
 | mpnet-base-v2 / Chroma       | Small    | 0.47 | 0.56 | 0.68 | 0.69 |    - |     - |
 | mpnet-base-v2 / FAISS        | Small    | 0.47 | 0.68 | 0.71 | 0.78 |    - |     - |
 | mxbai-embed-large-v1 / FAISS | Small    | 0.51 | 0.68 | 0.71 | 0.76 |    - |     - |
-| mpnet-base-v2 / Chroma       | Large    | 0.44 | 0.63 | 0.70 | 0.77 | 0.86 |  0.90 |
-| mpnet-base-v2 / FAISS        | Large    | 0.44 | 0.63 | 0.70 | 0.77 | 0.86 |  0.90 |
+| mpnet-base-v2 / Chroma       | Large    | 0.41 | 0.61 | 0.69 | 0.78 | 0.87 |  0.91 |
+| mpnet-base-v2 / FAISS        | Large    | 0.40 | 0.61 | 0.69 | 0.78 | 0.87 |  0.91 |
 
 ### Conclusion
 
@@ -107,6 +107,7 @@ large evaluation set.
 | LLM         | Condition Accuracy | Severity Accuracy |
 |-------------|-------------------:|------------------:|
 | GPT-4o      |               0.41 |              0.46 |
+| 03-mini     |               0.17 |              0.44 |
 | DeepSeek-r1 |                  x |                 x |
 | Qwen-32B    |                  x |                 x |
 

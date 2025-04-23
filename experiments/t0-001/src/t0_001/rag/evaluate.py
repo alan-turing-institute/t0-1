@@ -193,7 +193,7 @@ def evaluate_rag(
                     doc.page_content for doc in response["context"]
                 ],
                 "retrieved_documents_scores": [
-                    float(doc.metadata["sub_docs"][-1].metadata["score"])
+                    float(doc.metadata["sub_docs"][0].metadata["score"])
                     for doc in response["context"]
                 ],
                 "retrieved_documents_sources": [
@@ -219,7 +219,7 @@ def evaluate_rag(
                 "target_document_field": target_document_field,
                 "retrieved_documents": [doc.page_content for doc in retrieved_docs],
                 "retrieved_documents_scores": [
-                    float(doc.metadata["sub_docs"][-1].metadata["score"])
+                    float(doc.metadata["sub_docs"][0].metadata["score"])
                     for doc in retrieved_docs
                 ],
                 "retrieved_documents_sources": [
@@ -290,7 +290,7 @@ def main(
         trust_source=trust_source,
         llm_provider=llm_provider,
         llm_model_name=llm_model_name,
-        tools=[submit_condition_recommendation],
+        tools=[submit_condition_recommendation] if not deepseek_r1 else [],
         prompt_template_path=prompt_template_path,
         system_prompt_path=system_prompt_path,
     )
