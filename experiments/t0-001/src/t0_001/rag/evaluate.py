@@ -72,6 +72,41 @@ def parse_deepseek_r1(string: str) -> tuple[str]:
         return "", ""
 
 
+def parse_t0(string: str) -> tuple[str]:
+    """
+    Responses from t0 should be in the format:
+    \nanswer\n(condition, severity).
+    The function extracts the condition and severity level from the string.
+    The condition and severity level are separated by a comma.
+
+    Parameters
+    ----------
+    string : str
+        The string to parse.
+
+    Returns
+    -------
+    tuple[str]
+        A tuple containing the condition and severity level.
+    """
+    import re
+
+    # split the string into two parts: before and after the reasoning
+    string_after_answer = string.split("\nanswer\n")[-1]
+
+    # extract the condition and severity level using regex
+    match = re.search(r"\(([^,]+), ([^)]+)\)", string_after_answer)
+    if match:
+        condition = match.group(1).strip()
+        severity_level = match.group(2).strip()
+        return condition, severity_level
+    else:
+        logging.warning(
+            f"Could not extract condition and severity level from string: {string}"
+        )
+        return "", ""
+
+
 def evaluate_rag(
     input_file: str | Path,
     output_file: str | Path,
@@ -80,6 +115,7 @@ def evaluate_rag(
     rag: RAG,
     generate_only: bool = False,
     deepseek_r1: bool = False,
+    t0: bool = False,
 ) -> list[dict]:
     """
     Evaluate the query store by comparing the query results with the target documents.
@@ -101,6 +137,9 @@ def evaluate_rag(
         By default False.
     deepseek_r1 : bool, optional
         If True, evaluating deepseek-R1 responses which requires parsing the response.
+        By default False.
+    t0 : bool, optional
+        If True, evaluating t0 responses which requires parsing the response.
         By default False.
 
     Returns
@@ -135,6 +174,22 @@ def evaluate_rag(
             if deepseek_r1:
                 # extract condition and severity level from the response
                 parsed_condition, parsed_severity_level = parse_deepseek_r1(
+                    response["answer"].content
+                )
+                prediction_condition = remove_dash_and_spaces(parsed_condition)
+                target_condition = remove_dash_and_spaces(target_document)
+                conditions_match = prediction_condition == target_condition
+                if conditions_match:
+                    conditions_sum += 1
+
+                severity_match = (
+                    parsed_severity_level.lower() == item["severity_level"].lower()
+                )
+                if severity_match:
+                    severity_sum += 1
+            elif t0:
+                # extract condition and severity level from the response
+                parsed_condition, parsed_severity_level = parse_t0(
                     response["answer"].content
                 )
                 prediction_condition = remove_dash_and_spaces(parsed_condition)
@@ -212,7 +267,7 @@ def evaluate_rag(
             )
             retriever_match_sum += res["retriever_match"]
 
-            if deepseek_r1:
+            if deepseek_r1 or t0:
                 res["parsed_conditions"] = parsed_condition
                 res["parsed_severity_level"] = parsed_severity_level
 
@@ -253,6 +308,7 @@ def main(
     prompt_template_path: str | None = None,
     system_prompt_path: str | None = None,
     deepseek_r1: bool = False,
+    t0: bool = False,
     extra_body: dict | str | None = None,
 ):
     rag = build_rag(
@@ -276,4 +332,5 @@ def main(
         rag=rag,
         generate_only=generate_only,
         deepseek_r1=deepseek_r1,
+        t0=t0,
     )
