@@ -29,7 +29,7 @@ def clean_bullet_points(text):
     Cleans up bullet points in the text by ensuring they are formatted correctly.
     """
     pattern = r"-\s*\[]\s*\n\s*(\S.+)"
-    replacement = r"- [] \1"
+    replacement = r"- \1"
 
     return re.sub(pattern, replacement, text)
 
