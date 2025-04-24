@@ -1,4 +1,4 @@
-Use the following pieces of retrieved context:
+Use the following pieces of retrieved context and similarity scores (lower scores means higher similarity to the patient's query):
 {context}
 
 A patient has given the following description of their symptoms:
