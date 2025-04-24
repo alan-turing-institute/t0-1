@@ -1,3 +1,4 @@
+import asyncio
 import json
 import logging
 from pathlib import Path
@@ -72,7 +73,7 @@ def parse_deepseek_r1(string: str) -> tuple[str]:
         return "", ""
 
 
-def evaluate_rag(
+async def evaluate_rag(
     input_file: str | Path,
     output_file: str | Path,
     query_field: str,
@@ -127,7 +128,7 @@ def evaluate_rag(
         target_document = item[target_document_field]
 
         # obtain the top k documents from the vector store
-        response = rag._query(
+        response = await rag._query(
             question=query, demographics=str(item["general_demographics"])
         )
 
@@ -189,7 +190,11 @@ def evaluate_rag(
             "target_document_field": target_document_field,
             "retrieved_documents": [doc.page_content for doc in response["context"]],
             "retrieved_documents_scores": [
-                float(doc.metadata["sub_docs"][-1].metadata["score"])
+                float(
+                    doc.metadata["sub_docs"][-1].metadata["score"]
+                    if "sub_docs" in doc.metadata
+                    else 0
+                )
                 for doc in response["context"]
             ],
             "retrieved_documents_sources": [
@@ -268,12 +273,14 @@ def main(
         extra_body=extra_body,
     )
 
-    evaluate_rag(
-        input_file=input_file,
-        output_file=output_file,
-        query_field=query_field,
-        target_document_field=target_document_field,
-        rag=rag,
-        generate_only=generate_only,
-        deepseek_r1=deepseek_r1,
+    asyncio.run(
+        evaluate_rag(
+            input_file=input_file,
+            output_file=output_file,
+            query_field=query_field,
+            target_document_field=target_document_field,
+            rag=rag,
+            generate_only=generate_only,
+            deepseek_r1=deepseek_r1,
+        )
     )
