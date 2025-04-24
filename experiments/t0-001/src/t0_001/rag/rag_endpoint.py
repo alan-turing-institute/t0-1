@@ -36,6 +36,7 @@ def main(
     system_prompt_path: str | None = None,
     host: str = "0.0.0.0",
     port: int = 8000,
+    extra_body: dict | str | None = None,
 ):
     rag = build_rag(
         conditions_file=conditions_file,
@@ -46,6 +47,7 @@ def main(
         llm_model_name=llm_model_name,
         prompt_template_path=prompt_template_path,
         system_prompt_path=system_prompt_path,
+        extra_body=extra_body,
     )
     app = create_rag_app(rag)
     uvicorn.run(app, host=host, port=port)

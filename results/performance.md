@@ -40,12 +40,17 @@ condition is constrained to be one of the $k$ retrieved documents.
 | mpnet-base-v2 / Chroma       | Small    | 0.47 | 0.56 | 0.68 | 0.69 |    - |     - |
 | mpnet-base-v2 / FAISS        | Small    | 0.47 | 0.68 | 0.71 | 0.78 |    - |     - |
 | mxbai-embed-large-v1 / FAISS | Small    | 0.51 | 0.68 | 0.71 | 0.76 |    - |     - |
-| mpnet-base-v2 / Chroma       | Large    | 0.44 | 0.63 | 0.70 | 0.77 | 0.86 |  0.90 |
-| mpnet-base-v2 / FAISS        | Large    | 0.44 | 0.63 | 0.70 | 0.77 | 0.86 |  0.90 |
+| mpnet-base-v2 / Chroma       | Large    | 0.41 | 0.61 | 0.69 | 0.78 | 0.87 |  0.91 |
+| mpnet-base-v2 / FAISS        | Large    | 0.40 | 0.61 | 0.69 | 0.78 | 0.87 |  0.91 |
 
 ### Conclusion
 
-Chroma and FAISS perform very similarly on the large eval set, and Chroma is just slightly faster, so we'll use this as retrieval system for the rest of the evaluation. From now on, we'll consider two *k*, 10 and 50, as they provide an overview of performance when retrieving documents where at least one is relevant in respectivelly 70% and 86% of the queries.
+Chroma and FAISS perform very similarly on the large eval set, and
+Chroma is just slightly faster, so we'll use this as retrieval system
+for the rest of the evaluation. From now on, we'll consider two *k*,
+10 and 50, as they provide an overview of performance when retrieving
+documents where at least one is relevant in respectivelly 70% and 86%
+of the queries.
 
 ## 2. Baseline models (RAG)
 
@@ -74,19 +79,20 @@ NB. Qwen is Qwen2.5 Instruct.
 ### 2.b Large evaluation set (cross-check with 2a)
 
 
-| LLM        | $k$ | Condition Accuracy | Severity Accuracy |
-|------------|----:|-------------------:|------------------:|
-| Qwen (32B) |  10 |                  x |                 x |
-|            |  50 |                  x |                 x |
+| $k$ | LLM            | Condition Accuracy | Severity Accuracy |
+|----:|----------------|-------------------:|------------------:|
+|  10 | DeepSeek-r1    |               0.42 |              0.43 |
+|     | o3-mini        |               0.47 |              0.42 |
+|     | Qwen (1.5B)    |               0.26 |              0.08 |
+|     | Qwen (32B)     |               0.42 |              0.41 |
+|  30 | DeepSeek-r1    |               0.44 |              0.42 |
+|     | o3-mini        |               0.48 |              0.46 |
+|     | Qwen (1.5B)    |               0.16 |              0.05 |
+|     | Qwen (7B) [p]  |               0.37 |              0.30 |
+|     | Qwen (14B) [p] |               0.29 |              0.35 |
+|     | Qwen (32B)     |               0.45 |              0.40 |
 
-### 2.c Large evaluation set (as time allows)
-
-| LLM                    | $k$ | Condition Accuracy | Severity Accuracy |
-|------------------------|----:|-------------------:|------------------:|
-| o3-mini or DeepSeek-r1 |  10 |                  x |                 x |
-|                        |  50 |                  x |                 x |
-| Qwen (1.5B)            |  10 |                  x |                 x |
-|                        |  50 |                  x |                 x |
+### 2.c (Omitted)
 
 ### 2.d Large evaluation set (not essential)
 
@@ -107,6 +113,7 @@ large evaluation set.
 | LLM         | Condition Accuracy | Severity Accuracy |
 |-------------|-------------------:|------------------:|
 | GPT-4o      |               0.41 |              0.46 |
+| 03-mini     |               0.17 |              0.44 |
 | DeepSeek-r1 |                  x |                 x |
 | Qwen-32B    |                  x |                 x |
 
