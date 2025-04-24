@@ -89,7 +89,7 @@ class RAG:
 
         return {"context": retrieved_docs}
 
-    def budget_forcing_invoke(self, messages) -> str:
+    def _budget_forcing_invoke(self, messages) -> str:
         from langchain_openai import OpenAI
 
         if not isinstance(self.llm, OpenAI):
@@ -114,30 +114,43 @@ class RAG:
             + [{"role": "assistant", "content": "<|im_start|>think\n"}],
             tokenize=False,
         )
+        if self.budget_forcing_kwargs["max_tokens_thinking"] <= 0:
+            # don't need to think, just generate the answer directly
+            prompt += "<|im_start|>answer\n"
+            response = self.llm.invoke(prompt)
+            return response
+
+        # otherwise we need to think and apply budget forcing
         prompt += "<|im_start|>think\n"
 
+        # stop if reach end of thinking ("<|im_stard|>") or end ("|<im_end|>"),
+        # or reached the max thinking tokens
         stop_token_ids = tokenizer("<|im_start|><|im_end|>")["input_ids"]
+        ignore_str = "Wait"
+
+        max_tokens_thinking_tmp = self.budget_forcing_kwargs["max_tokens_thinking"]
         sampling_params = {
-            "max_tokens": self.budget_forcing_kwargs["max_tokens_thinking"],
+            "max_tokens": max_tokens_thinking_tmp,
             "min_tokens": 0,
             "stop_token_ids": stop_token_ids,
             "skip_special_tokens": False,
         }
-        response = self.llm.invoke(prompt, **sampling_params)
-        ignore_str = "Wait"
-        max_tokens_thinking_tmp = self.budget_forcing_kwargs["max_tokens_thinking"]
-        if max_tokens_thinking_tmp > 0:
-            for i in range(self.budget_forcing_kwargs["num_stop_skips"]):
-                max_tokens_thinking_tmp -= len(
-                    tokenizer.tokenize(response)["input_ids"]
-                )
-                prompt += response + ignore_str
-                sampling_params["max_tokens"] = max_tokens_thinking_tmp
-                sampling_params["min_tokens"] = 1
-                response = self.llm.invoke(prompt, **sampling_params)
+
+        i = 0
+        while (
+            i < self.budget_forcing_kwargs["num_stop_skips"] + 1
+            and max_tokens_thinking_tmp > 0
+        ):
+            # + 1 accounts for the first generation w/o ignoring
+            response = self.llm.invoke(prompt, **sampling_params)
+            max_tokens_thinking_tmp -= len(tokenizer.tokenize(response)["input_ids"])
+            prompt += response + ignore_str
+            sampling_params["max_tokens"] = max_tokens_thinking_tmp
+            sampling_params["min_tokens"] = 1
+            i += 1
 
         # generate the final answer
-        prompt += response
+        prompt += response + "<|im_start|>answer\n"
         stop_token_ids = tokenizer("<|im_end|>")["input_ids"]
         sampling_params = {
             "min_tokens": 0,
@@ -195,7 +208,7 @@ class RAG:
         )
 
         if self.budget_forcing:
-            pass
+            response = self._budget_forcing_invoke(messages)
         else:
             response = self.llm.invoke(messages)
 
@@ -392,6 +405,7 @@ def build_rag(
         budget_forcing_kwargs={
             "model_name": llm_model_name,
             "max_tokens_thinking": 1024,
+            "num_stop_skips": 3,
         }
         | budget_forcing_kwargs,
     )
