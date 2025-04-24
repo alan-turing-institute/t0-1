@@ -104,9 +104,22 @@ class RAG:
         """
         # obtain the sources and the context from the retrieved documents
         sources = [doc.metadata["source"] for doc in state["context"]]
-        sources_str = f"Sources: {sources}"
+        source_scores = [
+            round(float(doc.metadata["sub_docs"][0].metadata["score"]), 3)
+            for doc in state["context"]
+        ]
+        sources_and_scores = [
+            f"({source}, {score:.3f})" for source, score in zip(sources, source_scores)
+        ]
+        sources_str = (
+            f"Sources and similarity scores (lower is better): {sources_and_scores}"
+        )
         retrieved_docs = [
-            f"{'-' * 100}\nSource: {doc.metadata['source']}\nContent:\n{doc.page_content}"
+            (
+                f"\nSource: {doc.metadata['source']}, "
+                f"similarity score: {round(float(doc.metadata['sub_docs'][0].metadata['score']), 3)}. "
+                f"Content:\n{doc.page_content}"
+            )
             for doc in state["context"]
         ]
 
