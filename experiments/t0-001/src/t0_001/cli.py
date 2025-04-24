@@ -34,6 +34,8 @@ HELP_TEXT = {
     "port_query": "Port to query.",
     "env_file": "Path to the .env file.",
     "extra_body:": "Extra body to pass to the LLM if using OpenAI as service provider.",
+    "budget_forcing": "If True, uses budget forcing for LLM as in s1 paper.",
+    "budget_forcing_kwargs": "Keyword arguments for budget forcing in JSON format.",
 }
 
 
@@ -356,6 +358,14 @@ def serve_rag(
         str | None,
         typer.Option(help=HELP_TEXT["extra_body:"]),
     ] = None,  # TODO: Decide whhether to add this to defaults
+    budget_forcing: Annotated[
+        bool,
+        typer.Option(help=HELP_TEXT["budget_forcing"]),
+    ] = DEFAULTS["budget_forcing"],
+    budget_forcing_kwargs: Annotated[
+        str,
+        typer.Option(help=HELP_TEXT["budget_forcing_kwargs"]),
+    ] = DEFAULTS["budget_forcing_kwargs"],
 ):
     """
     Run the RAG server.
@@ -388,6 +398,8 @@ def serve_rag(
         host=host,
         port=port,
         extra_body=extra_body,
+        budget_forcing=budget_forcing,
+        budget_forcing_kwargs=budget_forcing_kwargs,
     )
 
 
@@ -491,6 +503,14 @@ def evaluate_rag(
         str | None,
         typer.Option(help=HELP_TEXT["extra_body:"]),
     ] = None,  # TODO: Decide whether to add this to defaults
+    budget_forcing: Annotated[
+        bool,
+        typer.Option(help=HELP_TEXT["budget_forcing"]),
+    ] = DEFAULTS["budget_forcing"],
+    budget_forcing_kwargs: Annotated[
+        str,
+        typer.Option(help=HELP_TEXT["budget_forcing_kwargs"]),
+    ] = DEFAULTS["budget_forcing_kwargs"],
 ):
     """
     Evaluate the RAG.
@@ -503,6 +523,7 @@ def evaluate_rag(
     logging.info("Evaluating RAG...")
 
     from t0_001.rag.evaluate import RetrieverConfig, main
+    import json
 
     main(
         input_file=input_file,
@@ -529,6 +550,8 @@ def evaluate_rag(
         system_prompt_path=system_prompt_path,
         deepseek_r1=deepseek_r1,
         extra_body=extra_body,
+        budget_forcing=budget_forcing,
+        budget_forcing_kwargs=budget_forcing_kwargs,
     )
 
 
@@ -630,6 +653,14 @@ def rag_chat(
         str | None,
         typer.Option(help=HELP_TEXT["extra_body:"]),
     ] = None,  # TODO: Decide whether to add this to defaults
+    budget_forcing: Annotated[
+        bool,
+        typer.Option(help=HELP_TEXT["budget_forcing"]),
+    ] = DEFAULTS["budget_forcing"],
+    budget_forcing_kwargs: Annotated[
+        str,
+        typer.Option(help=HELP_TEXT["budget_forcing_kwargs"]),
+    ] = DEFAULTS["budget_forcing_kwargs"],
 ):
     """
     Interact with the RAG model in a command line interface.
@@ -660,4 +691,6 @@ def rag_chat(
         prompt_template_path=prompt_template_path,
         system_prompt_path=system_prompt_path,
         extra_body=extra_body,
+        budget_forcing=budget_forcing,
+        budget_forcing_kwargs=budget_forcing_kwargs,
     )

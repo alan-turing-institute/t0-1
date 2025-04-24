@@ -14,6 +14,7 @@ from t0_001.query_vector_store.build_retriever import (
 from t0_001.query_vector_store.custom_parent_document_retriever import (
     CustomParentDocumentRetriever,
 )
+from t0_001.utils import process_arg_to_dict
 from typing_extensions import TypedDict
 
 
@@ -39,7 +40,7 @@ class RAG:
         tools: list | None = None,
         tools_kwargs: dict = {},
         budget_forcing: bool = False,
-        budget_forcing_kwargs: dict = {},
+        budget_forcing_kwargs: dict | str | None = None,
     ):
         """
         Initialise the RAG class with the vector store, prompt, and LLM.
@@ -91,6 +92,8 @@ class RAG:
         return {"context": retrieved_docs}
 
     def _budget_forcing_invoke(self, messages) -> str:
+        import logging
+
         from langchain_openai import OpenAI
 
         if not isinstance(self.llm, OpenAI):
@@ -106,60 +109,86 @@ class RAG:
 
         from langchain_openai.chat_models.base import _convert_message_to_dict
 
+        # convert the messages to dicts and apply the chat template
         messages_as_dicts = [
             _convert_message_to_dict(message) for message in messages.to_messages()
         ]
-
         prompt = tokenizer.apply_chat_template(
-            messages_as_dicts
-            + [{"role": "assistant", "content": "<|im_start|>think\n"}],
+            messages_as_dicts,
             tokenize=False,
         )
+
         if self.budget_forcing_kwargs["max_tokens_thinking"] <= 0:
             # don't need to think, just generate the answer directly
-            prompt += "<|im_start|>answer\n"
+            prompt += "<|im_start|>think\n<|im_start|>answer\n"
             response = self.llm.invoke(prompt)
             return response
 
         # otherwise we need to think and apply budget forcing
-        prompt += "<|im_start|>think\n"
+        # output tracks the generated output after the initial prompt
+        # prompt tracks the prompt used for generation which will need to keep adding the responses
+        output = "<|im_start|>think\n"
+        prompt += output
 
         # stop if reach end of thinking ("<|im_stard|>") or end ("|<im_end|>"),
         # or reached the max thinking tokens
         stop_token_ids = tokenizer("<|im_start|><|im_end|>")["input_ids"]
         ignore_str = "Wait"
 
-        max_tokens_thinking_tmp = self.budget_forcing_kwargs["max_tokens_thinking"]
+        thinking_tokens_remaining = self.budget_forcing_kwargs["max_tokens_thinking"]
         sampling_params = {
-            "max_tokens": max_tokens_thinking_tmp,
+            "max_tokens": thinking_tokens_remaining,
             "min_tokens": 0,
             "stop_token_ids": stop_token_ids,
             "skip_special_tokens": False,
         }
 
         i = 0
+        # + 1 accounts for the first generation w/o ignoring
+        max_thinking_steps = self.budget_forcing_kwargs["num_stop_skips"] + 1
         while (
-            i < self.budget_forcing_kwargs["num_stop_skips"] + 1
-            and max_tokens_thinking_tmp > 0
+            i < max_thinking_steps and thinking_tokens_remaining > 0
         ):
-            # + 1 accounts for the first generation w/o ignoring
-            response = self.llm.invoke(prompt, **sampling_params)
-            max_tokens_thinking_tmp -= len(tokenizer.tokenize(response)["input_ids"])
-            prompt += response + ignore_str
-            sampling_params["max_tokens"] = max_tokens_thinking_tmp
+            if i > 0:
+                # if we are not the first generation, need to add ignore string
+                # to suppress the ending
+                output += ignore_str
+                prompt += ignore_str
+                logging.info("Suppressing end to encourage more thinking")
+
+            logging.info(f"Thinking round {i+1} out of {max_thinking_steps}")
+            logging.info(f"Thinking tokens remaining: {thinking_tokens_remaining}")
+            response = self.llm.invoke(prompt, extra_body=sampling_params)
+            output += response
+            prompt += response
+            
+            # subtract the number of tokens used for thinking
+            # we continue until we reach the max tokens or reach max number of skips
+            thinking_tokens_remaining -= len(tokenizer.tokenize(response))
+            sampling_params["max_tokens"] = thinking_tokens_remaining
             sampling_params["min_tokens"] = 1
             i += 1
 
+        if thinking_tokens_remaining <= 0:
+            logging.info("Max thinking tokens reached, stopping thinking")
+        else:
+            logging.info(f"Max thinking rounds {max_thinking_steps} reached, stopping thinking")
+            
+        logging.info(f"Thinking tokens used: {self.budget_forcing_kwargs['max_tokens_thinking'] - thinking_tokens_remaining}")
+        
         # generate the final answer
-        prompt += response + "<|im_start|>answer\n"
         stop_token_ids = tokenizer("<|im_end|>")["input_ids"]
         sampling_params = {
             "min_tokens": 0,
             "stop_token_ids": stop_token_ids,
             "skip_special_tokens": False,
         }
-        response = self.llm.invoke(prompt, **sampling_params)
-        return prompt + response
+        
+        output += "<|im_start|>answer\n"
+        prompt += "<|im_start|>answer\n"
+        response = self.llm.invoke(prompt, extra_body=sampling_params)
+
+        return output + response
 
     def generate(self, state: State) -> dict[str, str]:
         """
@@ -342,7 +371,7 @@ def build_rag(
     system_prompt_path: str | Path | None = None,
     extra_body: dict | str | None = None,
     budget_forcing: bool = False,
-    budget_forcing_kwargs: dict = {},
+    budget_forcing_kwargs: dict | str | None = None,
 ) -> RAG:
     if budget_forcing and llm_provider != "openai_completion":
         raise ValueError(
@@ -408,7 +437,7 @@ def build_rag(
             "max_tokens_thinking": 1024,
             "num_stop_skips": 3,
         }
-        | budget_forcing_kwargs,
+        | process_arg_to_dict(budget_forcing_kwargs),
     )
 
     return rag
