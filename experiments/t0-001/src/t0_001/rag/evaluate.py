@@ -11,7 +11,7 @@ from t0_001.rag.build_rag import (
     build_rag,
 )
 from t0_001.utils import read_jsonl, timestamp_file_name
-from tqdm import tqdm
+from tqdm.asyncio import tqdm_asyncio
 
 
 @tool
@@ -73,6 +73,110 @@ def parse_deepseek_r1(string: str) -> tuple[str]:
         return "", ""
 
 
+async def process_query(
+    item: dict,
+    query_field: str,
+    target_document_field: str,
+    rag: RAG,
+    generate_only: bool,
+    deepseek_r1: bool,
+    output_file: str,
+):
+    query = item[query_field]
+    target_document = item[target_document_field]
+
+    # obtain the top k documents from the vector store
+    response = await rag._query(
+        question=query, demographics=str(item["general_demographics"])
+    )
+
+    if not generate_only:
+        if deepseek_r1:
+            # extract condition and severity level from the response
+            parsed_condition, parsed_severity_level = parse_deepseek_r1(
+                response["answer"].content
+            )
+            prediction_condition = remove_dash_and_spaces(parsed_condition)
+            target_condition = remove_dash_and_spaces(target_document)
+            conditions_match = prediction_condition == target_condition
+            severity_match = (
+                parsed_severity_level.lower() == item["severity_level"].lower()
+            )
+
+        else:
+            if (
+                response["answer"].additional_kwargs.get("tool_calls") is not None
+                and len(response["answer"].additional_kwargs["tool_calls"]) == 1
+            ):
+                arguments = json.loads(
+                    response["answer"].additional_kwargs["tool_calls"][0]["function"][
+                        "arguments"
+                    ]
+                )
+
+                if arguments.get("condition") is not None:
+                    prediction_condition = remove_dash_and_spaces(
+                        arguments["condition"]
+                    )
+                    target_condition = remove_dash_and_spaces(target_document)
+                    conditions_match = prediction_condition == target_condition
+                else:
+                    conditions_match = False
+
+                if arguments.get("severity_level") is not None:
+                    severity_match = (
+                        arguments["severity_level"].lower()
+                        == item["severity_level"].lower()
+                    )
+                else:
+                    severity_match = False
+            else:
+                conditions_match = False
+                severity_match = False
+
+    # create dictionary to store the results
+    res = item | {
+        "query_field": query_field,
+        "target_document_field": target_document_field,
+        "retrieved_documents": [doc.page_content for doc in response["context"]],
+        "retrieved_documents_scores": [
+            float(
+                doc.metadata["sub_docs"][-1].metadata["score"]
+                if "sub_docs" in doc.metadata
+                else 0
+            )
+            for doc in response["context"]
+        ],
+        "retrieved_documents_sources": [
+            doc.metadata["source"] for doc in response["context"]
+        ],
+        "rag_message": [message.content for message in response["messages"].messages],
+        "rag_answer": response["answer"].content,
+        "rag_tool_calls": response["answer"].additional_kwargs.get("tool_calls"),
+    }
+
+    if not generate_only:
+        res["conditions_match"] = conditions_match
+        res["severity_match"] = severity_match
+
+        # check for match between the source of the retrieved documents and the target document source
+        res["retriever_match"] = target_document in set(
+            res["retrieved_documents_sources"]
+        )
+
+        if deepseek_r1:
+            res["parsed_conditions"] = parsed_condition
+            res["parsed_severity_level"] = parsed_severity_level
+
+    # write the results to the output file
+    with open(output_file, "a") as f:
+        json.dump(res, f)
+        f.write("\n")
+
+    # return the results
+    return res
+
+
 async def evaluate_rag(
     input_file: str | Path,
     output_file: str | Path,
@@ -113,123 +217,35 @@ async def evaluate_rag(
         raise ValueError(f"File {output_file} is not a JSONL file.")
 
     data = read_jsonl(input_file)
-    retriever_match_sum = 0
-    conditions_sum = 0
-    severity_sum = 0
-    results = []
     output_file = timestamp_file_name(output_file)
 
     logging.info(f"Writing results to {output_file}...")
     logging.info(f"Query field: {query_field}")
     logging.info(f"Target document field: {target_document_field}")
 
-    for item in tqdm(data, desc="Evaluating Queries"):
-        query = item[query_field]
-        target_document = item[target_document_field]
-
-        # obtain the top k documents from the vector store
-        response = await rag._query(
-            question=query, demographics=str(item["general_demographics"])
-        )
-
-        if not generate_only:
-            if deepseek_r1:
-                # extract condition and severity level from the response
-                parsed_condition, parsed_severity_level = parse_deepseek_r1(
-                    response["answer"].content
-                )
-                prediction_condition = remove_dash_and_spaces(parsed_condition)
-                target_condition = remove_dash_and_spaces(target_document)
-                conditions_match = prediction_condition == target_condition
-                if conditions_match:
-                    conditions_sum += 1
-
-                severity_match = (
-                    parsed_severity_level.lower() == item["severity_level"].lower()
-                )
-                if severity_match:
-                    severity_sum += 1
-            else:
-                if (
-                    response["answer"].additional_kwargs.get("tool_calls") is not None
-                    and len(response["answer"].additional_kwargs["tool_calls"]) == 1
-                ):
-                    arguments = json.loads(
-                        response["answer"].additional_kwargs["tool_calls"][0][
-                            "function"
-                        ]["arguments"]
-                    )
-
-                    if arguments.get("condition") is not None:
-                        prediction_condition = remove_dash_and_spaces(
-                            arguments["condition"]
-                        )
-                        target_condition = remove_dash_and_spaces(target_document)
-                        conditions_match = prediction_condition == target_condition
-                        if conditions_match:
-                            conditions_sum += 1
-                    else:
-                        conditions_match = False
-
-                    if arguments.get("severity_level") is not None:
-                        severity_match = (
-                            arguments["severity_level"].lower()
-                            == item["severity_level"].lower()
-                        )
-                        if severity_match:
-                            severity_sum += 1
-                    else:
-                        severity_match = False
-                else:
-                    conditions_match = False
-                    severity_match = False
-
-        # create dictionary to store the results
-        res = item | {
-            "query_field": query_field,
-            "target_document_field": target_document_field,
-            "retrieved_documents": [doc.page_content for doc in response["context"]],
-            "retrieved_documents_scores": [
-                float(
-                    doc.metadata["sub_docs"][-1].metadata["score"]
-                    if "sub_docs" in doc.metadata
-                    else 0
-                )
-                for doc in response["context"]
-            ],
-            "retrieved_documents_sources": [
-                doc.metadata["source"] for doc in response["context"]
-            ],
-            "rag_message": [
-                message.content for message in response["messages"].messages
-            ],
-            "rag_answer": response["answer"].content,
-            "rag_tool_calls": response["answer"].additional_kwargs.get("tool_calls"),
-        }
-
-        if not generate_only:
-            res["conditions_match"] = conditions_match
-            res["severity_match"] = severity_match
-
-            # check for match between the source of the retrieved documents and the target document source
-            res["retriever_match"] = target_document in set(
-                res["retrieved_documents_sources"]
+    tasks = [
+        asyncio.create_task(
+            process_query(
+                item,
+                query_field,
+                target_document_field,
+                rag,
+                generate_only,
+                deepseek_r1,
+                output_file,
             )
-            retriever_match_sum += res["retriever_match"]
-
-            if deepseek_r1:
-                res["parsed_conditions"] = parsed_condition
-                res["parsed_severity_level"] = parsed_severity_level
-
-        # write the results to the output file
-        with open(output_file, "a") as f:
-            json.dump(res, f)
-            f.write("\n")
-
-        # append the result to the results list
-        results.append(res)
+        )
+        for item in data
+    ]
+    results = await tqdm_asyncio.gather(*tasks)
+    logging.info("All tasks completed.")
 
     if not generate_only:
+        # calculate sums
+        retriever_match_sum = sum([res["retriever_match"] for res in results])
+        conditions_sum = sum([res["conditions_match"] for res in results])
+        severity_sum = sum([res["severity_match"] for res in results])
+
         logging.info(
             f"Proportion of retriever matches: {retriever_match_sum}/{len(data)} = {retriever_match_sum / len(data):.2%}"
         )
@@ -239,8 +255,6 @@ async def evaluate_rag(
         logging.info(
             f"Proportion of severity matches: {severity_sum}/{len(data)} = {severity_sum / len(data):.2%}"
         )
-
-    return results
 
 
 def main(
