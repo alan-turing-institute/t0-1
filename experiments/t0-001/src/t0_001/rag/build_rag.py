@@ -68,6 +68,7 @@ class RAG:
         if tools is not None:
             self.llm = self.llm.bind_tools(tools, **tools_kwargs)
         self.budget_forcing: bool = budget_forcing
+        self.budget_forcing_kwargs: dict = budget_forcing_kwargs
         self.memory: MemorySaver = MemorySaver()
         self.graph: CompiledStateGraph = self.build_graph()
 
