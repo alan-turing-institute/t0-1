@@ -12,6 +12,7 @@ class LLMProvider(str, Enum):
     azure_openai = "azure_openai"
     azure = "azure"
     openai = "openai"
+    openai_completion = "openai_completion"
 
 
 CONDITIONS_FILE: Final[str] = "./data/nhs-conditions/conditions.jsonl"

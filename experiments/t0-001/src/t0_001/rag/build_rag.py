@@ -38,6 +38,8 @@ class RAG:
         llm: LLM,
         tools: list | None = None,
         tools_kwargs: dict = {},
+        budget_forcing: bool = False,
+        budget_forcing_kwargs: dict = {},
     ):
         """
         Initialise the RAG class with the vector store, prompt, and LLM.
@@ -65,6 +67,7 @@ class RAG:
         self.tools: list | None = tools
         if tools is not None:
             self.llm = self.llm.bind_tools(tools, **tools_kwargs)
+        self.budget_forcing: bool = budget_forcing
         self.memory: MemorySaver = MemorySaver()
         self.graph: CompiledStateGraph = self.build_graph()
 
@@ -85,6 +88,64 @@ class RAG:
         retrieved_docs: list[Document] = self.retriever.invoke(input=state["question"])
 
         return {"context": retrieved_docs}
+
+    def budget_forcing_invoke(self, messages) -> str:
+        from langchain_openai import OpenAI
+
+        if not isinstance(self.llm, OpenAI):
+            raise ValueError(
+                "Budget forcing is only supported for OpenAI completion endpoint."
+            )
+
+        from transformers import AutoTokenizer
+
+        tokenizer = AutoTokenizer.from_pretrained(
+            self.budget_forcing_kwargs["model_name"]
+        )
+
+        from langchain_openai.chat_models.base import _convert_message_to_dict
+
+        messages_as_dicts = [
+            _convert_message_to_dict(message) for message in messages.to_messages()
+        ]
+
+        prompt = tokenizer.apply_chat_template(
+            messages_as_dicts
+            + [{"role": "assistant", "content": "<|im_start|>think\n"}],
+            tokenize=False,
+        )
+        prompt += "<|im_start|>think\n"
+
+        stop_token_ids = tokenizer("<|im_start|><|im_end|>")["input_ids"]
+        sampling_params = {
+            "max_tokens": self.budget_forcing_kwargs["max_tokens_thinking"],
+            "min_tokens": 0,
+            "stop_token_ids": stop_token_ids,
+            "skip_special_tokens": False,
+        }
+        response = self.llm.invoke(prompt, **sampling_params)
+        ignore_str = "Wait"
+        max_tokens_thinking_tmp = self.budget_forcing_kwargs["max_tokens_thinking"]
+        if max_tokens_thinking_tmp > 0:
+            for i in range(self.budget_forcing_kwargs["num_stop_skips"]):
+                max_tokens_thinking_tmp -= len(
+                    tokenizer.tokenize(response)["input_ids"]
+                )
+                prompt += response + ignore_str
+                sampling_params["max_tokens"] = max_tokens_thinking_tmp
+                sampling_params["min_tokens"] = 1
+                response = self.llm.invoke(prompt, **sampling_params)
+
+        # generate the final answer
+        prompt += response
+        stop_token_ids = tokenizer("<|im_end|>")["input_ids"]
+        sampling_params = {
+            "min_tokens": 0,
+            "stop_token_ids": stop_token_ids,
+            "skip_special_tokens": False,
+        }
+        response = self.llm.invoke(prompt, **sampling_params)
+        return prompt + response
 
     def generate(self, state: State) -> dict[str, str]:
         """
@@ -133,7 +194,11 @@ class RAG:
             },
         )
 
-        response = self.llm.invoke(messages)
+        if self.budget_forcing:
+            pass
+        else:
+            response = self.llm.invoke(messages)
+
         return {"messages": messages, "answer": response}
 
     def build_graph(self) -> CompiledStateGraph:
@@ -262,7 +327,14 @@ def build_rag(
     prompt_template_path: str | Path | None = None,
     system_prompt_path: str | Path | None = None,
     extra_body: dict | str | None = None,
+    budget_forcing: bool = False,
+    budget_forcing_kwargs: dict = {},
 ) -> RAG:
+    if budget_forcing and llm_provider != "openai_completion":
+        raise ValueError(
+            "Budget forcing is only supported for OpenAI completion endpoint."
+        )
+
     # obtain the retriever for RAG
     retriever = get_parent_doc_retriever(
         conditions_file=conditions_file,
@@ -299,6 +371,12 @@ def build_rag(
         from t0_001.rag.chat_model import get_openai_chat_model
 
         llm = get_openai_chat_model(model_name=llm_model_name, extra_body=extra_body)
+    elif llm_provider == "openai_completion":
+        from t0_001.rag.chat_model import get_openai_completion_model
+
+        llm = get_openai_completion_model(
+            model_name=llm_model_name, extra_body=extra_body
+        )
     else:
         raise ValueError(
             f"Unknown LLM provider: {llm_provider}. Use 'huggingface', 'azure_openai', or 'azure'."
@@ -310,6 +388,12 @@ def build_rag(
         llm=llm,
         tools=tools,
         tools_kwargs=tools_kwargs,
+        budget_forcing=budget_forcing,
+        budget_forcing_kwargs={
+            "model_name": llm_model_name,
+            "max_tokens_thinking": 1024,
+        }
+        | budget_forcing_kwargs,
     )
 
     return rag
