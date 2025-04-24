@@ -127,80 +127,109 @@ def evaluate_rag(
         target_document = item[target_document_field]
 
         # obtain the top k documents from the vector store
-        response = rag._query(
-            question=query, demographics=str(item["general_demographics"])
-        )
+        try:
+            response = rag._query(
+                question=query, demographics=str(item["general_demographics"])
+            )
 
-        if not generate_only:
-            if deepseek_r1:
-                # extract condition and severity level from the response
-                parsed_condition, parsed_severity_level = parse_deepseek_r1(
-                    response["answer"].content
-                )
-                prediction_condition = remove_dash_and_spaces(parsed_condition)
-                target_condition = remove_dash_and_spaces(target_document)
-                conditions_match = prediction_condition == target_condition
-                if conditions_match:
-                    conditions_sum += 1
-
-                severity_match = (
-                    parsed_severity_level.lower() == item["severity_level"].lower()
-                )
-                if severity_match:
-                    severity_sum += 1
-            else:
-                if (
-                    response["answer"].additional_kwargs.get("tool_calls") is not None
-                    and len(response["answer"].additional_kwargs["tool_calls"]) == 1
-                ):
-                    arguments = json.loads(
-                        response["answer"].additional_kwargs["tool_calls"][0][
-                            "function"
-                        ]["arguments"]
+            if not generate_only:
+                if deepseek_r1:
+                    # extract condition and severity level from the response
+                    parsed_condition, parsed_severity_level = parse_deepseek_r1(
+                        response["answer"].content
                     )
+                    prediction_condition = remove_dash_and_spaces(parsed_condition)
+                    target_condition = remove_dash_and_spaces(target_document)
+                    conditions_match = prediction_condition == target_condition
+                    if conditions_match:
+                        conditions_sum += 1
 
-                    if arguments.get("condition") is not None:
-                        prediction_condition = remove_dash_and_spaces(
-                            arguments["condition"]
+                    severity_match = (
+                        parsed_severity_level.lower() == item["severity_level"].lower()
+                    )
+                    if severity_match:
+                        severity_sum += 1
+                else:
+                    if (
+                        response["answer"].additional_kwargs.get("tool_calls")
+                        is not None
+                        and len(response["answer"].additional_kwargs["tool_calls"]) == 1
+                    ):
+                        arguments = json.loads(
+                            response["answer"].additional_kwargs["tool_calls"][0][
+                                "function"
+                            ]["arguments"]
                         )
-                        target_condition = remove_dash_and_spaces(target_document)
-                        conditions_match = prediction_condition == target_condition
-                        if conditions_match:
-                            conditions_sum += 1
+
+                        if arguments.get("condition") is not None:
+                            prediction_condition = remove_dash_and_spaces(
+                                arguments["condition"]
+                            )
+                            target_condition = remove_dash_and_spaces(target_document)
+                            conditions_match = prediction_condition == target_condition
+                            if conditions_match:
+                                conditions_sum += 1
+                        else:
+                            conditions_match = False
+
+                        if arguments.get("severity_level") is not None:
+                            severity_match = (
+                                arguments["severity_level"].lower()
+                                == item["severity_level"].lower()
+                            )
+                            if severity_match:
+                                severity_sum += 1
+                        else:
+                            severity_match = False
                     else:
                         conditions_match = False
-
-                    if arguments.get("severity_level") is not None:
-                        severity_match = (
-                            arguments["severity_level"].lower()
-                            == item["severity_level"].lower()
-                        )
-                        if severity_match:
-                            severity_sum += 1
-                    else:
                         severity_match = False
-                else:
-                    conditions_match = False
-                    severity_match = False
 
-        # create dictionary to store the results
-        res = item | {
-            "query_field": query_field,
-            "target_document_field": target_document_field,
-            "retrieved_documents": [doc.page_content for doc in response["context"]],
-            "retrieved_documents_scores": [
-                float(doc.metadata["sub_docs"][0].metadata["score"])
-                for doc in response["context"]
-            ],
-            "retrieved_documents_sources": [
-                doc.metadata["source"] for doc in response["context"]
-            ],
-            "rag_message": [
-                message.content for message in response["messages"].messages
-            ],
-            "rag_answer": response["answer"].content,
-            "rag_tool_calls": response["answer"].additional_kwargs.get("tool_calls"),
-        }
+            # create dictionary to store the results
+            res = item | {
+                "query_field": query_field,
+                "target_document_field": target_document_field,
+                "retrieved_documents": [
+                    doc.page_content for doc in response["context"]
+                ],
+                "retrieved_documents_scores": [
+                    float(doc.metadata["sub_docs"][0].metadata["score"])
+                    for doc in response["context"]
+                ],
+                "retrieved_documents_sources": [
+                    doc.metadata["source"] for doc in response["context"]
+                ],
+                "rag_message": [
+                    message.content for message in response["messages"].messages
+                ],
+                "rag_answer": response["answer"].content,
+                "rag_tool_calls": response["answer"].additional_kwargs.get(
+                    "tool_calls"
+                ),
+            }
+
+        except Exception as e:
+            logging.error(f"Error querying RAG: {e}")
+
+            retrieved_docs = rag.retriever.invoke(input=query)
+
+            # create dictionary to store the results
+            res = item | {
+                "query_field": query_field,
+                "target_document_field": target_document_field,
+                "retrieved_documents": [doc.page_content for doc in retrieved_docs],
+                "retrieved_documents_scores": [
+                    float(doc.metadata["sub_docs"][0].metadata["score"])
+                    for doc in retrieved_docs
+                ],
+                "retrieved_documents_sources": [
+                    doc.metadata["source"] for doc in retrieved_docs
+                ],
+                "error": str(e),
+            }
+
+            conditions_match = False
+            severity_match = False
 
         if not generate_only:
             res["conditions_match"] = conditions_match
