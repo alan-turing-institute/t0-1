@@ -5,10 +5,8 @@ You will be given a description of a patient's symptoms, some retrieved context 
 You need to suggest the most likely condition and the level of severity.
 
 You should decide one of five options for severity:
-* Ambulance:  Immediate life-threatening danger; treatment needed en route to the hospital
 * A&E: Emergency hospital treatment required
-* Urgent Primary Care: patient should be seen today, by a GP, urgent care centre, or similar
-* Routine GP appointment: patient should be seen at some point, but this can wait for several days
+* Urgent Primary Care: patient should be seen as soon as possible, by a GP, urgent care centre, or similar
 * Self-care: issue can be handled at home and/or with over-the-counter medication.
 
 Importantly, if you think that the condition is not listed, please use "inconclusive" for the condition.
