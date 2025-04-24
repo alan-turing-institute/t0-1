@@ -13,6 +13,7 @@ def run_chat_interact(
     llm_model_name: str = "Qwen/Qwen2.5-1.5B-Instruct",
     prompt_template_path: str | None = None,
     system_prompt_path: str | None = None,
+    extra_body: dict | str | None = None,
 ):
     rag = build_rag(
         conditions_file=conditions_file,
@@ -23,6 +24,7 @@ def run_chat_interact(
         llm_model_name=llm_model_name,
         prompt_template_path=prompt_template_path,
         system_prompt_path=system_prompt_path,
+        extra_body=extra_body,
     )
     user_id = "command_line_chat"
     mode = "query-with-sources"

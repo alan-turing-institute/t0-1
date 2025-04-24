@@ -261,6 +261,7 @@ def build_rag(
     tools_kwargs: dict = {},
     prompt_template_path: str | Path | None = None,
     system_prompt_path: str | Path | None = None,
+    extra_body: dict | str | None = None,
 ) -> RAG:
     # obtain the retriever for RAG
     retriever = get_parent_doc_retriever(
@@ -297,7 +298,7 @@ def build_rag(
     elif llm_provider == "openai":
         from t0_001.rag.chat_model import get_openai_chat_model
 
-        llm = get_openai_chat_model(model_name=llm_model_name)
+        llm = get_openai_chat_model(model_name=llm_model_name, extra_body=extra_body)
     else:
         raise ValueError(
             f"Unknown LLM provider: {llm_provider}. Use 'huggingface', 'azure_openai', or 'azure'."
