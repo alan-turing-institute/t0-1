@@ -17,7 +17,7 @@ def create_retriever_app(retriever: CustomParentDocumentRetriever) -> FastAPI:
 
     @app.get("/query")
     async def query_endpoint(query: str):
-        response = retriever.invoke(input=query)
+        response = await retriever.ainvoke(input=query)
         return {"response": response}
 
     return app

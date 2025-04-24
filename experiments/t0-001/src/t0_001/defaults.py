@@ -14,7 +14,7 @@ class LLMProvider(str, Enum):
     openai = "openai"
 
 
-CONDITIONS_FILE: Final[str] = "./data/nhs-conditions/conditions.jsonl"
+CONDITIONS_FILE: Final[str] = "./data/nhs-conditions/v3/conditions.jsonl"
 
 DEFAULTS = {
     "embedding_model_name": "sentence-transformers/all-mpnet-base-v2",

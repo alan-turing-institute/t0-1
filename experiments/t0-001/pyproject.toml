@@ -20,7 +20,6 @@ dependencies = [
     "datasets>=3.5.0",
     "transformers>=4.51.3",
     "jinja2>=3.1.6",
-    "vllm>=0.8.4",
 ]
 
 [project.optional-dependencies]
@@ -42,6 +41,9 @@ rag = [
 ]
 dev = [
     "pre-commit>=4.2.0"
+]
+vllm = [
+    "vllm>=0.8.4",
 ]
 
 [project.scripts]
