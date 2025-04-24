@@ -33,6 +33,7 @@ HELP_TEXT = {
     "host_query": "Host to query.",
     "port_query": "Port to query.",
     "env_file": "Path to the .env file.",
+    "extra_body:": "Extra body to pass to the LLM if using OpenAI as service provider.",
 }
 
 
@@ -351,6 +352,10 @@ def serve_rag(
     ] = DEFAULTS["env_file"],
     host: Annotated[str, typer.Option(help=HELP_TEXT["host_serve"])] = DEFAULTS["host"],
     port: Annotated[int, typer.Option(help=HELP_TEXT["port_serve"])] = DEFAULTS["port"],
+    extra_body: Annotated[
+        str | None,
+        typer.Option(help=HELP_TEXT["extra_body:"]),
+    ] = None,  # TODO: Decide whhether to add this to defaults
 ):
     """
     Run the RAG server.
@@ -382,6 +387,7 @@ def serve_rag(
         system_prompt_path=system_prompt_path,
         host=host,
         port=port,
+        extra_body=extra_body,
     )
 
 
@@ -481,6 +487,10 @@ def evaluate_rag(
         str | None,
         typer.Option(help=HELP_TEXT["env_file"]),
     ] = DEFAULTS["env_file"],
+    extra_body: Annotated[
+        str | None,
+        typer.Option(help=HELP_TEXT["extra_body:"]),
+    ] = None,  # TODO: Decide whether to add this to defaults
 ):
     """
     Evaluate the RAG.
@@ -518,6 +528,7 @@ def evaluate_rag(
         prompt_template_path=prompt_template_path,
         system_prompt_path=system_prompt_path,
         deepseek_r1=deepseek_r1,
+        extra_body=extra_body,
     )
 
 
@@ -615,6 +626,10 @@ def rag_chat(
         str | None,
         typer.Option(help=HELP_TEXT["env_file"]),
     ] = DEFAULTS["env_file"],
+    extra_body: Annotated[
+        str | None,
+        typer.Option(help=HELP_TEXT["extra_body:"]),
+    ] = None,  # TODO: Decide whether to add this to defaults
 ):
     """
     Interact with the RAG model in a command line interface.
@@ -644,4 +659,5 @@ def rag_chat(
         llm_model_name=llm_model_name,
         prompt_template_path=prompt_template_path,
         system_prompt_path=system_prompt_path,
+        extra_body=extra_body,
     )
