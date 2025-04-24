@@ -4,17 +4,14 @@ Generate a synthetic NHS 111 query based on the following details:
 * "basic": Based on a single condition page, the query mentions relevant symptoms.
 * "cluster": Based on a main condition page, the query also mentions symptoms plausibly drawn from other unrelated conditions, aligning the main condition with the target severity.
 * "hypochondriac": Based on a single condition page, the query mentions relevant symptoms plus other unrelated complaints and expressions of excessive anxiety.
-* "vague": The query is vague regarding key details (e.g., duration, exact nature) or cut short, making assessment very difficult, even if loosely related to the condition topic.
 * "downplay": Based on a single condition page, the query downplays the severity of the symptoms.
 
 ### Condition(s) Content Source:
 * The primary textual content extracted from the relevant NHS condition web page(s).
 
 ### Severity Level:
-* Ambulance:  Immediate life-threatening danger; treatment needed en route to the hospital
 * A&E: Emergency hospital treatment required
-* Urgent Primary Care: patient should be seen today, by a GP, urgent care centre, or similar
-* Routine GP appointment: patient should be seen at some point, but this can wait for several days
+* Urgent Primary Care: patient should be seen as soon as posisble by a GP
 * Self-care: issue can be handled at home and/or with over-the-counter medication.
 
 ### Required JSON Output:
