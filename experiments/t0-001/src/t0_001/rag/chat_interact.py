@@ -14,6 +14,8 @@ def run_chat_interact(
     prompt_template_path: str | None = None,
     system_prompt_path: str | None = None,
     extra_body: dict | str | None = None,
+    budget_forcing: bool = False,
+    budget_forcing_kwargs: dict | str | None = None,
 ):
     rag = build_rag(
         conditions_file=conditions_file,
@@ -25,6 +27,8 @@ def run_chat_interact(
         prompt_template_path=prompt_template_path,
         system_prompt_path=system_prompt_path,
         extra_body=extra_body,
+        budget_forcing=budget_forcing,
+        budget_forcing_kwargs=budget_forcing_kwargs,
     )
     user_id = "command_line_chat"
     mode = "query-with-sources"

@@ -36,4 +36,6 @@ DEFAULTS = {
     "host": "0.0.0.0",
     "port": 8000,
     "env_file": ".env",
+    "budget_forcing": False,
+    "budget_forcing_kwargs": '{"max_tokens_thinking": 1024, "num_stop_skips": 3}',
 }

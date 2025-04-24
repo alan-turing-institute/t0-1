@@ -2,7 +2,7 @@ import logging
 
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.language_models.llms import BaseLLM
-from t0_001.utils import get_environment_variable
+from t0_001.utils import get_environment_variable, process_arg_to_dict
 
 
 def get_huggingface_chat_model(
@@ -133,17 +133,7 @@ def get_azure_endpoint_chat_model(
     return llm
 
 
-def process_extra_body(extra_body: dict | str | None) -> dict:
-    if extra_body is None:
-        extra_body = {}
-    else:
-        import json
 
-        try:
-            extra_body = json.loads(extra_body)
-        except json.JSONDecodeError:
-            logging.error(f"extra_body is not a valid json: {extra_body}")
-            raise
 
 
 def get_openai_chat_model(
@@ -161,7 +151,7 @@ def get_openai_chat_model(
         model=model_name,
         api_key=api_key,
         base_url=base_url,
-        extra_body=process_extra_body(extra_body),
+        extra_body=process_arg_to_dict(extra_body),
     )
 
     return llm
@@ -182,7 +172,7 @@ def get_openai_completion_model(
         model=model_name,
         api_key=api_key,
         base_url=base_url,
-        extra_body=process_extra_body(extra_body),
+        extra_body=process_arg_to_dict(extra_body),
     )
 
     return llm
