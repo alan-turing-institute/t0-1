@@ -263,7 +263,7 @@ async def evaluate_rag(
     generate_only: bool = False,
     deepseek_r1: bool = False,
     t0: bool = False,
-    queries_per_minute: int = 60,
+    max_queries_per_minute: int = 60,
 ) -> list[dict]:
     """
     Evaluate the query store by comparing the query results with the target documents.
@@ -289,7 +289,7 @@ async def evaluate_rag(
     t0 : bool, optional
         If True, evaluating t0 or s1.1 responses which requires parsing the response.
         By default False.
-    queries_per_minute : int, optional
+    max_queries_per_minute : int, optional
         The number of queries to process per minute. By default 60.
 
     Returns
@@ -306,7 +306,7 @@ async def evaluate_rag(
     logging.info(f"Writing results to {output_file}...")
     logging.info(f"Query field: {query_field}")
     logging.info(f"Target document field: {target_document_field}")
-    logging.info(f"Request interval: {60 / queries_per_minute} seconds")
+    logging.info(f"Request interval: {60 / max_queries_per_minute} seconds")
 
     tasks = [
         asyncio.create_task(
@@ -319,7 +319,7 @@ async def evaluate_rag(
                 deepseek_r1=deepseek_r1,
                 t0=t0,
                 output_file=output_file,
-                request_interval=60 / queries_per_minute,
+                request_interval=60 / max_queries_per_minute,
             )
         )
         for item in data
@@ -361,7 +361,7 @@ def main(
     deepseek_r1: bool = False,
     t0: bool = False,
     extra_body: dict | str | None = None,
-    queries_per_minute: int = 60,
+    max_queries_per_minute: int = 60,
 ):
     rag = build_rag(
         conditions_file=conditions_file,
@@ -386,6 +386,6 @@ def main(
             generate_only=generate_only,
             deepseek_r1=deepseek_r1,
             t0=t0,
-            queries_per_minute=queries_per_minute,
+            max_queries_per_minute=max_queries_per_minute,
         )
     )
