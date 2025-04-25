@@ -1,0 +1,11 @@
+t0-001 evaluate-rag ../data/synthetic_queries/5bb7345_gpt-4o_100_synthetic_queries.jsonl \
+  --k 30 \
+  --db-choice chroma \
+  --llm-provider openai \
+  --llm-model-name rchan26/t0-14B-test \
+  --prompt-template-path ../templates/rag_evaluation_prompt_deepseek_r1.txt \
+  --system-prompt-path ../templates/rag_evaluation_system_prompt_deepseek_r1.txt \
+  --output-file ../results/evaluation_100/evaluate-rag-t0-14b-k30-chroma_deepseek_r1.jsonl \
+  --conditions-file ../data/nhs-conditions/v2/conditions.jsonl \
+  --t0 \
+  --extra-body '{"max_tokens":4056}'
