@@ -14,7 +14,7 @@ class LLMProvider(str, Enum):
     openai = "openai"
 
 
-CONDITIONS_FILE: Final[str] = "./data/nhs-conditions/conditions.jsonl"
+CONDITIONS_FILE: Final[str] = "./data/nhs-conditions/v3/conditions.jsonl"
 
 DEFAULTS = {
     "embedding_model_name": "sentence-transformers/all-mpnet-base-v2",
@@ -35,4 +35,5 @@ DEFAULTS = {
     "host": "0.0.0.0",
     "port": 8000,
     "env_file": ".env",
+    "max_queries_per_minute": 60,
 }
