@@ -4,7 +4,7 @@ INPUT_PROMPT: str = ">>> "
 EXIT_STRS: set[str] = {"exit", "exit()", "quit()", "bye"}
 
 
-def run_chat_interact(
+async def run_chat_interact(
     conditions_file: str,
     config: RetrieverConfig = DEFAULT_RETRIEVER_CONFIG,
     force_create: bool = False,
@@ -53,10 +53,10 @@ def run_chat_interact(
             continue
 
         if mode == "query":
-            response = rag.query(question=message, user_id=user_id)
+            response = await rag.aquery(question=message, user_id=user_id)
         elif mode == "query-with-sources":
-            response = rag.query_with_sources(question=message, user_id=user_id)
+            response = await rag.aquery_with_sources(question=message, user_id=user_id)
         elif mode == "query-with-context":
-            response = rag.query_with_context(question=message, user_id=user_id)
+            response = await rag.aquery_with_context(question=message, user_id=user_id)
 
         print(f"\nModel: {response}")

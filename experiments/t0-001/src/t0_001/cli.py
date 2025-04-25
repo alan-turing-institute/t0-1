@@ -36,6 +36,7 @@ HELP_TEXT = {
     "extra_body:": "Extra body to pass to the LLM if using OpenAI as service provider.",
     "budget_forcing": "If True, uses budget forcing for LLM as in s1 paper and s1 parser for parsing response.",
     "budget_forcing_kwargs": "Keyword arguments for budget forcing in JSON format.",
+    "max_queries_per_minute": "Number of queries per minute to send to the model. Used to help avoid rate limits.",
 }
 
 
@@ -511,6 +512,10 @@ def evaluate_rag(
         str,
         typer.Option(help=HELP_TEXT["budget_forcing_kwargs"]),
     ] = DEFAULTS["budget_forcing_kwargs"],
+    max_queries_per_minute: Annotated[
+        int,
+        typer.Option(help=HELP_TEXT["max_queries_per_minute"]),
+    ] = DEFAULTS["max_queries_per_minute"],
 ):
     """
     Evaluate the RAG.
@@ -551,6 +556,7 @@ def evaluate_rag(
         extra_body=extra_body,
         budget_forcing=budget_forcing,
         budget_forcing_kwargs=budget_forcing_kwargs,
+        max_queries_per_minute=max_queries_per_minute,
     )
 
 

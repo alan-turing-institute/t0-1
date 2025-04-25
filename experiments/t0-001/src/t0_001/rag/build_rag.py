@@ -74,6 +74,26 @@ class RAG:
         self.memory: MemorySaver = MemorySaver()
         self.graph: CompiledStateGraph = self.build_graph()
 
+    async def aretrieve(self, state: State) -> dict[str, list[Document]]:
+        """
+        Retrieve documents from the vector store based on the question in the state.
+
+        Parameters
+        ----------
+        state : State
+            The state of the RAG query, containing the question.
+
+        Returns
+        -------
+        dict[str, list[Document]]
+            A dictionary containing the retrieved documents.
+        """
+        retrieved_docs: list[Document] = await self.retriever.ainvoke(
+            input=state["question"]
+        )
+
+        return {"context": retrieved_docs}
+
     def retrieve(self, state: State) -> dict[str, list[Document]]:
         """
         Retrieve documents from the vector store based on the question in the state.
@@ -193,22 +213,7 @@ class RAG:
 
         return AIMessage(output + response)
 
-    def generate(self, state: State) -> dict[str, str]:
-        """
-        Generate an answer based on the question and retrieved documents.
-        The retrieved documents are passed to the LLM along with the question
-        using the prompt template.
-
-        Parameters
-        ----------
-        state : State
-            The state of the RAG query, containing the question and retrieved documents.
-
-        Returns
-        -------
-        dict[str, str]
-            A dictionary containing the generated answer and the messages used to generate it.
-        """
+    def obtain_context_and_sources(self, state: State) -> tuple[str, list[str]]:
         # obtain the sources and the context from the retrieved documents
         sources = [doc.metadata["source"] for doc in state["context"]]
         source_scores = [
@@ -231,6 +236,26 @@ class RAG:
         ]
 
         docs_content = "\n".join(retrieved_docs + [sources_str])
+
+        return docs_content, sources
+
+    def generate(self, state: State) -> dict[str, str]:
+        """
+        Generate an answer based on the question and retrieved documents.
+        The retrieved documents are passed to the LLM along with the question
+        using the prompt template.
+
+        Parameters
+        ----------
+        state : State
+            The state of the RAG query, containing the question and retrieved documents.
+
+        Returns
+        -------
+        dict[str, str]
+            A dictionary containing the generated answer and the messages used to generate it.
+        """
+        docs_content, sources = self.obtain_context_and_sources(state)
         messages = self.prompt.invoke(
             {
                 "question": state["question"],
@@ -244,6 +269,39 @@ class RAG:
             response = self._budget_forcing_invoke(messages)
         else:
             response = self.llm.invoke(messages)
+
+        return {"messages": messages, "answer": response}
+
+    async def agenerate(self, state: State) -> dict[str, str]:
+        """
+        Generate an answer based on the question and retrieved documents.
+        The retrieved documents are passed to the LLM along with the question
+        using the prompt template.
+
+        Parameters
+        ----------
+        state : State
+            The state of the RAG query, containing the question and retrieved documents.
+
+        Returns
+        -------
+        dict[str, str]
+            A dictionary containing the generated answer and the messages used to generate it.
+        """
+        docs_content, sources = self.obtain_context_and_sources(state)
+        messages = await self.prompt.ainvoke(
+            {
+                "question": state["question"],
+                "context": docs_content,
+                "demographics": state["demographics"],
+                "sources": sources,
+            },
+        )
+
+        if self.budget_forcing:
+            response = await self._budget_forcing_invoke(messages)
+        else:
+            response = await self.llm.ainvoke(messages)
 
         return {"messages": messages, "answer": response}
 
@@ -271,6 +329,15 @@ class RAG:
         )
         return response
 
+    async def _aquery(
+        self, question: str, user_id: str = "0", demographics: str | None = None
+    ) -> State:
+        response = await self.graph.ainvoke(
+            input={"question": question, "demographics": demographics},
+            config={"configurable": {"thread_id": user_id}},
+        )
+        return response
+
     def query(self, question: str, user_id: str = "0") -> str:
         """
         Query the RAG with a question and return response.
@@ -290,9 +357,28 @@ class RAG:
         response = self._query(question=question, user_id=user_id)
         return response["answer"].content
 
-    def query_with_sources(self, question: str, user_id: str = "0") -> str:
+    async def aquery(self, question: str, user_id: str = "0") -> str:
         """
-        Query the RAG with a question and return response with sources used
+        Async query the RAG with a question and return response.
+
+        Parameters
+        ----------
+        question : str
+            The question to ask the RAG.
+        user_id : str, optional
+            The user ID for the query, by default "0".
+
+        Returns
+        -------
+        str
+            The answer generated by the RAG.
+        """
+        response = await self._aquery(question=question, user_id=user_id)
+        return response["answer"].content
+
+    async def aquery_with_sources(self, question: str, user_id: str = "0") -> str:
+        """
+        Asynchronously query the RAG with a question and return response with sources used
         in the context.
 
         Parameters
@@ -308,7 +394,7 @@ class RAG:
             The answer generated by the RAG along with the sources used
             in the context.
         """
-        response = self._query(question=question, user_id=user_id)
+        response = await self._query(question=question, user_id=user_id)
 
         # extract the sources of the documents used in the context
         pulled_context = [doc.metadata["source"] for doc in response["context"]]
@@ -323,9 +409,9 @@ class RAG:
 
         return response_with_context
 
-    def query_with_context(self, question: str, user_id: str = "0") -> str:
+    async def aquery_with_context(self, question: str, user_id: str = "0") -> str:
         """
-        Query the RAG with a question and return response with context
+        Asynchronously query the RAG with a question and return response with context
         used in the context.
 
         Parameters
@@ -341,7 +427,7 @@ class RAG:
             The answer generated by the RAG along with the context used
             in the context.
         """
-        response = self._query(question=question, user_id=user_id)
+        response = await self._aquery(question=question, user_id=user_id)
 
         # extract the sources and contents of the documents used in the context
         pulled_context = [
