@@ -495,6 +495,12 @@ def evaluate_rag(
             help="If True, evaluating deepseek-R1 responses which requires parsing the response."
         ),
     ] = False,
+    t0: Annotated[
+        bool,
+        typer.Option(
+            help="If True, evaluating t0 responses which requires parsing the response."
+        ),
+    ] = False,
     env_file: Annotated[
         str | None,
         typer.Option(help=HELP_TEXT["env_file"]),
