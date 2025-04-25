@@ -112,7 +112,7 @@ class RAG:
 
         return {"context": retrieved_docs}
 
-    def _budget_forcing_invoke(self, messages) -> str:
+    def _budget_forcing_invoke(self, messages) -> AIMessage:
         import logging
 
         from langchain_openai import OpenAI
@@ -213,7 +213,7 @@ class RAG:
 
         return AIMessage(output + response)
 
-    def _budget_forcing_ainvoke(self, messages) -> str:
+    async def _budget_forcing_ainvoke(self, messages) -> AIMessage:
         import logging
 
         from langchain_openai import OpenAI
@@ -243,7 +243,7 @@ class RAG:
         if self.budget_forcing_kwargs["max_tokens_thinking"] <= 0:
             # don't need to think, just generate the answer directly
             prompt += "<|im_start|>think\n<|im_start|>answer\n"
-            response = self.llm.ainvoke(prompt)
+            response = await self.llm.ainvoke(prompt)
             return AIMessage(response)
 
         # otherwise we need to think and apply budget forcing
@@ -278,7 +278,7 @@ class RAG:
 
             logging.info(f"Thinking round {i + 1} out of {max_thinking_steps}")
             logging.info(f"Thinking tokens remaining: {thinking_tokens_remaining}")
-            response = self.llm.ainvoke(prompt, extra_body=sampling_params)
+            response = await self.llm.ainvoke(prompt, extra_body=sampling_params)
             output += response
             prompt += response
 
@@ -310,7 +310,7 @@ class RAG:
 
         output += "<|im_start|>answer\n"
         prompt += "<|im_start|>answer\n"
-        response = self.llm.ainvoke(prompt, extra_body=sampling_params)
+        response = await self.llm.ainvoke(prompt, extra_body=sampling_params)
 
         return AIMessage(output + response)
 
