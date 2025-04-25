@@ -75,9 +75,9 @@ def parse_deepseek_r1(string: str) -> tuple[str]:
         return "", ""
 
 
-def parse_t0(string: str) -> tuple[str]:
+def parse_s1(string: str) -> tuple[str]:
     """
-    Responses from t0 should be in the format:
+    Responses from s1 should be in the format:
     \nanswer\n(condition, severity).
     The function extracts the condition and severity level from the string.
     The condition and severity level are separated by a comma.
@@ -117,7 +117,7 @@ async def process_query(
     rag: RAG,
     generate_only: bool,
     deepseek_r1: bool,
-    t0: bool,
+    s1: bool,
     output_file: str,
     request_interval: float,
 ):
@@ -135,6 +135,7 @@ async def process_query(
 
         if not generate_only:
             if deepseek_r1:
+                logging.info("Using deepseek-r1 parser for evaluation.")
                 # extract condition and severity level from the response
                 parsed_condition, parsed_severity_level = parse_deepseek_r1(
                     response["answer"].content
@@ -145,9 +146,10 @@ async def process_query(
                 severity_match = (
                     parsed_severity_level.lower() == item["severity_level"].lower()
                 )
-            elif t0:
+            elif s1:
+                logging.info("Using s1 parser for evaluation.")
                 # extract condition and severity level from the response
-                parsed_condition, parsed_severity_level = parse_t0(
+                parsed_condition, parsed_severity_level = parse_s1(
                     response["answer"].content
                 )
                 prediction_condition = remove_dash_and_spaces(parsed_condition)
@@ -157,6 +159,7 @@ async def process_query(
                     parsed_severity_level.lower() == item["severity_level"].lower()
                 )
             else:
+                logging.info("Using tool calls for evaluation.")
                 if (
                     response["answer"].additional_kwargs.get("tool_calls") is not None
                     and len(response["answer"].additional_kwargs["tool_calls"]) == 1
@@ -237,10 +240,7 @@ async def process_query(
             res["retrieved_documents_sources"]
         )
 
-        if deepseek_r1:
-            res["parsed_conditions"] = parsed_condition
-            res["parsed_severity_level"] = parsed_severity_level
-        if t0:
+        if deepseek_r1 or s1:
             res["parsed_conditions"] = parsed_condition
             res["parsed_severity_level"] = parsed_severity_level
 
@@ -262,7 +262,7 @@ async def evaluate_rag(
     rag: RAG,
     generate_only: bool = False,
     deepseek_r1: bool = False,
-    t0: bool = False,
+    s1: bool = False,
     max_queries_per_minute: int = 60,
 ) -> list[dict]:
     """
@@ -286,8 +286,8 @@ async def evaluate_rag(
     deepseek_r1 : bool, optional
         If True, evaluating deepseek-R1 responses which requires parsing the response.
         By default False.
-    t0 : bool, optional
-        If True, evaluating t0 or s1.1 responses which requires parsing the response.
+    s1 : bool, optional
+        If True, evaluating s1-style responses which requires parsing the response.
         By default False.
     max_queries_per_minute : int, optional
         The number of queries to process per minute. By default 60.
@@ -317,7 +317,7 @@ async def evaluate_rag(
                 rag=rag,
                 generate_only=generate_only,
                 deepseek_r1=deepseek_r1,
-                t0=t0,
+                s1=s1,
                 output_file=output_file,
                 request_interval=60 / max_queries_per_minute,
             )
@@ -359,8 +359,9 @@ def main(
     prompt_template_path: str | None = None,
     system_prompt_path: str | None = None,
     deepseek_r1: bool = False,
-    t0: bool = False,
     extra_body: dict | str | None = None,
+    budget_forcing: bool = False,
+    budget_forcing_kwargs: dict | str | None = None,
     max_queries_per_minute: int = 60,
 ):
     rag = build_rag(
@@ -370,10 +371,16 @@ def main(
         trust_source=trust_source,
         llm_provider=llm_provider,
         llm_model_name=llm_model_name,
-        tools=[submit_condition_recommendation] if (not deepseek_r1 and not t0) else [],
+        tools=(
+            [submit_condition_recommendation]
+            if not (deepseek_r1 or budget_forcing)
+            else None
+        ),
         prompt_template_path=prompt_template_path,
         system_prompt_path=system_prompt_path,
         extra_body=extra_body,
+        budget_forcing=budget_forcing,
+        budget_forcing_kwargs=budget_forcing_kwargs,
     )
 
     asyncio.run(
@@ -385,7 +392,7 @@ def main(
             rag=rag,
             generate_only=generate_only,
             deepseek_r1=deepseek_r1,
-            t0=t0,
+            s1=budget_forcing,
             max_queries_per_minute=max_queries_per_minute,
         )
     )
