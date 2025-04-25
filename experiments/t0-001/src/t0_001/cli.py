@@ -529,7 +529,6 @@ def evaluate_rag(
     logging.info("Evaluating RAG...")
 
     from t0_001.rag.evaluate import RetrieverConfig, main
-    import json
 
     main(
         input_file=input_file,
