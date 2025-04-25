@@ -78,7 +78,7 @@ def parse_deepseek_r1(string: str) -> tuple[str]:
 def parse_s1(string: str) -> tuple[str]:
     """
     Responses from s1 should be in the format:
-    \nanswer\n(condition, severity).
+    <|im_start|>answer(condition, severity).
     The function extracts the condition and severity level from the string.
     The condition and severity level are separated by a comma.
 
@@ -95,18 +95,15 @@ def parse_s1(string: str) -> tuple[str]:
     import re
 
     # split the string into two parts: before and after the reasoning
-    string_after_answer = string.split("\nanswer\n")[-1]
+    string_after_answer = string.split("<|im_start|>answer")[-1]
 
     # extract the condition and severity level using regex
-    match = re.search(r"\(([^,]+), ([^)]+)\)", string_after_answer)
+    match = re.search(r"\(([^)]*), ([^)]+)\)", string_after_answer)
     if match:
-        condition = match.group(1).strip()
-        severity_level = match.group(2).strip()
+        condition = match.group(1).strip().strip('"')
+        severity_level = match.group(2).strip().strip('"')
         return condition, severity_level
     else:
-        logging.warning(
-            f"Could not extract condition and severity level from string: {string}"
-        )
         return "", ""
 
 
