@@ -193,15 +193,15 @@ class RAG:
     def build_graph(self) -> CompiledStateGraph:
         """
         Build a Langchain compiled state graph with the retrieve and generate functions
-        as nodes. Asynchronous functions are used for the graph.
+        as nodes.
 
         Returns
         -------
         CompiledStateGraph
            The compiled state graph.
         """
-        graph_builder = StateGraph(State).add_sequence([self.aretrieve, self.agenerate])
-        graph_builder.add_edge(START, "aretrieve")
+        graph_builder = StateGraph(State).add_sequence([self.retrieve, self.generate])
+        graph_builder.add_edge(START, "retrieve")
         graph = graph_builder.compile(checkpointer=self.memory)
         return graph
 
