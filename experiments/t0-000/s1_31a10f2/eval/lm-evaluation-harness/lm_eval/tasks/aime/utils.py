@@ -132,7 +132,7 @@ import time
 from typing import Any
 
 import openai
-from openai import OpenAI
+from openai import OpenAI, AzureOpenAI
 
 class ChatCompletionSampler:
     """
@@ -146,9 +146,14 @@ class ChatCompletionSampler:
         temperature: float = 0.5,
         max_tokens: int = 1024,
     ):
-        self.api_key_name = "OPENAI_API_KEY"
-        self.client = OpenAI()
-        # using api_key=os.environ.get("OPENAI_API_KEY")  # please set your API_KEY
+        self.api_key_name = "AZURE_OPENAI_API_KEY"
+
+        self.client = AzureOpenAI(
+            azure_endpoint=os.environ.get("AZURE_OPENAI_ENDPOINT"),
+            api_version="2025-01-01-preview",
+        )
+        # using api_key=os.environ.get("AZURE_OPENAI_API_KEY")  # please set your API_KEY
+        
         self.model = model
         self.system_message = system_message
         self.temperature = temperature
