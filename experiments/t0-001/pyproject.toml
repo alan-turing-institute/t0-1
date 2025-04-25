@@ -20,7 +20,7 @@ dependencies = [
     "datasets>=3.5.0",
     "transformers>=4.51.3",
     "jinja2>=3.1.6",
-    "vllm>=0.8.4",
+    "vllm>=0.8.3",
 ]
 
 [project.optional-dependencies]

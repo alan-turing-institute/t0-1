@@ -82,15 +82,11 @@ def generate_synthetic_queries(
         progress_bar = tqdm.tqdm(total=n_queries)
         while i < n_queries:
             # random pick
-            query_type = random.choice(
-                ["basic", "cluster", "hypochondriac", "vague", "downplay"]
-            )
+            query_type = random.choice(["basic", "hypochondriac", "downplay"])
             severity_level = random.choice(
                 [
-                    "Ambulance",
                     "A&E",
                     "Urgent Primary Care",
-                    "Routine GP appointment",
                     "Self-care",
                 ]
             )

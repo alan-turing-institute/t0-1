@@ -1,3 +1,4 @@
+import asyncio
 import json
 import logging
 from pathlib import Path
@@ -10,7 +11,9 @@ from t0_001.rag.build_rag import (
     build_rag,
 )
 from t0_001.utils import read_jsonl, timestamp_file_name
-from tqdm import tqdm
+from tqdm.asyncio import tqdm_asyncio
+
+FILE_WRITE_LOCK = asyncio.Lock()
 
 
 @tool
@@ -72,7 +75,186 @@ def parse_deepseek_r1(string: str) -> tuple[str]:
         return "", ""
 
 
-def evaluate_rag(
+def parse_s1(string: str) -> tuple[str]:
+    """
+    Responses from s1 should be in the format:
+    \nanswer\n(condition, severity).
+    The function extracts the condition and severity level from the string.
+    The condition and severity level are separated by a comma.
+
+    Parameters
+    ----------
+    string : str
+        The string to parse.
+
+    Returns
+    -------
+    tuple[str]
+        A tuple containing the condition and severity level.
+    """
+    import re
+
+    # split the string into two parts: before and after the reasoning
+    string_after_answer = string.split("\nanswer\n")[-1]
+
+    # extract the condition and severity level using regex
+    match = re.search(r"\(([^,]+), ([^)]+)\)", string_after_answer)
+    if match:
+        condition = match.group(1).strip()
+        severity_level = match.group(2).strip()
+        return condition, severity_level
+    else:
+        logging.warning(
+            f"Could not extract condition and severity level from string: {string}"
+        )
+        return "", ""
+
+
+async def process_query(
+    item: dict,
+    query_field: str,
+    target_document_field: str,
+    rag: RAG,
+    generate_only: bool,
+    deepseek_r1: bool,
+    s1: bool,
+    output_file: str,
+    request_interval: float,
+):
+    # wait interval between requests
+    await asyncio.sleep(request_interval)
+
+    query = item[query_field]
+    target_document = item[target_document_field]
+
+    try:
+        # obtain the top k documents from the vector store
+        response = await rag._aquery(
+            question=query, demographics=str(item["general_demographics"])
+        )
+
+        if not generate_only:
+            if deepseek_r1:
+                logging.info("Using deepseek-r1 parser for evaluation.")
+                # extract condition and severity level from the response
+                parsed_condition, parsed_severity_level = parse_deepseek_r1(
+                    response["answer"].content
+                )
+                prediction_condition = remove_dash_and_spaces(parsed_condition)
+                target_condition = remove_dash_and_spaces(target_document)
+                conditions_match = prediction_condition == target_condition
+                severity_match = (
+                    parsed_severity_level.lower() == item["severity_level"].lower()
+                )
+            elif s1:
+                logging.info("Using s1 parser for evaluation.")
+                # extract condition and severity level from the response
+                parsed_condition, parsed_severity_level = parse_s1(
+                    response["answer"].content
+                )
+                prediction_condition = remove_dash_and_spaces(parsed_condition)
+                target_condition = remove_dash_and_spaces(target_document)
+                conditions_match = prediction_condition == target_condition
+                severity_match = (
+                    parsed_severity_level.lower() == item["severity_level"].lower()
+                )
+            else:
+                logging.info("Using tool calls for evaluation.")
+                if (
+                    response["answer"].additional_kwargs.get("tool_calls") is not None
+                    and len(response["answer"].additional_kwargs["tool_calls"]) == 1
+                ):
+                    arguments = json.loads(
+                        response["answer"].additional_kwargs["tool_calls"][0][
+                            "function"
+                        ]["arguments"]
+                    )
+
+                    if arguments.get("condition") is not None:
+                        prediction_condition = remove_dash_and_spaces(
+                            arguments["condition"]
+                        )
+                        target_condition = remove_dash_and_spaces(target_document)
+                        conditions_match = prediction_condition == target_condition
+                    else:
+                        conditions_match = False
+
+                    if arguments.get("severity_level") is not None:
+                        severity_match = (
+                            arguments["severity_level"].lower()
+                            == item["severity_level"].lower()
+                        )
+                    else:
+                        severity_match = False
+                else:
+                    conditions_match = False
+                    severity_match = False
+
+        # create dictionary to store the results
+        res = item | {
+            "query_field": query_field,
+            "target_document_field": target_document_field,
+            "retrieved_documents": [doc.page_content for doc in response["context"]],
+            "retrieved_documents_scores": [
+                float(doc.metadata["sub_docs"][0].metadata["score"])
+                for doc in response["context"]
+            ],
+            "retrieved_documents_sources": [
+                doc.metadata["source"] for doc in response["context"]
+            ],
+            "rag_message": [
+                message.content for message in response["messages"].messages
+            ],
+            "rag_answer": response["answer"].content,
+            "rag_tool_calls": response["answer"].additional_kwargs.get("tool_calls"),
+        }
+    except Exception as e:
+        logging.error(f"Error querying RAG: {e}")
+
+        retrieved_docs = await rag.retriever.ainvoke(input=query)
+
+        # create dictionary to store the results
+        res = item | {
+            "query_field": query_field,
+            "target_document_field": target_document_field,
+            "retrieved_documents": [doc.page_content for doc in retrieved_docs],
+            "retrieved_documents_scores": [
+                float(doc.metadata["sub_docs"][0].metadata["score"])
+                for doc in retrieved_docs
+            ],
+            "retrieved_documents_sources": [
+                doc.metadata["source"] for doc in retrieved_docs
+            ],
+            "error": str(e),
+        }
+
+        conditions_match = False
+        severity_match = False
+
+    if not generate_only:
+        res["conditions_match"] = conditions_match
+        res["severity_match"] = severity_match
+
+        # check for match between the source of the retrieved documents and the target document source
+        res["retriever_match"] = target_document in set(
+            res["retrieved_documents_sources"]
+        )
+
+        if deepseek_r1 or s1:
+            res["parsed_conditions"] = parsed_condition
+            res["parsed_severity_level"] = parsed_severity_level
+
+    # write the results to the output file
+    async with FILE_WRITE_LOCK:
+        with open(output_file, "a") as f:
+            json.dump(res, f)
+            f.write("\n")
+
+    # return the results
+    return res
+
+
+async def evaluate_rag(
     input_file: str | Path,
     output_file: str | Path,
     query_field: str,
@@ -80,6 +262,8 @@ def evaluate_rag(
     rag: RAG,
     generate_only: bool = False,
     deepseek_r1: bool = False,
+    s1: bool = False,
+    max_queries_per_minute: int = 60,
 ) -> list[dict]:
     """
     Evaluate the query store by comparing the query results with the target documents.
@@ -102,6 +286,11 @@ def evaluate_rag(
     deepseek_r1 : bool, optional
         If True, evaluating deepseek-R1 responses which requires parsing the response.
         By default False.
+    s1 : bool, optional
+        If True, evaluating s1-style responses which requires parsing the response.
+        By default False.
+    max_queries_per_minute : int, optional
+        The number of queries to process per minute. By default 60.
 
     Returns
     -------
@@ -112,119 +301,38 @@ def evaluate_rag(
         raise ValueError(f"File {output_file} is not a JSONL file.")
 
     data = read_jsonl(input_file)
-    retriever_match_sum = 0
-    conditions_sum = 0
-    severity_sum = 0
-    results = []
     output_file = timestamp_file_name(output_file)
 
     logging.info(f"Writing results to {output_file}...")
     logging.info(f"Query field: {query_field}")
     logging.info(f"Target document field: {target_document_field}")
+    logging.info(f"Request interval: {60 / max_queries_per_minute} seconds")
 
-    for item in tqdm(data, desc="Evaluating Queries"):
-        query = item[query_field]
-        target_document = item[target_document_field]
-
-        # obtain the top k documents from the vector store
-        response = rag._query(
-            question=query, demographics=str(item["general_demographics"])
-        )
-
-        if not generate_only:
-            if deepseek_r1:
-                # extract condition and severity level from the response
-                parsed_condition, parsed_severity_level = parse_deepseek_r1(
-                    response["answer"].content
-                )
-                prediction_condition = remove_dash_and_spaces(parsed_condition)
-                target_condition = remove_dash_and_spaces(target_document)
-                conditions_match = prediction_condition == target_condition
-                if conditions_match:
-                    conditions_sum += 1
-
-                severity_match = (
-                    parsed_severity_level.lower() == item["severity_level"].lower()
-                )
-                if severity_match:
-                    severity_sum += 1
-            else:
-                if (
-                    response["answer"].additional_kwargs.get("tool_calls") is not None
-                    and len(response["answer"].additional_kwargs["tool_calls"]) == 1
-                ):
-                    arguments = json.loads(
-                        response["answer"].additional_kwargs["tool_calls"][0][
-                            "function"
-                        ]["arguments"]
-                    )
-
-                    if arguments.get("condition") is not None:
-                        prediction_condition = remove_dash_and_spaces(
-                            arguments["condition"]
-                        )
-                        target_condition = remove_dash_and_spaces(target_document)
-                        conditions_match = prediction_condition == target_condition
-                        if conditions_match:
-                            conditions_sum += 1
-                    else:
-                        conditions_match = False
-
-                    if arguments.get("severity_level") is not None:
-                        severity_match = (
-                            arguments["severity_level"].lower()
-                            == item["severity_level"].lower()
-                        )
-                        if severity_match:
-                            severity_sum += 1
-                    else:
-                        severity_match = False
-                else:
-                    conditions_match = False
-                    severity_match = False
-
-        # create dictionary to store the results
-        res = item | {
-            "query_field": query_field,
-            "target_document_field": target_document_field,
-            "retrieved_documents": [doc.page_content for doc in response["context"]],
-            "retrieved_documents_scores": [
-                float(doc.metadata["sub_docs"][-1].metadata["score"])
-                for doc in response["context"]
-            ],
-            "retrieved_documents_sources": [
-                doc.metadata["source"] for doc in response["context"]
-            ],
-            "rag_message": [
-                message.content for message in response["messages"].messages
-            ],
-            "rag_answer": response["answer"].content,
-            "rag_tool_calls": response["answer"].additional_kwargs.get("tool_calls"),
-        }
-
-        if not generate_only:
-            res["conditions_match"] = conditions_match
-            res["severity_match"] = severity_match
-
-            # check for match between the source of the retrieved documents and the target document source
-            res["retriever_match"] = target_document in set(
-                res["retrieved_documents_sources"]
+    tasks = [
+        asyncio.create_task(
+            process_query(
+                item=item,
+                query_field=query_field,
+                target_document_field=target_document_field,
+                rag=rag,
+                generate_only=generate_only,
+                deepseek_r1=deepseek_r1,
+                s1=s1,
+                output_file=output_file,
+                request_interval=60 / max_queries_per_minute,
             )
-            retriever_match_sum += res["retriever_match"]
-
-            if deepseek_r1:
-                res["parsed_conditions"] = parsed_condition
-                res["parsed_severity_level"] = parsed_severity_level
-
-        # write the results to the output file
-        with open(output_file, "a") as f:
-            json.dump(res, f)
-            f.write("\n")
-
-        # append the result to the results list
-        results.append(res)
+        )
+        for item in data
+    ]
+    results = await tqdm_asyncio.gather(*tasks)
+    logging.info("All tasks completed.")
 
     if not generate_only:
+        # calculate sums
+        retriever_match_sum = sum([res["retriever_match"] for res in results])
+        conditions_sum = sum([res["conditions_match"] for res in results])
+        severity_sum = sum([res["severity_match"] for res in results])
+
         logging.info(
             f"Proportion of retriever matches: {retriever_match_sum}/{len(data)} = {retriever_match_sum / len(data):.2%}"
         )
@@ -234,8 +342,6 @@ def evaluate_rag(
         logging.info(
             f"Proportion of severity matches: {severity_sum}/{len(data)} = {severity_sum / len(data):.2%}"
         )
-
-    return results
 
 
 def main(
@@ -253,6 +359,10 @@ def main(
     prompt_template_path: str | None = None,
     system_prompt_path: str | None = None,
     deepseek_r1: bool = False,
+    extra_body: dict | str | None = None,
+    budget_forcing: bool = False,
+    budget_forcing_kwargs: dict | str | None = None,
+    max_queries_per_minute: int = 60,
 ):
     rag = build_rag(
         conditions_file=conditions_file,
@@ -261,17 +371,28 @@ def main(
         trust_source=trust_source,
         llm_provider=llm_provider,
         llm_model_name=llm_model_name,
-        tools=[submit_condition_recommendation],
+        tools=(
+            [submit_condition_recommendation]
+            if not (deepseek_r1 or budget_forcing)
+            else None
+        ),
         prompt_template_path=prompt_template_path,
         system_prompt_path=system_prompt_path,
+        extra_body=extra_body,
+        budget_forcing=budget_forcing,
+        budget_forcing_kwargs=budget_forcing_kwargs,
     )
 
-    evaluate_rag(
-        input_file=input_file,
-        output_file=output_file,
-        query_field=query_field,
-        target_document_field=target_document_field,
-        rag=rag,
-        generate_only=generate_only,
-        deepseek_r1=deepseek_r1,
+    asyncio.run(
+        evaluate_rag(
+            input_file=input_file,
+            output_file=output_file,
+            query_field=query_field,
+            target_document_field=target_document_field,
+            rag=rag,
+            generate_only=generate_only,
+            deepseek_r1=deepseek_r1,
+            s1=budget_forcing,
+            max_queries_per_minute=max_queries_per_minute,
+        )
     )
