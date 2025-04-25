@@ -198,7 +198,7 @@ class RAG:
         Returns
         -------
         CompiledStateGraph
-           The compiled state graph.
+            The compiled state graph.
         """
         graph_builder = StateGraph(State).add_sequence([self.retrieve, self.generate])
         graph_builder.add_edge(START, "retrieve")
