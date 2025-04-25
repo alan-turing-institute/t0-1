@@ -35,5 +35,5 @@ DEFAULTS = {
     "host": "0.0.0.0",
     "port": 8000,
     "env_file": ".env",
-    "queries_per_minute": 60,
+    "max_queries_per_minute": 60,
 }

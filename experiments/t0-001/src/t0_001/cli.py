@@ -34,7 +34,7 @@ HELP_TEXT = {
     "port_query": "Port to query.",
     "env_file": "Path to the .env file.",
     "extra_body:": "Extra body to pass to the LLM if using OpenAI as service provider.",
-    "queries_per_minute": "Number of queries per minute to send to the model. Used to help avoid rate limits.",
+    "max_queries_per_minute": "Number of queries per minute to send to the model. Used to help avoid rate limits.",
 }
 
 
@@ -498,10 +498,10 @@ def evaluate_rag(
         str | None,
         typer.Option(help=HELP_TEXT["extra_body:"]),
     ] = None,  # TODO: Decide whether to add this to defaults
-    queries_per_minute: Annotated[
+    max_queries_per_minute: Annotated[
         int,
-        typer.Option(help=HELP_TEXT["queries_per_minute"]),
-    ] = DEFAULTS["queries_per_minute"],
+        typer.Option(help=HELP_TEXT["max_queries_per_minute"]),
+    ] = DEFAULTS["max_queries_per_minute"],
 ):
     """
     Evaluate the RAG.
@@ -541,7 +541,7 @@ def evaluate_rag(
         deepseek_r1=deepseek_r1,
         t0=t0,
         extra_body=extra_body,
-        queries_per_minute=queries_per_minute,
+        max_queries_per_minute=max_queries_per_minute,
     )
 
 
