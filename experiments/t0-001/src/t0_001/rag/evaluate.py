@@ -293,7 +293,11 @@ def main(
         trust_source=trust_source,
         llm_provider=llm_provider,
         llm_model_name=llm_model_name,
-        tools=[submit_condition_recommendation] if not deepseek_r1 else [],
+        tools=(
+            [submit_condition_recommendation]
+            if not (deepseek_r1 or budget_forcing)
+            else None
+        ),
         prompt_template_path=prompt_template_path,
         system_prompt_path=system_prompt_path,
         extra_body=extra_body,
