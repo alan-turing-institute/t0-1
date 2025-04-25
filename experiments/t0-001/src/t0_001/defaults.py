@@ -15,7 +15,7 @@ class LLMProvider(str, Enum):
     openai_completion = "openai_completion"
 
 
-CONDITIONS_FILE: Final[str] = "./data/nhs-conditions/conditions.jsonl"
+CONDITIONS_FILE: Final[str] = "./data/nhs-conditions/v3/conditions.jsonl"
 
 DEFAULTS = {
     "embedding_model_name": "sentence-transformers/all-mpnet-base-v2",
@@ -38,4 +38,5 @@ DEFAULTS = {
     "env_file": ".env",
     "budget_forcing": False,
     "budget_forcing_kwargs": '{"max_tokens_thinking": 1024, "num_stop_skips": 3}',
+    "max_queries_per_minute": 60,
 }
