@@ -13,6 +13,8 @@ from t0_001.rag.build_rag import (
 from t0_001.utils import read_jsonl, timestamp_file_name
 from tqdm.asyncio import tqdm_asyncio
 
+FILE_WRITE_LOCK = asyncio.Lock()
+
 
 @tool
 def submit_condition_recommendation(
@@ -117,7 +119,11 @@ async def process_query(
     deepseek_r1: bool,
     t0: bool,
     output_file: str,
+    request_interval: float,
 ):
+    # wait interval between requests
+    await asyncio.sleep(request_interval)
+
     query = item[query_field]
     target_document = item[target_document_field]
 
@@ -239,9 +245,10 @@ async def process_query(
             res["parsed_severity_level"] = parsed_severity_level
 
     # write the results to the output file
-    with open(output_file, "a") as f:
-        json.dump(res, f)
-        f.write("\n")
+    async with FILE_WRITE_LOCK:
+        with open(output_file, "a") as f:
+            json.dump(res, f)
+            f.write("\n")
 
     # return the results
     return res
@@ -256,6 +263,7 @@ async def evaluate_rag(
     generate_only: bool = False,
     deepseek_r1: bool = False,
     t0: bool = False,
+    queries_per_minute: int = 60,
 ) -> list[dict]:
     """
     Evaluate the query store by comparing the query results with the target documents.
@@ -279,8 +287,10 @@ async def evaluate_rag(
         If True, evaluating deepseek-R1 responses which requires parsing the response.
         By default False.
     t0 : bool, optional
-        If True, evaluating t0 responses which requires parsing the response.
+        If True, evaluating t0 or s1.1 responses which requires parsing the response.
         By default False.
+    queries_per_minute : int, optional
+        The number of queries to process per minute. By default 60.
 
     Returns
     -------
@@ -296,18 +306,20 @@ async def evaluate_rag(
     logging.info(f"Writing results to {output_file}...")
     logging.info(f"Query field: {query_field}")
     logging.info(f"Target document field: {target_document_field}")
+    logging.info(f"Request interval: {60 / queries_per_minute} seconds")
 
     tasks = [
         asyncio.create_task(
             process_query(
-                item,
-                query_field,
-                target_document_field,
-                rag,
-                generate_only,
-                deepseek_r1,
-                t0,
-                output_file,
+                item=item,
+                query_field=query_field,
+                target_document_field=target_document_field,
+                rag=rag,
+                generate_only=generate_only,
+                deepseek_r1=deepseek_r1,
+                t0=t0,
+                output_file=output_file,
+                request_interval=60 / queries_per_minute,
             )
         )
         for item in data
@@ -349,6 +361,7 @@ def main(
     deepseek_r1: bool = False,
     t0: bool = False,
     extra_body: dict | str | None = None,
+    queries_per_minute: int = 60,
 ):
     rag = build_rag(
         conditions_file=conditions_file,
@@ -373,5 +386,6 @@ def main(
             generate_only=generate_only,
             deepseek_r1=deepseek_r1,
             t0=t0,
+            queries_per_minute=queries_per_minute,
         )
     )
