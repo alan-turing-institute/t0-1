@@ -3,6 +3,7 @@ from pathlib import Path
 from langchain import hub
 from langchain_core.documents import Document
 from langchain_core.language_models.llms import LLM
+from langchain_core.messages.ai import AIMessage
 from langchain_core.prompts import PromptTemplate
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph.state import START, CompiledStateGraph, StateGraph
@@ -122,7 +123,7 @@ class RAG:
             # don't need to think, just generate the answer directly
             prompt += "<|im_start|>think\n<|im_start|>answer\n"
             response = self.llm.invoke(prompt)
-            return response
+            return AIMessage(response)
 
         # otherwise we need to think and apply budget forcing
         # output tracks the generated output after the initial prompt
@@ -146,9 +147,7 @@ class RAG:
         i = 0
         # + 1 accounts for the first generation w/o ignoring
         max_thinking_steps = self.budget_forcing_kwargs["num_stop_skips"] + 1
-        while (
-            i < max_thinking_steps and thinking_tokens_remaining > 0
-        ):
+        while i < max_thinking_steps and thinking_tokens_remaining > 0:
             if i > 0:
                 # if we are not the first generation, need to add ignore string
                 # to suppress the ending
@@ -156,12 +155,12 @@ class RAG:
                 prompt += ignore_str
                 logging.info("Suppressing end to encourage more thinking")
 
-            logging.info(f"Thinking round {i+1} out of {max_thinking_steps}")
+            logging.info(f"Thinking round {i + 1} out of {max_thinking_steps}")
             logging.info(f"Thinking tokens remaining: {thinking_tokens_remaining}")
             response = self.llm.invoke(prompt, extra_body=sampling_params)
             output += response
             prompt += response
-            
+
             # subtract the number of tokens used for thinking
             # we continue until we reach the max tokens or reach max number of skips
             thinking_tokens_remaining -= len(tokenizer.tokenize(response))
@@ -172,10 +171,14 @@ class RAG:
         if thinking_tokens_remaining <= 0:
             logging.info("Max thinking tokens reached, stopping thinking")
         else:
-            logging.info(f"Max thinking rounds {max_thinking_steps} reached, stopping thinking")
-            
-        logging.info(f"Thinking tokens used: {self.budget_forcing_kwargs['max_tokens_thinking'] - thinking_tokens_remaining}")
-        
+            logging.info(
+                f"Max thinking rounds {max_thinking_steps} reached, stopping thinking"
+            )
+
+        logging.info(
+            f"Thinking tokens used: {self.budget_forcing_kwargs['max_tokens_thinking'] - thinking_tokens_remaining}"
+        )
+
         # generate the final answer
         stop_token_ids = tokenizer("<|im_end|>")["input_ids"]
         sampling_params = {
@@ -183,7 +186,7 @@ class RAG:
             "stop_token_ids": stop_token_ids,
             "skip_special_tokens": False,
         }
-        
+
         output += "<|im_start|>answer\n"
         prompt += "<|im_start|>answer\n"
         response = self.llm.invoke(prompt, extra_body=sampling_params)
