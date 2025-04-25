@@ -69,12 +69,8 @@ class CustomParentDocumentRetriever(ParentDocumentRetriever):
     async def _aget_relevant_documents(
         self, query: str, *, run_manager: AsyncCallbackManagerForRetrieverRun
     ) -> List[Document]:
-        """Asynchronously get documents relevant to a query.
-        Args:
-            query: String to find relevant documents for
-            run_manager: The callbacks handler to use
-        Returns:
-            List of relevant documents
+        """
+        Asynchronously get documents relevant to a query.
         """
         if self.search_type == SearchType.mmr:
             sub_docs = await self.vectorstore.amax_marginal_relevance_search(
