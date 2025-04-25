@@ -49,10 +49,10 @@ async def run_chat_interact(
             continue
 
         if mode == "query":
-            response = await rag.query(question=message, user_id=user_id)
+            response = await rag.aquery(question=message, user_id=user_id)
         elif mode == "query-with-sources":
-            response = await rag.query_with_sources(question=message, user_id=user_id)
+            response = await rag.aquery_with_sources(question=message, user_id=user_id)
         elif mode == "query-with-context":
-            response = await rag.query_with_context(question=message, user_id=user_id)
+            response = await rag.aquery_with_context(question=message, user_id=user_id)
 
         print(f"\nModel: {response}")

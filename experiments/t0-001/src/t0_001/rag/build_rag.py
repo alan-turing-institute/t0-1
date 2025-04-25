@@ -261,9 +261,9 @@ class RAG:
         response = await self._aquery(question=question, user_id=user_id)
         return response["answer"].content
 
-    async def query_with_sources(self, question: str, user_id: str = "0") -> str:
+    async def aquery_with_sources(self, question: str, user_id: str = "0") -> str:
         """
-        Query the RAG with a question and return response with sources used
+        Asynchronously query the RAG with a question and return response with sources used
         in the context.
 
         Parameters
@@ -294,9 +294,9 @@ class RAG:
 
         return response_with_context
 
-    async def query_with_context(self, question: str, user_id: str = "0") -> str:
+    async def aquery_with_context(self, question: str, user_id: str = "0") -> str:
         """
-        Query the RAG with a question and return response with context
+        Asynchronously query the RAG with a question and return response with context
         used in the context.
 
         Parameters
