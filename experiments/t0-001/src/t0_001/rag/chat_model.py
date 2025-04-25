@@ -134,10 +134,24 @@ def get_azure_endpoint_chat_model(
 
 def get_openai_chat_model(
     model_name: str,
+    extra_body: dict | str | None = None,
 ) -> BaseChatModel:
     from langchain_openai import ChatOpenAI
 
     logging.info(f"Using OpenAI for model: {model_name}")
+
+    if extra_body is None:
+        extra_body = {}
+    else:
+        import json
+
+        try:
+            extra_body = json.loads(extra_body)
+        except json.JSONDecodeError:
+            logging.error(f"extra_body is not a valid json: {extra_body}")
+            raise
+
+    logging.info(f"Extra body to pass to chat/completions: {extra_body}")
 
     api_key = get_environment_variable("OPENAI_API_KEY", model_name)
     base_url = get_environment_variable("OPENAI_BASE_URL", model_name)
@@ -145,6 +159,7 @@ def get_openai_chat_model(
         model=model_name,
         api_key=api_key,
         base_url=base_url,
+        extra_body=extra_body,
     )
 
     return llm

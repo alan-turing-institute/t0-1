@@ -15,8 +15,11 @@ def convert_html_to_text(html):
         # Extract the text from the main element
         conditions_content = main_element.get_text(separator="\n", strip=True)
 
-        # Remove last reviewed date
+        # Remove page last reviewed date
         conditions_content = conditions_content.split("\nPage last reviewed:")[0]
+
+        # Remove media last reviewed date
+        conditions_content = conditions_content.split("\nMedia last reviewed:")[0]
     except AttributeError:
         return None
     return conditions_content
