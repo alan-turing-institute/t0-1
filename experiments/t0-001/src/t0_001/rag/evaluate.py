@@ -123,7 +123,7 @@ async def process_query(
 
     try:
         # obtain the top k documents from the vector store
-        response = await rag._query(
+        response = await rag._aquery(
             question=query, demographics=str(item["general_demographics"])
         )
 
@@ -187,11 +187,7 @@ async def process_query(
             "target_document_field": target_document_field,
             "retrieved_documents": [doc.page_content for doc in response["context"]],
             "retrieved_documents_scores": [
-                float(
-                    doc.metadata["sub_docs"][0].metadata["score"]
-                    if "sub_docs" in doc.metadata
-                    else 0
-                )
+                float(doc.metadata["sub_docs"][0].metadata["score"])
                 for doc in response["context"]
             ],
             "retrieved_documents_sources": [
@@ -361,7 +357,7 @@ def main(
         trust_source=trust_source,
         llm_provider=llm_provider,
         llm_model_name=llm_model_name,
-        tools=[submit_condition_recommendation] if not deepseek_r1 else [],
+        tools=[submit_condition_recommendation] if (not deepseek_r1 and not t0) else [],
         prompt_template_path=prompt_template_path,
         system_prompt_path=system_prompt_path,
         extra_body=extra_body,
