@@ -34,7 +34,7 @@ HELP_TEXT = {
     "port_query": "Port to query.",
     "env_file": "Path to the .env file.",
     "extra_body:": "Extra body to pass to the LLM if using OpenAI as service provider.",
-    "budget_forcing": "If True, uses budget forcing for LLM as in s1 paper.",
+    "budget_forcing": "If True, uses budget forcing for LLM as in s1 paper and s1 parser for parsing response.",
     "budget_forcing_kwargs": "Keyword arguments for budget forcing in JSON format.",
 }
 
@@ -495,12 +495,6 @@ def evaluate_rag(
             help="If True, evaluating deepseek-R1 responses which requires parsing the response."
         ),
     ] = False,
-    t0: Annotated[
-        bool,
-        typer.Option(
-            help="If True, evaluating t0 responses which requires parsing the response."
-        ),
-    ] = False,
     env_file: Annotated[
         str | None,
         typer.Option(help=HELP_TEXT["env_file"]),
@@ -554,7 +548,6 @@ def evaluate_rag(
         prompt_template_path=prompt_template_path,
         system_prompt_path=system_prompt_path,
         deepseek_r1=deepseek_r1,
-        t0=t0,
         extra_body=extra_body,
         budget_forcing=budget_forcing,
         budget_forcing_kwargs=budget_forcing_kwargs,
