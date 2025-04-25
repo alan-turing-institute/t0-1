@@ -213,6 +213,107 @@ class RAG:
 
         return AIMessage(output + response)
 
+    def _budget_forcing_ainvoke(self, messages) -> str:
+        import logging
+
+        from langchain_openai import OpenAI
+
+        if not isinstance(self.llm, OpenAI):
+            raise ValueError(
+                "Budget forcing is only supported for OpenAI completion endpoint."
+            )
+
+        from transformers import AutoTokenizer
+
+        tokenizer = AutoTokenizer.from_pretrained(
+            self.budget_forcing_kwargs["model_name"]
+        )
+
+        from langchain_openai.chat_models.base import _convert_message_to_dict
+
+        # convert the messages to dicts and apply the chat template
+        messages_as_dicts = [
+            _convert_message_to_dict(message) for message in messages.to_messages()
+        ]
+        prompt = tokenizer.apply_chat_template(
+            messages_as_dicts,
+            tokenize=False,
+        )
+
+        if self.budget_forcing_kwargs["max_tokens_thinking"] <= 0:
+            # don't need to think, just generate the answer directly
+            prompt += "<|im_start|>think\n<|im_start|>answer\n"
+            response = self.llm.ainvoke(prompt)
+            return AIMessage(response)
+
+        # otherwise we need to think and apply budget forcing
+        # output tracks the generated output after the initial prompt
+        # prompt tracks the prompt used for generation which will need to keep adding the responses
+        output = "<|im_start|>think\n"
+        prompt += output
+
+        # stop if reach end of thinking ("<|im_stard|>") or end ("|<im_end|>"),
+        # or reached the max thinking tokens
+        stop_token_ids = tokenizer("<|im_start|><|im_end|>")["input_ids"]
+        ignore_str = "Wait"
+
+        thinking_tokens_remaining = self.budget_forcing_kwargs["max_tokens_thinking"]
+        sampling_params = {
+            "max_tokens": thinking_tokens_remaining,
+            "min_tokens": 0,
+            "stop_token_ids": stop_token_ids,
+            "skip_special_tokens": False,
+        }
+
+        i = 0
+        # + 1 accounts for the first generation w/o ignoring
+        max_thinking_steps = self.budget_forcing_kwargs["num_stop_skips"] + 1
+        while i < max_thinking_steps and thinking_tokens_remaining > 0:
+            if i > 0:
+                # if we are not the first generation, need to add ignore string
+                # to suppress the ending
+                output += ignore_str
+                prompt += ignore_str
+                logging.info("Suppressing end to encourage more thinking")
+
+            logging.info(f"Thinking round {i + 1} out of {max_thinking_steps}")
+            logging.info(f"Thinking tokens remaining: {thinking_tokens_remaining}")
+            response = self.llm.ainvoke(prompt, extra_body=sampling_params)
+            output += response
+            prompt += response
+
+            # subtract the number of tokens used for thinking
+            # we continue until we reach the max tokens or reach max number of skips
+            thinking_tokens_remaining -= len(tokenizer.tokenize(response))
+            sampling_params["max_tokens"] = thinking_tokens_remaining
+            sampling_params["min_tokens"] = 1
+            i += 1
+
+        if thinking_tokens_remaining <= 0:
+            logging.info("Max thinking tokens reached, stopping thinking")
+        else:
+            logging.info(
+                f"Max thinking rounds {max_thinking_steps} reached, stopping thinking"
+            )
+
+        logging.info(
+            f"Thinking tokens used: {self.budget_forcing_kwargs['max_tokens_thinking'] - thinking_tokens_remaining}"
+        )
+
+        # generate the final answer
+        stop_token_ids = tokenizer("<|im_end|>")["input_ids"]
+        sampling_params = {
+            "min_tokens": 0,
+            "stop_token_ids": stop_token_ids,
+            "skip_special_tokens": False,
+        }
+
+        output += "<|im_start|>answer\n"
+        prompt += "<|im_start|>answer\n"
+        response = self.llm.ainvoke(prompt, extra_body=sampling_params)
+
+        return AIMessage(output + response)
+
     def obtain_context_and_sources(self, state: State) -> tuple[str, list[str]]:
         # obtain the sources and the context from the retrieved documents
         sources = [doc.metadata["source"] for doc in state["context"]]
@@ -299,7 +400,7 @@ class RAG:
         )
 
         if self.budget_forcing:
-            response = await self._budget_forcing_invoke(messages)
+            response = await self._budget_forcing_ainvoke(messages)
         else:
             response = await self.llm.ainvoke(messages)
 
