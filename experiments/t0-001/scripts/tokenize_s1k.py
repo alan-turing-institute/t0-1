@@ -16,7 +16,7 @@ from typing import Dict
 
 import datasets
 import pandas as pd
-from datasets import load_dataset, load_from_disk
+from datasets import DatasetDict, load_dataset, load_from_disk
 from dotenv import load_dotenv
 from transformers import AutoTokenizer
 
@@ -146,7 +146,8 @@ def process_for_sft(
         dataset.push_to_hub(output_path)
         load_dataset(output_path, split="train")
     else:
-        dataset.save_to_disk(output_path)
+        dataset_dict = DatasetDict({"train": dataset})
+        dataset_dict.save_to_disk(output_path)
         load_from_disk(output_path)
 
 

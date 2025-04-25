@@ -4,7 +4,7 @@ INPUT_PROMPT: str = ">>> "
 EXIT_STRS: set[str] = {"exit", "exit()", "quit()", "bye"}
 
 
-def run_chat_interact(
+async def run_chat_interact(
     conditions_file: str,
     config: RetrieverConfig = DEFAULT_RETRIEVER_CONFIG,
     force_create: bool = False,
@@ -13,6 +13,9 @@ def run_chat_interact(
     llm_model_name: str = "Qwen/Qwen2.5-1.5B-Instruct",
     prompt_template_path: str | None = None,
     system_prompt_path: str | None = None,
+    extra_body: dict | str | None = None,
+    budget_forcing: bool = False,
+    budget_forcing_kwargs: dict | str | None = None,
 ):
     rag = build_rag(
         conditions_file=conditions_file,
@@ -23,6 +26,9 @@ def run_chat_interact(
         llm_model_name=llm_model_name,
         prompt_template_path=prompt_template_path,
         system_prompt_path=system_prompt_path,
+        extra_body=extra_body,
+        budget_forcing=budget_forcing,
+        budget_forcing_kwargs=budget_forcing_kwargs,
     )
     user_id = "command_line_chat"
     mode = "query-with-sources"
@@ -47,10 +53,10 @@ def run_chat_interact(
             continue
 
         if mode == "query":
-            response = rag.query(question=message, user_id=user_id)
+            response = await rag.aquery(question=message, user_id=user_id)
         elif mode == "query-with-sources":
-            response = rag.query_with_sources(question=message, user_id=user_id)
+            response = await rag.aquery_with_sources(question=message, user_id=user_id)
         elif mode == "query-with-context":
-            response = rag.query_with_context(question=message, user_id=user_id)
+            response = await rag.aquery_with_context(question=message, user_id=user_id)
 
         print(f"\nModel: {response}")
