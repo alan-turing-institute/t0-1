@@ -191,7 +191,7 @@ class RAG:
         prompt += "<|im_start|>answer\n"
         response = self.llm.invoke(prompt, extra_body=sampling_params)
 
-        return output + response
+        return AIMessage(output + response)
 
     def generate(self, state: State) -> dict[str, str]:
         """
