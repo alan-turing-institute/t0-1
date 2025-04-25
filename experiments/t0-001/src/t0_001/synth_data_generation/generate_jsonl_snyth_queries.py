@@ -83,14 +83,12 @@ def generate_synthetic_queries(
         while i < n_queries:
             # random pick
             query_type = random.choice(
-                ["basic", "cluster", "hypochondriac", "vague", "downplay"]
+                ["basic", "cluster", "hypochondriac", "downplay"]
             )
             severity_level = random.choice(
                 [
-                    "Ambulance",
                     "A&E",
                     "Urgent Primary Care",
-                    "Routine GP appointment",
                     "Self-care",
                 ]
             )
