@@ -529,7 +529,6 @@ def evaluate_rag(
     logging.info("Evaluating RAG...")
 
     from t0_001.rag.evaluate import RetrieverConfig, main
-    import json
 
     main(
         input_file=input_file,
@@ -555,6 +554,7 @@ def evaluate_rag(
         prompt_template_path=prompt_template_path,
         system_prompt_path=system_prompt_path,
         deepseek_r1=deepseek_r1,
+        t0=t0,
         extra_body=extra_body,
         budget_forcing=budget_forcing,
         budget_forcing_kwargs=budget_forcing_kwargs,
