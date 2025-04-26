@@ -120,3 +120,37 @@ def timestamp_file_name(file_name: str) -> str:
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     base_name, ext = os.path.splitext(file_name)
     return f"{base_name}_{timestamp}{ext}"
+
+
+def process_arg_to_dict(json_cli: dict | str | None) -> dict:
+    """
+    Process an argument that can be a dict, a string, or None and converts it to a dict.
+    If the argument is a string, it tries to parse it as JSON and convert it to a dict.
+    If the argument is None, it returns an empty dict.
+    If the argument is already a dict, it returns it as is.
+
+    Parameters
+    ----------
+    json_cli : dict | str | None
+        The argument to process. Can be a dict, a string, or None.
+        If it is a string, it should be a valid JSON string.
+        If it is None, an empty dict will be returned.
+        If it is a dict, it will be returned as is.
+
+    Returns
+    -------
+    dict
+        The processed argument as a dict.
+    """
+    if json_cli is None:
+        json_cli = {}
+    elif isinstance(json_cli, dict):
+        json_cli = json_cli
+    else:
+        try:
+            json_cli = dict(json.loads(json_cli))
+        except Exception as e:
+            logging.error(f"json_cli is not a valid json: {json_cli}")
+            raise e
+    
+    return json_cli
