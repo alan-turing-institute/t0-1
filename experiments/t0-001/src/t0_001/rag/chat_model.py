@@ -1,7 +1,8 @@
 import logging
 
 from langchain_core.language_models.chat_models import BaseChatModel
-from t0_001.utils import get_environment_variable
+from langchain_core.language_models.llms import BaseLLM
+from t0_001.utils import get_environment_variable, process_arg_to_dict
 
 
 def get_huggingface_chat_model(
@@ -132,6 +133,9 @@ def get_azure_endpoint_chat_model(
     return llm
 
 
+
+
+
 def get_openai_chat_model(
     model_name: str,
     extra_body: dict | str | None = None,
@@ -139,18 +143,6 @@ def get_openai_chat_model(
     from langchain_openai import ChatOpenAI
 
     logging.info(f"Using OpenAI for model: {model_name}")
-
-    if extra_body is None:
-        extra_body = {}
-    else:
-        import json
-
-        try:
-            extra_body = json.loads(extra_body)
-        except json.JSONDecodeError:
-            logging.error(f"extra_body is not a valid json: {extra_body}")
-            raise
-
     logging.info(f"Extra body to pass to chat/completions: {extra_body}")
 
     api_key = get_environment_variable("OPENAI_API_KEY", model_name)
@@ -159,7 +151,28 @@ def get_openai_chat_model(
         model=model_name,
         api_key=api_key,
         base_url=base_url,
-        extra_body=extra_body,
+        extra_body=process_arg_to_dict(extra_body),
+    )
+
+    return llm
+
+
+def get_openai_completion_model(
+    model_name: str,
+    extra_body: dict | str | None = None,
+) -> BaseLLM:
+    from langchain_openai import OpenAI
+
+    logging.info(f"Using OpenAI (completion) for model: {model_name}")
+    logging.info(f"Extra body to pass to completions: {extra_body}")
+
+    api_key = get_environment_variable("OPENAI_API_KEY", model_name)
+    base_url = get_environment_variable("OPENAI_BASE_URL", model_name)
+    llm = OpenAI(
+        model=model_name,
+        api_key=api_key,
+        base_url=base_url,
+        extra_body=process_arg_to_dict(extra_body),
     )
 
     return llm

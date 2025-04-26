@@ -12,6 +12,7 @@ class LLMProvider(str, Enum):
     azure_openai = "azure_openai"
     azure = "azure"
     openai = "openai"
+    openai_completion = "openai_completion"
 
 
 CONDITIONS_FILE: Final[str] = "./data/nhs-conditions/v3/conditions.jsonl"
@@ -35,5 +36,7 @@ DEFAULTS = {
     "host": "0.0.0.0",
     "port": 8000,
     "env_file": ".env",
+    "budget_forcing": False,
+    "budget_forcing_kwargs": '{"max_tokens_thinking": 1024, "num_stop_skips": 3}',
     "max_queries_per_minute": 60,
 }

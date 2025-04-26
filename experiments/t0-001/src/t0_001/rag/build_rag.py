@@ -3,6 +3,7 @@ from pathlib import Path
 from langchain import hub
 from langchain_core.documents import Document
 from langchain_core.language_models.llms import LLM
+from langchain_core.messages.ai import AIMessage
 from langchain_core.prompts import PromptTemplate
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph.state import START, CompiledStateGraph, StateGraph
@@ -14,6 +15,7 @@ from t0_001.query_vector_store.build_retriever import (
 from t0_001.query_vector_store.custom_parent_document_retriever import (
     CustomParentDocumentRetriever,
 )
+from t0_001.utils import process_arg_to_dict
 from typing_extensions import TypedDict
 
 
@@ -38,6 +40,8 @@ class RAG:
         llm: LLM,
         tools: list | None = None,
         tools_kwargs: dict = {},
+        budget_forcing: bool = False,
+        budget_forcing_kwargs: dict | str | None = None,
     ):
         """
         Initialise the RAG class with the vector store, prompt, and LLM.
@@ -65,6 +69,8 @@ class RAG:
         self.tools: list | None = tools
         if tools is not None:
             self.llm = self.llm.bind_tools(tools, **tools_kwargs)
+        self.budget_forcing: bool = budget_forcing
+        self.budget_forcing_kwargs: dict = budget_forcing_kwargs
         self.memory: MemorySaver = MemorySaver()
         self.graph: CompiledStateGraph = self.build_graph()
 
@@ -105,6 +111,208 @@ class RAG:
         retrieved_docs: list[Document] = self.retriever.invoke(input=state["question"])
 
         return {"context": retrieved_docs}
+
+    def _budget_forcing_invoke(self, messages) -> AIMessage:
+        import logging
+
+        from langchain_openai import OpenAI
+
+        if not isinstance(self.llm, OpenAI):
+            raise ValueError(
+                "Budget forcing is only supported for OpenAI completion endpoint."
+            )
+
+        from transformers import AutoTokenizer
+
+        tokenizer = AutoTokenizer.from_pretrained(
+            self.budget_forcing_kwargs["model_name"]
+        )
+
+        from langchain_openai.chat_models.base import _convert_message_to_dict
+
+        # convert the messages to dicts and apply the chat template
+        messages_as_dicts = [
+            _convert_message_to_dict(message) for message in messages.to_messages()
+        ]
+        prompt = tokenizer.apply_chat_template(
+            messages_as_dicts,
+            tokenize=False,
+        )
+
+        if self.budget_forcing_kwargs["max_tokens_thinking"] <= 0:
+            # don't need to think, just generate the answer directly
+            prompt += "<|im_start|>think\n<|im_start|>answer\n"
+            response = self.llm.invoke(prompt)
+            return AIMessage(response)
+
+        # otherwise we need to think and apply budget forcing
+        # output tracks the generated output after the initial prompt
+        # prompt tracks the prompt used for generation which will need to keep adding the responses
+        output = "<|im_start|>think\n"
+        prompt += output
+
+        # stop if reach end of thinking ("<|im_stard|>") or end ("|<im_end|>"),
+        # or reached the max thinking tokens
+        stop_token_ids = tokenizer("<|im_start|><|im_end|>")["input_ids"]
+        ignore_str = "Wait"
+
+        thinking_tokens_remaining = self.budget_forcing_kwargs["max_tokens_thinking"]
+        sampling_params = {
+            "max_tokens": thinking_tokens_remaining,
+            "min_tokens": 0,
+            "stop_token_ids": stop_token_ids,
+            "skip_special_tokens": False,
+        }
+
+        i = 0
+        # + 1 accounts for the first generation w/o ignoring
+        max_thinking_steps = self.budget_forcing_kwargs["num_stop_skips"] + 1
+        while i < max_thinking_steps and thinking_tokens_remaining > 0:
+            if i > 0:
+                # if we are not the first generation, need to add ignore string
+                # to suppress the ending
+                output += ignore_str
+                prompt += ignore_str
+                logging.info("Suppressing end to encourage more thinking")
+
+            logging.info(f"Thinking round {i + 1} out of {max_thinking_steps}")
+            logging.info(f"Thinking tokens remaining: {thinking_tokens_remaining}")
+            response = self.llm.invoke(prompt, extra_body=sampling_params)
+            output += response
+            prompt += response
+
+            # subtract the number of tokens used for thinking
+            # we continue until we reach the max tokens or reach max number of skips
+            thinking_tokens_remaining -= len(tokenizer.tokenize(response))
+            sampling_params["max_tokens"] = thinking_tokens_remaining
+            sampling_params["min_tokens"] = 1
+            i += 1
+
+        if thinking_tokens_remaining <= 0:
+            logging.info("Max thinking tokens reached, stopping thinking")
+        else:
+            logging.info(
+                f"Max thinking rounds {max_thinking_steps} reached, stopping thinking"
+            )
+
+        logging.info(
+            f"Thinking tokens used: {self.budget_forcing_kwargs['max_tokens_thinking'] - thinking_tokens_remaining}"
+        )
+
+        # generate the final answer
+        stop_token_ids = tokenizer("<|im_end|>")["input_ids"]
+        sampling_params = {
+            "min_tokens": 0,
+            "stop_token_ids": stop_token_ids,
+            "skip_special_tokens": False,
+        }
+
+        output += "<|im_start|>answer\n"
+        prompt += "<|im_start|>answer\n"
+        response = self.llm.invoke(prompt, extra_body=sampling_params)
+
+        return AIMessage(output + response)
+
+    async def _budget_forcing_ainvoke(self, messages) -> AIMessage:
+        import logging
+
+        from langchain_openai import OpenAI
+
+        if not isinstance(self.llm, OpenAI):
+            raise ValueError(
+                "Budget forcing is only supported for OpenAI completion endpoint."
+            )
+
+        from transformers import AutoTokenizer
+
+        tokenizer = AutoTokenizer.from_pretrained(
+            self.budget_forcing_kwargs["model_name"]
+        )
+
+        from langchain_openai.chat_models.base import _convert_message_to_dict
+
+        # convert the messages to dicts and apply the chat template
+        messages_as_dicts = [
+            _convert_message_to_dict(message) for message in messages.to_messages()
+        ]
+        prompt = tokenizer.apply_chat_template(
+            messages_as_dicts,
+            tokenize=False,
+        )
+
+        if self.budget_forcing_kwargs["max_tokens_thinking"] <= 0:
+            # don't need to think, just generate the answer directly
+            prompt += "<|im_start|>think\n<|im_start|>answer\n"
+            response = await self.llm.ainvoke(prompt)
+            return AIMessage(response)
+
+        # otherwise we need to think and apply budget forcing
+        # output tracks the generated output after the initial prompt
+        # prompt tracks the prompt used for generation which will need to keep adding the responses
+        output = "<|im_start|>think\n"
+        prompt += output
+
+        # stop if reach end of thinking ("<|im_stard|>") or end ("|<im_end|>"),
+        # or reached the max thinking tokens
+        stop_token_ids = tokenizer("<|im_start|><|im_end|>")["input_ids"]
+        ignore_str = "Wait"
+
+        thinking_tokens_remaining = self.budget_forcing_kwargs["max_tokens_thinking"]
+        sampling_params = {
+            "max_tokens": thinking_tokens_remaining,
+            "min_tokens": 0,
+            "stop_token_ids": stop_token_ids,
+            "skip_special_tokens": False,
+        }
+
+        i = 0
+        # + 1 accounts for the first generation w/o ignoring
+        max_thinking_steps = self.budget_forcing_kwargs["num_stop_skips"] + 1
+        while i < max_thinking_steps and thinking_tokens_remaining > 0:
+            if i > 0:
+                # if we are not the first generation, need to add ignore string
+                # to suppress the ending
+                output += ignore_str
+                prompt += ignore_str
+                logging.info("Suppressing end to encourage more thinking")
+
+            logging.info(f"Thinking round {i + 1} out of {max_thinking_steps}")
+            logging.info(f"Thinking tokens remaining: {thinking_tokens_remaining}")
+            response = await self.llm.ainvoke(prompt, extra_body=sampling_params)
+            output += response
+            prompt += response
+
+            # subtract the number of tokens used for thinking
+            # we continue until we reach the max tokens or reach max number of skips
+            thinking_tokens_remaining -= len(tokenizer.tokenize(response))
+            sampling_params["max_tokens"] = thinking_tokens_remaining
+            sampling_params["min_tokens"] = 1
+            i += 1
+
+        if thinking_tokens_remaining <= 0:
+            logging.info("Max thinking tokens reached, stopping thinking")
+        else:
+            logging.info(
+                f"Max thinking rounds {max_thinking_steps} reached, stopping thinking"
+            )
+
+        logging.info(
+            f"Thinking tokens used: {self.budget_forcing_kwargs['max_tokens_thinking'] - thinking_tokens_remaining}"
+        )
+
+        # generate the final answer
+        stop_token_ids = tokenizer("<|im_end|>")["input_ids"]
+        sampling_params = {
+            "min_tokens": 0,
+            "stop_token_ids": stop_token_ids,
+            "skip_special_tokens": False,
+        }
+
+        output += "<|im_start|>answer\n"
+        prompt += "<|im_start|>answer\n"
+        response = await self.llm.ainvoke(prompt, extra_body=sampling_params)
+
+        return AIMessage(output + response)
 
     def obtain_context_and_sources(self, state: State) -> tuple[str, list[str]]:
         # obtain the sources and the context from the retrieved documents
@@ -158,7 +366,11 @@ class RAG:
             },
         )
 
-        response = self.llm.invoke(messages)
+        if self.budget_forcing:
+            response = self._budget_forcing_invoke(messages)
+        else:
+            response = self.llm.invoke(messages)
+
         return {"messages": messages, "answer": response}
 
     async def agenerate(self, state: State) -> dict[str, str]:
@@ -187,7 +399,11 @@ class RAG:
             },
         )
 
-        response = await self.llm.ainvoke(messages)
+        if self.budget_forcing:
+            response = await self._budget_forcing_ainvoke(messages)
+        else:
+            response = await self.llm.ainvoke(messages)
+
         return {"messages": messages, "answer": response}
 
     def build_graph(self) -> CompiledStateGraph:
@@ -344,7 +560,14 @@ def build_rag(
     prompt_template_path: str | Path | None = None,
     system_prompt_path: str | Path | None = None,
     extra_body: dict | str | None = None,
+    budget_forcing: bool = False,
+    budget_forcing_kwargs: dict | str | None = None,
 ) -> RAG:
+    if budget_forcing and llm_provider != "openai_completion":
+        raise ValueError(
+            "Budget forcing is only supported for OpenAI completion endpoint."
+        )
+
     # obtain the retriever for RAG
     retriever = get_parent_doc_retriever(
         conditions_file=conditions_file,
@@ -381,6 +604,12 @@ def build_rag(
         from t0_001.rag.chat_model import get_openai_chat_model
 
         llm = get_openai_chat_model(model_name=llm_model_name, extra_body=extra_body)
+    elif llm_provider == "openai_completion":
+        from t0_001.rag.chat_model import get_openai_completion_model
+
+        llm = get_openai_completion_model(
+            model_name=llm_model_name, extra_body=extra_body
+        )
     else:
         raise ValueError(
             f"Unknown LLM provider: {llm_provider}. Use 'huggingface', 'azure_openai', or 'azure'."
@@ -392,6 +621,13 @@ def build_rag(
         llm=llm,
         tools=tools,
         tools_kwargs=tools_kwargs,
+        budget_forcing=budget_forcing,
+        budget_forcing_kwargs={
+            "model_name": llm_model_name,
+            "max_tokens_thinking": 1024,
+            "num_stop_skips": 3,
+        }
+        | process_arg_to_dict(budget_forcing_kwargs),
     )
 
     return rag
