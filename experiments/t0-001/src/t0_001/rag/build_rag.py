@@ -22,11 +22,26 @@ from typing_extensions import TypedDict
 class State(TypedDict):
     """
     State is a TypedDict that represents the state of a RAG query.
-    It contains the question, context, and answer.
+    It contains the question, context, demographics, messages, and answer.
     """
 
     question: str
     context: list[Document]
+    demographics: str | None
+    messages: str
+    answer: str
+
+
+class RerankedState(State):
+    """
+    RerankedState is a TypedDict that represents the state of a RAG query
+    with reranking. It contains the question, context, reranked context,
+    demographics, messages, and answer.
+    """
+
+    question: str
+    context: list[Document]
+    reranked_context: list[Document]
     demographics: str | None
     messages: str
     answer: str
@@ -42,6 +57,10 @@ class RAG:
         tools_kwargs: dict = {},
         budget_forcing: bool = False,
         budget_forcing_kwargs: dict | str | None = None,
+        rerank: bool = False,
+        rerank_prompt: str | Path | None = None,
+        rerank_llm: LLM | None = None,
+        rerank_k: int = 5,
     ):
         """
         Initialise the RAG class with the vector store, prompt, and LLM.
@@ -71,6 +90,10 @@ class RAG:
             self.llm = self.llm.bind_tools(tools, **tools_kwargs)
         self.budget_forcing: bool = budget_forcing
         self.budget_forcing_kwargs: dict = budget_forcing_kwargs
+        self.rerank: bool = rerank
+        self.rerank_prompt: PromptTemplate | None = None
+        self.rerank_llm: LLM | None = rerank_llm
+        self.rerank_k: int = rerank_k
         self.memory: MemorySaver = MemorySaver()
         self.graph: CompiledStateGraph = self.build_graph()
 
@@ -111,6 +134,33 @@ class RAG:
         retrieved_docs: list[Document] = self.retriever.invoke(input=state["question"])
 
         return {"context": retrieved_docs}
+
+    def rerank_documents(
+        self,
+        state: State,
+    ):
+        # obtain the sources and the context from the retrieved documents
+        sources = [doc.metadata["source"] for doc in state["context"]]
+        source_scores = [
+            round(float(doc.metadata["sub_docs"][0].metadata["score"]), 3)
+            for doc in state["context"]
+        ]
+        sources_and_scores = [
+            f"({source}, {score:.3f})" for source, score in zip(sources, source_scores)
+        ]
+
+        messages = self.rerank_prompt.invoke(
+            {
+                "symptoms_descriptions": state["question"],
+                "document_titles": sources_and_scores,
+                "document_text": state["context"],
+                "k": self.rerank_k,
+            },
+        )
+
+        reranked_docs = self.rerank_llm.invoke(messages)
+
+        return {"reranked_context": reranked_docs}
 
     def _budget_forcing_invoke(self, messages) -> AIMessage:
         import logging
@@ -562,6 +612,12 @@ def build_rag(
     extra_body: dict | str | None = None,
     budget_forcing: bool = False,
     budget_forcing_kwargs: dict | str | None = None,
+    rerank: bool = False,
+    rerank_prompt_template_path: str | Path | None = None,
+    rerank_llm_provider: str | None = None,
+    rerank_llm_model_name: str | None = None,
+    rerank_extra_body: dict | str | None = None,
+    rerank_k: int = 5,
 ) -> RAG:
     if budget_forcing and llm_provider != "openai_completion":
         raise ValueError(
@@ -615,6 +671,51 @@ def build_rag(
             f"Unknown LLM provider: {llm_provider}. Use 'huggingface', 'azure_openai', or 'azure'."
         )
 
+    if rerank:
+        # obtain the prompt template for reranking
+        if rerank_prompt_template_path is None:
+            raise ValueError(
+                "Reranking is enabled, but no prompt template path is provided. Please provide a `rerank_prompt_template_path`."
+            )
+        else:
+            from t0_001.rag.custom_prompt_template import read_prompt_template
+
+            rerank_prompt_template = read_prompt_template(
+                prompt_template_path=rerank_prompt_template_path,
+            )
+
+        # obtain the LLM for reranking
+        if rerank_llm_provider == "huggingface":
+            from t0_001.rag.chat_model import get_huggingface_chat_model
+
+            rerank_llm = get_huggingface_chat_model(
+                method="pipeline", model_name=rerank_llm_model_name
+            )
+        elif rerank_llm_provider == "azure_openai":
+            from t0_001.rag.chat_model import get_azure_openai_chat_model
+
+            rerank_llm = get_azure_openai_chat_model(model_name=rerank_llm_model_name)
+        elif rerank_llm_provider == "azure":
+            from t0_001.rag.chat_model import get_azure_endpoint_chat_model
+
+            rerank_llm = get_azure_endpoint_chat_model(model_name=rerank_llm_model_name)
+        elif rerank_llm_provider == "openai":
+            from t0_001.rag.chat_model import get_openai_chat_model
+
+            rerank_llm = get_openai_chat_model(
+                model_name=rerank_llm_model_name, extra_body=rerank_extra_body
+            )
+        elif rerank_llm_provider == "openai_completion":
+            from t0_001.rag.chat_model import get_openai_completion_model
+
+            rerank_llm = get_openai_completion_model(
+                model_name=rerank_llm_model_name, extra_body=rerank_extra_body
+            )
+        else:
+            raise ValueError(
+                f"Unknown LLM provider: {rerank_llm_provider}. Use 'huggingface', 'azure_openai', or 'azure'."
+            )
+
     rag = RAG(
         retriever=retriever,
         prompt=prompt_template,
@@ -628,6 +729,10 @@ def build_rag(
             "num_stop_skips": 3,
         }
         | process_arg_to_dict(budget_forcing_kwargs),
+        rerank=rerank,
+        rerank_prompt=rerank_prompt_template,
+        rerank_llm=rerank_llm,
+        rerank_k=rerank_k,
     )
 
     return rag
