@@ -674,28 +674,32 @@ def rag_chat(
     load_env_file(env_file)
     logging.info("Starting RAG chat interaction...")
 
+    from asyncio import run
+
     from t0_001.query_vector_store.build_retriever import RetrieverConfig
     from t0_001.rag.chat_interact import run_chat_interact
 
-    run_chat_interact(
-        conditions_file=conditions_file,
-        config=RetrieverConfig(
-            embedding_model_name=embedding_model_name,
-            chunk_overlap=chunk_overlap,
-            db_choice=db_choice,
-            persist_directory=persist_directory,
-            local_file_store=local_file_store,
-            search_type=search_type,
-            k=k,
-            search_kwargs={},
-        ),
-        force_create=force_create,
-        trust_source=trust_source,
-        llm_provider=llm_provider,
-        llm_model_name=llm_model_name,
-        prompt_template_path=prompt_template_path,
-        system_prompt_path=system_prompt_path,
-        extra_body=extra_body,
-        budget_forcing=budget_forcing,
-        budget_forcing_kwargs=budget_forcing_kwargs,
+    run(
+        run_chat_interact(
+            conditions_file=conditions_file,
+            config=RetrieverConfig(
+                embedding_model_name=embedding_model_name,
+                chunk_overlap=chunk_overlap,
+                db_choice=db_choice,
+                persist_directory=persist_directory,
+                local_file_store=local_file_store,
+                search_type=search_type,
+                k=k,
+                search_kwargs={},
+            ),
+            force_create=force_create,
+            trust_source=trust_source,
+            llm_provider=llm_provider,
+            llm_model_name=llm_model_name,
+            prompt_template_path=prompt_template_path,
+            system_prompt_path=system_prompt_path,
+            extra_body=extra_body,
+            budget_forcing=budget_forcing,
+            budget_forcing_kwargs=budget_forcing_kwargs,
+        )
     )
