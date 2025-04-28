@@ -466,7 +466,14 @@ class RAG:
         CompiledStateGraph
             The compiled state graph.
         """
-        graph_builder = StateGraph(State).add_sequence([self.retrieve, self.generate])
+        if self.rerank:
+            graph_builder = StateGraph(RerankedState).add_sequence(
+                [self.retrieve, self.rerank_documents, self.generate]
+            )
+        else:
+            graph_builder = StateGraph(State).add_sequence(
+                [self.retrieve, self.generate]
+            )
         graph_builder.add_edge(START, "retrieve")
         graph = graph_builder.compile(checkpointer=self.memory)
         return graph
