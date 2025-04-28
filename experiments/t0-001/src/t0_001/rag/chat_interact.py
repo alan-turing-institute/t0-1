@@ -37,15 +37,15 @@ async def run_chat_interact(
         message = input(INPUT_PROMPT)
         if message in EXIT_STRS:
             return
-        elif message == "\query-mode":
+        elif message == "\\query-mode":
             mode = "query"
             print("Switched to query mode.")
             continue
-        elif message == "\query-with-sources-mode":
+        elif message == "\\query-with-sources-mode":
             mode = "query-with-sources"
             print("Switched to query-with-sources mode.")
             continue
-        elif message == "\query-with-context-mode":
+        elif message == "\\query-with-context-mode":
             mode = "query-with-context"
             print("Switched to query-with-context mode.")
             continue
