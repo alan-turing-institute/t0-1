@@ -29,7 +29,17 @@ def clean_bullet_points(text):
     Cleans up bullet points in the text by ensuring they are formatted correctly.
     """
     pattern = r"-\s*\[]\s*\n\s*(\S.+)"
-    replacement = r"- [] \1"
+    replacement = r"- \1"
+
+    return re.sub(pattern, replacement, text)
+
+
+def clean_bullet_points_2(text):
+    """
+    Replace "- [ ]" with "- " in the text.
+    """
+    pattern = r"-\s*\[\s*\]\s*"
+    replacement = r"- "
 
     return re.sub(pattern, replacement, text)
 
@@ -245,6 +255,7 @@ def clean_text(text):
     # some pages have bullet points starting with "- [ ]" but have a lot of unnecessary spaces
     # clean them up with regex
     text = clean_bullet_points(text)
+    text = clean_bullet_points_2(text)
 
     # some pages have tables in the text but they can be converted to a bulleted list
     # some are formatted as a simple_table (https://pandoc.org/MANUAL.html#extension-simple_tables)
