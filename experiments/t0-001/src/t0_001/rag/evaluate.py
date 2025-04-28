@@ -359,6 +359,7 @@ def main(
     extra_body: dict | str | None = None,
     budget_forcing: bool = False,
     budget_forcing_kwargs: dict | str | None = None,
+    budget_forcing_tokenizer: str | None = None,
     max_queries_per_minute: int = 60,
 ):
     rag = build_rag(
@@ -378,6 +379,7 @@ def main(
         extra_body=extra_body,
         budget_forcing=budget_forcing,
         budget_forcing_kwargs=budget_forcing_kwargs,
+        budget_forcing_tokenizer=budget_forcing_tokenizer,
     )
 
     asyncio.run(

@@ -36,6 +36,7 @@ HELP_TEXT = {
     "extra_body:": "Extra body to pass to the LLM if using OpenAI as service provider.",
     "budget_forcing": "If True, uses budget forcing for LLM as in s1 paper and s1 parser for parsing response.",
     "budget_forcing_kwargs": "Keyword arguments for budget forcing in JSON format.",
+    "budget_forcing_tokenizer": "Tokenizer to use for budget forcing if different to the model name.",
     "max_queries_per_minute": "Number of queries per minute to send to the model. Used to help avoid rate limits.",
 }
 
@@ -367,6 +368,10 @@ def serve_rag(
         str,
         typer.Option(help=HELP_TEXT["budget_forcing_kwargs"]),
     ] = DEFAULTS["budget_forcing_kwargs"],
+    budget_forcing_tokenizer: Annotated[
+        str | None,
+        typer.Option(help=HELP_TEXT["budget_forcing_tokenizer"]),
+    ] = None,
 ):
     """
     Run the RAG server.
@@ -401,6 +406,7 @@ def serve_rag(
         extra_body=extra_body,
         budget_forcing=budget_forcing,
         budget_forcing_kwargs=budget_forcing_kwargs,
+        budget_forcing_tokenizer=budget_forcing_tokenizer,
     )
 
 
@@ -512,6 +518,10 @@ def evaluate_rag(
         str,
         typer.Option(help=HELP_TEXT["budget_forcing_kwargs"]),
     ] = DEFAULTS["budget_forcing_kwargs"],
+    budget_forcing_tokenizer: Annotated[
+        str | None,
+        typer.Option(help=HELP_TEXT["budget_forcing_tokenizer"]),
+    ] = None,
     max_queries_per_minute: Annotated[
         int,
         typer.Option(help=HELP_TEXT["max_queries_per_minute"]),
@@ -556,6 +566,7 @@ def evaluate_rag(
         extra_body=extra_body,
         budget_forcing=budget_forcing,
         budget_forcing_kwargs=budget_forcing_kwargs,
+        budget_forcing_tokenizer=budget_forcing_tokenizer,
         max_queries_per_minute=max_queries_per_minute,
     )
 
@@ -666,6 +677,10 @@ def rag_chat(
         str,
         typer.Option(help=HELP_TEXT["budget_forcing_kwargs"]),
     ] = DEFAULTS["budget_forcing_kwargs"],
+    budget_forcing_tokenizer: Annotated[
+        str | None,
+        typer.Option(help=HELP_TEXT["budget_forcing_tokenizer"]),
+    ] = None,
 ):
     """
     Interact with the RAG model in a command line interface.
@@ -698,4 +713,5 @@ def rag_chat(
         extra_body=extra_body,
         budget_forcing=budget_forcing,
         budget_forcing_kwargs=budget_forcing_kwargs,
+        budget_forcing_tokenizer=budget_forcing_tokenizer,
     )
