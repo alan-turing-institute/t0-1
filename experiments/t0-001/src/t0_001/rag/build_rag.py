@@ -32,21 +32,6 @@ class State(TypedDict):
     answer: str
 
 
-class RerankedState(State):
-    """
-    RerankedState is a TypedDict that represents the state of a RAG query
-    with reranking. It contains the question, context, reranked context,
-    demographics, messages, and answer.
-    """
-
-    question: str
-    context: list[Document]
-    reranked_context: list[Document]
-    demographics: str | None
-    messages: str
-    answer: str
-
-
 class RAG:
     def __init__(
         self,
@@ -91,7 +76,7 @@ class RAG:
         self.budget_forcing: bool = budget_forcing
         self.budget_forcing_kwargs: dict = budget_forcing_kwargs
         self.rerank: bool = rerank
-        self.rerank_prompt: PromptTemplate | None = None
+        self.rerank_prompt: PromptTemplate | None = rerank_prompt
         self.rerank_llm: LLM | None = rerank_llm
         self.rerank_k: int = rerank_k
         self.memory: MemorySaver = MemorySaver()
@@ -159,8 +144,7 @@ class RAG:
         )
 
         reranked_docs = self.rerank_llm.invoke(messages)
-
-        return {"reranked_context": reranked_docs}
+        return {"context": reranked_docs}
 
     def _budget_forcing_invoke(self, messages) -> AIMessage:
         import logging
@@ -467,7 +451,7 @@ class RAG:
             The compiled state graph.
         """
         if self.rerank:
-            graph_builder = StateGraph(RerankedState).add_sequence(
+            graph_builder = StateGraph(State).add_sequence(
                 [self.retrieve, self.rerank_documents, self.generate]
             )
         else:
