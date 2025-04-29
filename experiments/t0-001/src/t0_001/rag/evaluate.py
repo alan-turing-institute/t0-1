@@ -78,7 +78,7 @@ def parse_deepseek_r1(string: str) -> tuple[str]:
 def parse_s1(string: str) -> tuple[str]:
     """
     Responses from s1 should be in the format:
-    \nanswer\n(condition, severity).
+    <|im_start|>answer(condition, severity).
     The function extracts the condition and severity level from the string.
     The condition and severity level are separated by a comma.
 
@@ -95,18 +95,15 @@ def parse_s1(string: str) -> tuple[str]:
     import re
 
     # split the string into two parts: before and after the reasoning
-    string_after_answer = string.split("\nanswer\n")[-1]
+    string_after_answer = string.split("<|im_start|>answer")[-1]
 
     # extract the condition and severity level using regex
-    match = re.search(r"\(([^,]+), ([^)]+)\)", string_after_answer)
+    match = re.search(r"\(([^)]*), ([^)]+)\)", string_after_answer)
     if match:
-        condition = match.group(1).strip()
-        severity_level = match.group(2).strip()
+        condition = match.group(1).strip().strip('"')
+        severity_level = match.group(2).strip().strip('"')
         return condition, severity_level
     else:
-        logging.warning(
-            f"Could not extract condition and severity level from string: {string}"
-        )
         return "", ""
 
 
@@ -202,6 +199,16 @@ async def process_query(
             "retrieved_documents_sources": [
                 doc.metadata["source"] for doc in response["context"]
             ],
+            "reranked_documents": [
+                doc.page_content for doc in response.get("reranked_context", [])
+            ],
+            "reranked_documents_scores": [
+                float(doc.metadata["sub_docs"][0].metadata["score"])
+                for doc in response.get("reranked_context", [])
+            ],
+            "reranked_documents_sources": [
+                doc.metadata["source"] for doc in response.get("reranked_context", [])
+            ],
             "rag_message": [
                 message.content for message in response["messages"].messages
             ],
@@ -225,6 +232,9 @@ async def process_query(
             "retrieved_documents_sources": [
                 doc.metadata["source"] for doc in retrieved_docs
             ],
+            "reranked_documents": [],
+            "reranked_documents_scores": [],
+            "reranked_documents_sources": [],
             "error": str(e),
         }
 
@@ -238,6 +248,9 @@ async def process_query(
         # check for match between the source of the retrieved documents and the target document source
         res["retriever_match"] = target_document in set(
             res["retrieved_documents_sources"]
+        )
+        res["reranked_retriever_match"] = target_document in set(
+            res["reranked_documents_sources"]
         )
 
         if deepseek_r1 or s1:
@@ -330,11 +343,17 @@ async def evaluate_rag(
     if not generate_only:
         # calculate sums
         retriever_match_sum = sum([res["retriever_match"] for res in results])
+        reranked_retriever_match_sum = sum(
+            [res["reranked_retriever_match"] for res in results]
+        )
         conditions_sum = sum([res["conditions_match"] for res in results])
         severity_sum = sum([res["severity_match"] for res in results])
 
         logging.info(
             f"Proportion of retriever matches: {retriever_match_sum}/{len(data)} = {retriever_match_sum / len(data):.2%}"
+        )
+        logging.info(
+            f"Proportion of reranked retriever matches: {reranked_retriever_match_sum}/{len(data)} = {reranked_retriever_match_sum / len(data):.2%}"
         )
         logging.info(
             f"Proportion of condition matches: {conditions_sum}/{len(data)} = {conditions_sum / len(data):.2%}"
@@ -362,6 +381,13 @@ def main(
     extra_body: dict | str | None = None,
     budget_forcing: bool = False,
     budget_forcing_kwargs: dict | str | None = None,
+    budget_forcing_tokenizer: str | None = None,
+    rerank: bool = False,
+    rerank_prompt_template_path: str | Path | None = None,
+    rerank_llm_provider: str | None = None,
+    rerank_llm_model_name: str | None = None,
+    rerank_extra_body: dict | str | None = None,
+    rerank_k: int = 5,
     max_queries_per_minute: int = 60,
 ):
     rag = build_rag(
@@ -381,6 +407,13 @@ def main(
         extra_body=extra_body,
         budget_forcing=budget_forcing,
         budget_forcing_kwargs=budget_forcing_kwargs,
+        budget_forcing_tokenizer=budget_forcing_tokenizer,
+        rerank=rerank,
+        rerank_prompt_template_path=rerank_prompt_template_path,
+        rerank_llm_provider=rerank_llm_provider,
+        rerank_llm_model_name=rerank_llm_model_name,
+        rerank_extra_body=rerank_extra_body,
+        rerank_k=rerank_k,
     )
 
     asyncio.run(

@@ -1,0 +1,14 @@
+You are part of a retrieval system for a medical domain.
+Given a description of symptoms provided by a patient, an initial retriever has shortlisted several possible conditions, along with the distance score of the most relevant snippet for that condition (so lower is better), the number of snippets retrieved and the entire content of the associated document.
+
+Here is the patient's symptom description:
+{symptoms_description}
+
+The shortlisted conditions and their retrieval scores and number of snippets are:
+{document_titles}
+
+The corresponding condition descriptions are:
+{document_text}
+
+Your task is to select the {k} most likely conditions based on the symptoms.
+Please return only the titles of the selected conditions, comma-separated.
