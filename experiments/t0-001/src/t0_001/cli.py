@@ -36,6 +36,7 @@ HELP_TEXT = {
     "extra_body:": "Extra body to pass to the LLM if using OpenAI as service provider.",
     "budget_forcing": "If True, uses budget forcing for LLM as in s1 paper and s1 parser for parsing response.",
     "budget_forcing_kwargs": "Keyword arguments for budget forcing in JSON format.",
+    "budget_forcing_tokenizer": "Tokenizer to use for budget forcing if different to the model name.",
     "rerank": "If True, makes a second LLM call to rerank the retrieved results.",
     "rerank_prompt_template_path": "Path to the reranking prompt template file.",
     "rerank_llm_provider": "Service provider for the reranking LLM.",
@@ -373,6 +374,10 @@ def serve_rag(
         str,
         typer.Option(help=HELP_TEXT["budget_forcing_kwargs"]),
     ] = DEFAULTS["budget_forcing_kwargs"],
+    budget_forcing_tokenizer: Annotated[
+        str | None,
+        typer.Option(help=HELP_TEXT["budget_forcing_tokenizer"]),
+    ] = None,
     rerank: Annotated[
         bool,
         typer.Option(help=HELP_TEXT["rerank"]),
@@ -430,6 +435,7 @@ def serve_rag(
         extra_body=extra_body,
         budget_forcing=budget_forcing,
         budget_forcing_kwargs=budget_forcing_kwargs,
+        budget_forcing_tokenizer=budget_forcing_tokenizer,
         rerank=rerank,
         rerank_prompt_template_path=rerank_prompt_template_path,
         rerank_llm_provider=rerank_llm_provider,
@@ -547,6 +553,10 @@ def evaluate_rag(
         str,
         typer.Option(help=HELP_TEXT["budget_forcing_kwargs"]),
     ] = DEFAULTS["budget_forcing_kwargs"],
+    budget_forcing_tokenizer: Annotated[
+        str | None,
+        typer.Option(help=HELP_TEXT["budget_forcing_tokenizer"]),
+    ] = None,
     rerank: Annotated[
         bool,
         typer.Option(help=HELP_TEXT["rerank"]),
@@ -614,6 +624,7 @@ def evaluate_rag(
         extra_body=extra_body,
         budget_forcing=budget_forcing,
         budget_forcing_kwargs=budget_forcing_kwargs,
+        budget_forcing_tokenizer=budget_forcing_tokenizer,
         max_queries_per_minute=max_queries_per_minute,
         rerank=rerank,
         rerank_prompt_template_path=rerank_prompt_template_path,
@@ -730,6 +741,10 @@ def rag_chat(
         str,
         typer.Option(help=HELP_TEXT["budget_forcing_kwargs"]),
     ] = DEFAULTS["budget_forcing_kwargs"],
+    budget_forcing_tokenizer: Annotated[
+        str | None,
+        typer.Option(help=HELP_TEXT["budget_forcing_tokenizer"]),
+    ] = None,
     rerank: Annotated[
         bool,
         typer.Option(help=HELP_TEXT["rerank"]),
@@ -785,6 +800,7 @@ def rag_chat(
         extra_body=extra_body,
         budget_forcing=budget_forcing,
         budget_forcing_kwargs=budget_forcing_kwargs,
+        budget_forcing_tokenizer=budget_forcing_tokenizer,
         rerank=rerank,
         rerank_prompt_template_path=rerank_prompt_template_path,
         rerank_llm_provider=rerank_llm_provider,
