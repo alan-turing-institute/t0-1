@@ -130,8 +130,17 @@ class RAG:
             round(float(doc.metadata["sub_docs"][0].metadata["score"]), 3)
             for doc in state["context"]
         ]
+
+        # drop duplicate sources, keep only the lowest score
+        sources_and_scores = {}
+        for source, score in zip(sources, source_scores):
+            if source not in sources_and_scores:
+                sources_and_scores[source] = score
+            else:
+                sources_and_scores[source] = min(sources_and_scores[source], score)
+
         sources_and_scores = [
-            f"({source}, {score:.3f})" for source, score in zip(sources, source_scores)
+            f"({source}, {score:.3f})" for source, score in sources_and_scores.items()
         ]
 
         messages = self.rerank_prompt.invoke(
@@ -143,7 +152,12 @@ class RAG:
             },
         )
 
-        reranked_docs = self.rerank_llm.invoke(messages)
+        reranked_docs_titles = self.rerank_llm.invoke(messages)
+        reranked_docs = [
+            doc
+            for doc in state["context"]
+            if doc.metadata["source"] in reranked_docs_titles
+        ]
         return {"context": reranked_docs}
 
     def _budget_forcing_invoke(self, messages) -> AIMessage:
