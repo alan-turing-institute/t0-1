@@ -202,4 +202,12 @@ experiments/t0-001/data/nhs-conditions*
 lfs/
 db/
 experiments/t0-001/results/evaluation_*
-experiments/t0-001/eval_outputs/
+experiments/t0-001/eval_outputs/*
+experiments/t0-000/src/new_dataset_cut/*
+*cache-*
+experiments/t0-001/data/evaluation/*
+experiments/t0-000/src/new_dataset_dict/*
+*.arrow
+experiments/t0-001/dataset.hf/*
+experiments/t0-001/new_dataset_cut/*
+experiments/t0-001/new_dataset_dict*

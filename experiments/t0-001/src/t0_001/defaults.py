@@ -38,5 +38,8 @@ DEFAULTS = {
     "env_file": ".env",
     "budget_forcing": False,
     "budget_forcing_kwargs": '{"max_tokens_thinking": 1024, "num_stop_skips": 3}',
+    "rerank_prompt_template_path": None,
+    "rerank_llm_provider": LLMProvider.huggingface,
+    "rerank_llm_model_name": "Qwen/Qwen2.5-1.5B-Instruct",
     "max_queries_per_minute": 60,
 }
