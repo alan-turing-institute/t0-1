@@ -6,7 +6,9 @@ from langchain_core.language_models.llms import LLM
 from langchain_core.messages.ai import AIMessage
 from langchain_core.prompts import PromptTemplate
 from langgraph.checkpoint.memory import MemorySaver
-from langgraph.graph.state import START, CompiledStateGraph, StateGraph
+from langgraph.graph import END, START, MessagesState
+from langgraph.graph.state import CompiledStateGraph, StateGraph
+from langgraph.prebuilt import ToolNode, tools_condition
 from t0_001.query_vector_store.build_retriever import (
     DEFAULT_RETRIEVER_CONFIG,
     RetrieverConfig,
@@ -15,6 +17,7 @@ from t0_001.query_vector_store.build_retriever import (
 from t0_001.query_vector_store.custom_parent_document_retriever import (
     CustomParentDocumentRetriever,
 )
+from t0_001.rag.utils import NHS_RETRIEVER_TOOL_PROMPT, create_retreiver_tool
 from t0_001.utils import process_arg_to_dict
 from typing_extensions import TypedDict
 
@@ -32,12 +35,23 @@ class State(TypedDict):
     answer: str
 
 
+class CustomMessagesState(MessagesState):
+    """
+    Messages state for the RAG class.
+    """
+
+    query: str
+    context: list[Document]
+    demographics: str | None
+
+
 class RAG:
     def __init__(
         self,
         retriever: CustomParentDocumentRetriever,
         prompt: PromptTemplate,
         llm: LLM,
+        conversational: bool = False,
         tools: list | None = None,
         tools_kwargs: dict = {},
         budget_forcing: bool = False,
@@ -58,21 +72,35 @@ class RAG:
             Prompt template to use for the LLM.
         llm : LLM
             LLM to use for generation.
+        conversational : bool, optional
+            Whether to use conversational mode. By default False.
+            This uses a different state graph with a tool node for
+            retrieval to allow for the LLM to call the retriever as a tool
+            and use the conversational memory to rewrite the query
+            to the retriever.
         tools : list | None, optional
             List of tools to bind to the LLM. By default None.
         tools_kwargs : dict, optional
             Keyword arguments to pass to the tools. By default {}.
+        budget_forcing : bool, optional
+            Whether to use budget forcing. By default False.
+        budget_forcing_kwargs : dict | str | None, optional
+            Keyword arguments to pass to the budget forcing. By default None.
         """
         self.retriever: CustomParentDocumentRetriever = retriever
         self.prompt: PromptTemplate = prompt
         self.llm: LLM = llm
+        self.conversational: bool = conversational
         self.tools: list | None = tools
         if tools is not None:
             self.llm = self.llm.bind_tools(tools, **tools_kwargs)
         self.budget_forcing: bool = budget_forcing
         self.budget_forcing_kwargs: dict = budget_forcing_kwargs
         self.memory: MemorySaver = MemorySaver()
-        self.graph: CompiledStateGraph = self.build_graph()
+        if self.conversational:
+            self.graph: CompiledStateGraph = self.build_conversation_graph()
+        else:
+            self.graph: CompiledStateGraph = self.build_graph()
 
     async def aretrieve(self, state: State) -> dict[str, list[Document]]:
         """
@@ -111,6 +139,27 @@ class RAG:
         retrieved_docs: list[Document] = self.retriever.invoke(input=state["question"])
 
         return {"context": retrieved_docs}
+
+    def retrieve_as_tool(
+        self,
+        query: str,
+    ) -> dict[str, str | list[Document]]:
+        """
+        Retrieve documents from the vector store based on the query.
+
+        Parameters
+        ----------
+        query : str
+            The query to retrieve documents for.
+
+        Returns
+        -------
+        dict[str, str | list[Document]]
+            A dictionary containing the query and the retrieved documents.
+        """
+        retrieved_docs: list[Document] = self.retriever.invoke(input=query)
+
+        return {"query": query, "context": retrieved_docs}
 
     def _budget_forcing_invoke(self, messages) -> AIMessage:
         import logging
@@ -314,8 +363,43 @@ class RAG:
 
         return AIMessage(output + response)
 
-    def obtain_context_and_sources(self, state: State) -> tuple[str, list[str]]:
+    def query_or_respond(self, state: CustomMessagesState):
+        """Generate tool call for retrieval or respond."""
+        from langchain_core.messages.system import SystemMessage
+
+        llm_with_retrieve_tool = self.llm.bind_tools(
+            [create_retreiver_tool(self.retrieve_as_tool)]
+        )
+        response = llm_with_retrieve_tool.invoke(
+            [SystemMessage(NHS_RETRIEVER_TOOL_PROMPT)] + state["messages"]
+        )
+
+        return {"messages": [response]}
+
+    def obtain_context_and_sources(
+        self, state: State | CustomMessagesState
+    ) -> dict[str, str | list[str]]:
         # obtain the sources and the context from the retrieved documents
+        if self.conversational:
+            # get generated ToolMessages
+            recent_tool_messages = []
+            for message in reversed(state["messages"]):
+                if message.type == "tool":
+                    recent_tool_messages.append(message)
+                else:
+                    break
+
+            tool_messages = recent_tool_messages[::-1]
+            if tool_messages:
+                query, state["context"] = (
+                    tool_messages["query"],
+                    tool_messages["context"],
+                )
+            else:
+                query, state["context"] = "", []
+        else:
+            query = ""
+
         sources = [doc.metadata["source"] for doc in state["context"]]
         source_scores = [
             round(float(doc.metadata["sub_docs"][0].metadata["score"]), 3)
@@ -338,9 +422,14 @@ class RAG:
 
         docs_content = "\n".join(retrieved_docs + [sources_str])
 
-        return docs_content, sources
+        return {
+            "serialised_docs": docs_content,
+            "query": query,
+            "context": state["context"],
+            "sources": sources,
+        }
 
-    def generate(self, state: State) -> dict[str, str]:
+    def generate(self, state: State | CustomMessagesState) -> dict[str, str]:
         """
         Generate an answer based on the question and retrieved documents.
         The retrieved documents are passed to the LLM along with the question
@@ -356,24 +445,54 @@ class RAG:
         dict[str, str]
             A dictionary containing the generated answer and the messages used to generate it.
         """
-        docs_content, sources = self.obtain_context_and_sources(state)
-        messages = self.prompt.invoke(
+        retriever_response = self.obtain_context_and_sources(state)
+        messages_from_prompt = self.prompt.invoke(
             {
-                "question": state["question"],
-                "context": docs_content,
+                "question": (
+                    state["messages"] if self.conversational else state["question"]
+                ),
+                "context": retriever_response["serialised_docs"],
                 "demographics": state["demographics"],
-                "sources": sources,
+                "sources": retriever_response["sources"],
             },
         )
+
+        if self.conversational:
+            conversation_messages = [
+                message
+                for message in state["messages"]
+                if message.type in ("human", "system")
+                or (message.type == "ai" and not message.tool_calls)
+            ]
+            if messages_from_prompt[0].type == "system":
+                messages = [messages_from_prompt[0]] + conversation_messages
+            else:
+                messages = conversation_messages
+
+            if (
+                messages_from_prompt[-1].type == "human"
+                and messages_from_prompt[-1].content != ""
+                and messages[-1].type == "human"
+            ):
+                messages[-1] = messages_from_prompt[-1]
+        else:
+            messages = messages_from_prompt
 
         if self.budget_forcing:
             response = self._budget_forcing_invoke(messages)
         else:
             response = self.llm.invoke(messages)
 
-        return {"messages": messages, "answer": response}
+        if self.conversational:
+            return {
+                "messages": [response],
+                "context": retriever_response["context"],
+                "query": response["query"],
+            }
+        else:
+            return {"messages": messages, "answer": response}
 
-    async def agenerate(self, state: State) -> dict[str, str]:
+    async def agenerate(self, state: State | CustomMessagesState) -> dict[str, str]:
         """
         Generate an answer based on the question and retrieved documents.
         The retrieved documents are passed to the LLM along with the question
@@ -389,22 +508,49 @@ class RAG:
         dict[str, str]
             A dictionary containing the generated answer and the messages used to generate it.
         """
-        docs_content, sources = self.obtain_context_and_sources(state)
-        messages = await self.prompt.ainvoke(
+        retriever_response = self.obtain_context_and_sources(state)
+        messages_from_prompt = self.prompt.invoke(
             {
-                "question": state["question"],
-                "context": docs_content,
+                "question": (
+                    state["messages"] if self.conversational else state["question"]
+                ),
+                "context": retriever_response["serialised_docs"],
                 "demographics": state["demographics"],
-                "sources": sources,
+                "sources": retriever_response["sources"],
             },
         )
+
+        if self.conversational:
+            conversation_messages = [
+                message
+                for message in state["messages"]
+                if message.type in ("human", "system")
+                or (message.type == "ai" and not message.tool_calls)
+            ]
+            if messages_from_prompt[0].type == "system":
+                messages = [messages_from_prompt[0]] + conversation_messages
+            else:
+                messages = conversation_messages
+
+            if (
+                len(messages_from_prompt) > 1
+                and messages_from_prompt[1].type == "human"
+                and messages_from_prompt[1].content != ""
+                and messages[-1].type == "human"
+            ):
+                messages[-1] = messages_from_prompt[1]
+        else:
+            messages = messages_from_prompt
 
         if self.budget_forcing:
             response = await self._budget_forcing_ainvoke(messages)
         else:
             response = await self.llm.ainvoke(messages)
 
-        return {"messages": messages, "answer": response}
+        if self.conversational:
+            return {"messages": [response], "context": retriever_response["context"]}
+        else:
+            return {"messages": messages, "answer": response}
 
     def build_graph(self) -> CompiledStateGraph:
         """
@@ -421,20 +567,65 @@ class RAG:
         graph = graph_builder.compile(checkpointer=self.memory)
         return graph
 
+    def build_conversation_graph(self) -> CompiledStateGraph:
+        """
+        Build a Langchain compiled state graph for conversational RAG.
+
+        Returns
+        -------
+        CompiledStateGraph
+            The compiled state graph.
+        """
+        tools = ToolNode([create_retreiver_tool(self.retrieve_as_tool)])
+
+        graph_builder = StateGraph(CustomMessagesState)
+        graph_builder.add_node(self.query_or_respond)
+        graph_builder.add_node(tools)
+        graph_builder.add_node(self.generate)
+
+        graph_builder.add_edge(START, "query_or_respond")
+        graph_builder.add_conditional_edges(
+            "query_or_respond",
+            tools_condition,
+            {END: END, "tools": "tools"},
+        )
+        graph_builder.add_edge("tools", "generate")
+        graph_builder.add_edge("generate", END)
+
+        graph = graph_builder.compile(checkpointer=self.memory)
+
+        return graph
+
     def _query(
         self, question: str, user_id: str = "0", demographics: str | None = None
-    ) -> State:
+    ) -> CustomMessagesState:
+        if self.conversational:
+            input = {
+                "messages": {"messages": [{"role": "user", "content": question}]},
+                "demographics": demographics,
+            }
+        else:
+            input = {"question": question, "demographics": demographics}
+
         response = self.graph.invoke(
-            input={"question": question, "demographics": demographics},
+            input=input,
             config={"configurable": {"thread_id": user_id}},
         )
         return response
 
     async def _aquery(
         self, question: str, user_id: str = "0", demographics: str | None = None
-    ) -> State:
+    ) -> CustomMessagesState:
+        if self.conversational:
+            input = {
+                "messages": {"messages": [{"role": "user", "content": question}]},
+                "demographics": demographics,
+            }
+        else:
+            input = {"question": question, "demographics": demographics}
+
         response = await self.graph.ainvoke(
-            input={"question": question, "demographics": demographics},
+            input=input,
             config={"configurable": {"thread_id": user_id}},
         )
         return response
@@ -456,7 +647,10 @@ class RAG:
             The answer generated by the RAG.
         """
         response = self._query(question=question, user_id=user_id)
-        return response["answer"].content
+        if self.conversational:
+            return response["messages"][-1].content
+        else:
+            return response["answer"].content
 
     async def aquery(self, question: str, user_id: str = "0") -> str:
         """
@@ -475,7 +669,10 @@ class RAG:
             The answer generated by the RAG.
         """
         response = await self._aquery(question=question, user_id=user_id)
-        return response["answer"].content
+        if self.conversational:
+            return response["messages"][-1].content
+        else:
+            return response["answer"].content
 
     async def aquery_with_sources(self, question: str, user_id: str = "0") -> str:
         """
@@ -501,10 +698,15 @@ class RAG:
         pulled_context = [doc.metadata["source"] for doc in response["context"]]
 
         # compose response with the context and answer
+        if isinstance(response, State):
+            answer = response["answer"].content
+        else:
+            answer = response["messages"][-1].content
+
         response_with_context = "\n".join(
             [
                 f"\nSources: {pulled_context}\n",
-                f"{response['answer'].content}",
+                f"{answer}",
             ]
         )
 
@@ -537,13 +739,12 @@ class RAG:
         ]
 
         # compose response with the context and answer
-        response_with_context = "\n".join(
-            ["\nContext:\n"]
-            + pulled_context
-            + [
-                f"{response['answer'].content}",
-            ]
-        )
+        if isinstance(response, State):
+            answer = response["answer"].content
+        else:
+            answer = response["messages"][-1].content
+
+        response_with_context = "\n".join(["\nContext:\n"] + pulled_context + [answer])
 
         return response_with_context
 
@@ -555,6 +756,7 @@ def build_rag(
     trust_source: bool = False,
     llm_provider: str = "huggingface",
     llm_model_name: str = "Qwen/Qwen2.5-1.5B-Instruct",
+    conversational: bool = False,
     tools: list | None = None,
     tools_kwargs: dict = {},
     prompt_template_path: str | Path | None = None,
@@ -619,6 +821,7 @@ def build_rag(
         retriever=retriever,
         prompt=prompt_template,
         llm=llm,
+        conversational=conversational,
         tools=tools,
         tools_kwargs=tools_kwargs,
         budget_forcing=budget_forcing,
