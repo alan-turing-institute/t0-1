@@ -16,6 +16,7 @@ async def run_chat_interact(
     extra_body: dict | str | None = None,
     budget_forcing: bool = False,
     budget_forcing_kwargs: dict | str | None = None,
+    budget_forcing_tokenizer: str | None = None,
 ):
     rag = build_rag(
         conditions_file=conditions_file,
@@ -29,6 +30,7 @@ async def run_chat_interact(
         extra_body=extra_body,
         budget_forcing=budget_forcing,
         budget_forcing_kwargs=budget_forcing_kwargs,
+        budget_forcing_tokenizer=budget_forcing_tokenizer,
     )
     user_id = "command_line_chat"
     mode = "query-with-sources"

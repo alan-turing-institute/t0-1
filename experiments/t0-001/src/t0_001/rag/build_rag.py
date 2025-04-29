@@ -42,6 +42,7 @@ class RAG:
         tools_kwargs: dict = {},
         budget_forcing: bool = False,
         budget_forcing_kwargs: dict | str | None = None,
+        budget_forcing_tokenizer: str | None = None,
     ):
         """
         Initialise the RAG class with the vector store, prompt, and LLM.
@@ -62,6 +63,12 @@ class RAG:
             List of tools to bind to the LLM. By default None.
         tools_kwargs : dict, optional
             Keyword arguments to pass to the tools. By default {}.
+        budget_forcing : bool, optional
+            Whether to use budget forcing. By default False.
+        budget_forcing_kwargs : dict | str | None, optional
+            Keyword arguments to pass to the budget forcing. By default None.
+        budget_forcing_tokenizer : str | None, optional
+            Tokenizer to use for the LLM if using budget forcing. By default None - will use the LLM model name.
         """
         self.retriever: CustomParentDocumentRetriever = retriever
         self.prompt: PromptTemplate = prompt
@@ -71,6 +78,7 @@ class RAG:
             self.llm = self.llm.bind_tools(tools, **tools_kwargs)
         self.budget_forcing: bool = budget_forcing
         self.budget_forcing_kwargs: dict = budget_forcing_kwargs
+        self.budget_forcing_tokenizer: str | None = budget_forcing_tokenizer
         self.memory: MemorySaver = MemorySaver()
         self.graph: CompiledStateGraph = self.build_graph()
 
@@ -112,6 +120,18 @@ class RAG:
 
         return {"context": retrieved_docs}
 
+    def set_up_tokenizer(self):
+        from transformers import AutoTokenizer
+
+        if self.budget_forcing_tokenizer is not None:
+            tokenizer = AutoTokenizer.from_pretrained(self.budget_forcing_tokenizer)
+        else:
+            tokenizer = AutoTokenizer.from_pretrained(
+                self.budget_forcing_kwargs["model_name"]
+            )
+
+        return tokenizer
+
     def _budget_forcing_invoke(self, messages) -> AIMessage:
         import logging
 
@@ -122,11 +142,7 @@ class RAG:
                 "Budget forcing is only supported for OpenAI completion endpoint."
             )
 
-        from transformers import AutoTokenizer
-
-        tokenizer = AutoTokenizer.from_pretrained(
-            self.budget_forcing_kwargs["model_name"]
-        )
+        tokenizer = self.set_up_tokenizer()
 
         from langchain_openai.chat_models.base import _convert_message_to_dict
 
@@ -223,11 +239,7 @@ class RAG:
                 "Budget forcing is only supported for OpenAI completion endpoint."
             )
 
-        from transformers import AutoTokenizer
-
-        tokenizer = AutoTokenizer.from_pretrained(
-            self.budget_forcing_kwargs["model_name"]
-        )
+        tokenizer = self.set_up_tokenizer()
 
         from langchain_openai.chat_models.base import _convert_message_to_dict
 
@@ -562,6 +574,7 @@ def build_rag(
     extra_body: dict | str | None = None,
     budget_forcing: bool = False,
     budget_forcing_kwargs: dict | str | None = None,
+    budget_forcing_tokenizer: str | None = None,
 ) -> RAG:
     if budget_forcing and llm_provider != "openai_completion":
         raise ValueError(
@@ -628,6 +641,7 @@ def build_rag(
             "num_stop_skips": 3,
         }
         | process_arg_to_dict(budget_forcing_kwargs),
+        budget_forcing_tokenizer=budget_forcing_tokenizer,
     )
 
     return rag
