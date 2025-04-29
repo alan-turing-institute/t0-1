@@ -22,14 +22,25 @@ from t0_001.utils import process_arg_to_dict
 from typing_extensions import TypedDict
 
 
+class RerankingError(ValueError):
+    """
+    Custom error class for reranking errors.
+    """
+
+    def __init__(self, message: str):
+        super().__init__(message)
+        self.message = message
+
+
 class State(TypedDict):
     """
     State is a TypedDict that represents the state of a RAG query.
-    It contains the question, context, and answer.
+    It contains the question, context, reranked context (if applicable), demographics, messages, and answer.
     """
 
     question: str
     context: list[Document]
+    reranked_context: list[Document] | None
     demographics: str | None
     messages: str
     answer: str
@@ -56,36 +67,46 @@ class RAG:
         tools_kwargs: dict = {},
         budget_forcing: bool = False,
         budget_forcing_kwargs: dict | str | None = None,
+        budget_forcing_tokenizer: str | None = None,
+        rerank: bool = False,
+        rerank_prompt: str | Path | None = None,
+        rerank_llm: LLM | None = None,
+        rerank_k: int = 5,
     ):
         """
-        Initialise the RAG class with the vector store, prompt, and LLM.
-        The vector store is used to retrieve documents, the prompt is used to
-        format the input for the LLM, and the LLM is used to generate the answer.
-        Upon initialisation, the class builds a Langchain compiled state graph
-        with the retrieve and generate functions as nodes.
+                Initialise the RAG class with the vector store, prompt, and LLM.
+                The vector store is used to retrieve documents, the prompt is used to
+                format the input for the LLM, and the LLM is used to generate the answer.
+                Upon initialisation, the class builds a Langchain compiled state graph
+                with the retrieve and generate functions as nodes.
 
-        Parameters
-        ----------
-        vector_store : VectorStore
-            Vector store to use for retrieval.
-        prompt : PromptTemplate
-            Prompt template to use for the LLM.
-        llm : LLM
-            LLM to use for generation.
-        conversational : bool, optional
-            Whether to use conversational mode. By default False.
-            This uses a different state graph with a tool node for
-            retrieval to allow for the LLM to call the retriever as a tool
-            and use the conversational memory to rewrite the query
-            to the retriever.
-        tools : list | None, optional
-            List of tools to bind to the LLM. By default None.
-        tools_kwargs : dict, optional
-            Keyword arguments to pass to the tools. By default {}.
-        budget_forcing : bool, optional
-            Whether to use budget forcing. By default False.
-        budget_forcing_kwargs : dict | str | None, optional
-            Keyword arguments to pass to the budget forcing. By default None.
+                Parameters
+                ----------
+                vector_store : VectorStore
+                    Vector store to use for retrieval.
+                prompt : PromptTemplate
+                    Prompt template to use for the LLM.
+                llm : LLM
+                    LLM to use for generation.
+                conversational : bool, optional
+                    Whether to use conversational mode. By default False.
+                    This uses a different state graph with a tool node for
+                    retrieval to allow for the LLM to call the retriever as a tool
+                    and use the conversational memory to rewrite the query
+                    to the retriever.
+                tools : list | None, optional
+                    List of tools to bind to the LLM. By default None.
+                tools_kwargs : dict, optional
+                    Keyword arguments to pass to the tools. By default {}.
+                budget_forcing : bool, optional
+                    Whether to use budget forcing. By default False.
+                budget_forcing_kwargs : dict | str | None, optional
+                    Keyword arguments to pass to the budget forcing. By default None.
+        <<<<<<< HEAD
+        =======
+                budget_forcing_tokenizer : str | None, optional
+                    Tokenizer to use for the LLM if using budget forcing. By default None - will use the LLM model name.
+        >>>>>>> main
         """
         self.retriever: CustomParentDocumentRetriever = retriever
         self.prompt: PromptTemplate = prompt
@@ -96,6 +117,11 @@ class RAG:
             self.llm = self.llm.bind_tools(tools, **tools_kwargs)
         self.budget_forcing: bool = budget_forcing
         self.budget_forcing_kwargs: dict = budget_forcing_kwargs
+        self.budget_forcing_tokenizer: str | None = budget_forcing_tokenizer
+        self.rerank: bool = rerank
+        self.rerank_prompt: PromptTemplate | None = rerank_prompt
+        self.rerank_llm: LLM | None = rerank_llm
+        self.rerank_k: int = rerank_k
         self.memory: MemorySaver = MemorySaver()
         if self.conversational:
             self.graph: CompiledStateGraph = self.build_conversation_graph()
@@ -161,6 +187,67 @@ class RAG:
 
         return {"query": query, "context": retrieved_docs}
 
+    def rerank_documents(
+        self,
+        state: State,
+    ) -> dict[str, list[Document]]:
+        # obtain the sources and the context from the retrieved documents
+        sources = [doc.metadata["source"] for doc in state["context"]]
+        source_scores = [
+            round(float(doc.metadata["sub_docs"][0].metadata["score"]), 3)
+            for doc in state["context"]
+        ]
+
+        # drop duplicate sources, keep only the lowest score
+        sources_and_scores = {}
+        for source, score in zip(sources, source_scores):
+            if source not in sources_and_scores:
+                sources_and_scores[source] = score
+            else:
+                sources_and_scores[source] = min(sources_and_scores[source], score)
+
+        sources_and_scores = [
+            f"({source}, {score:.3f})" for source, score in sources_and_scores.items()
+        ]
+
+        messages = self.rerank_prompt.invoke(
+            {
+                "symptoms_description": state["question"],
+                "document_titles": sources_and_scores,
+                "document_text": state["context"],
+                "k": self.rerank_k,
+            },
+        )
+
+        reranked_docs_titles = self.rerank_llm.invoke(messages)
+        reranked_docs_titles = [
+            title.strip() for title in reranked_docs_titles.content.split(",")
+        ]
+
+        if len(reranked_docs_titles) != self.rerank_k:
+            raise RerankingError(
+                f"Reranked documents titles should be of length {self.rerank_k}, but got {len(reranked_docs_titles)}."
+            )
+
+        reranked_docs = [
+            doc
+            for doc in state["context"]
+            if doc.metadata["source"] in reranked_docs_titles
+        ]
+        return {"reranked_context": reranked_docs}
+
+    def set_up_tokenizer(self):
+        from transformers import AutoTokenizer
+
+        if self.budget_forcing_tokenizer is not None:
+            tokenizer = AutoTokenizer.from_pretrained(self.budget_forcing_tokenizer)
+        else:
+            tokenizer = AutoTokenizer.from_pretrained(
+                self.budget_forcing_kwargs["model_name"]
+            )
+
+        return tokenizer
+
     def _budget_forcing_invoke(self, messages) -> AIMessage:
         import logging
 
@@ -171,11 +258,7 @@ class RAG:
                 "Budget forcing is only supported for OpenAI completion endpoint."
             )
 
-        from transformers import AutoTokenizer
-
-        tokenizer = AutoTokenizer.from_pretrained(
-            self.budget_forcing_kwargs["model_name"]
-        )
+        tokenizer = self.set_up_tokenizer()
 
         from langchain_openai.chat_models.base import _convert_message_to_dict
 
@@ -272,11 +355,7 @@ class RAG:
                 "Budget forcing is only supported for OpenAI completion endpoint."
             )
 
-        from transformers import AutoTokenizer
-
-        tokenizer = AutoTokenizer.from_pretrained(
-            self.budget_forcing_kwargs["model_name"]
-        )
+        tokenizer = self.set_up_tokenizer()
 
         from langchain_openai.chat_models.base import _convert_message_to_dict
 
@@ -400,10 +479,16 @@ class RAG:
         else:
             query = ""
 
-        sources = [doc.metadata["source"] for doc in state["context"]]
+        if self.rerank:
+            context = state["reranked_context"]
+        else:
+            context = state["context"]
+
+        # obtain the sources and the context from the retrieved documents
+        sources = [doc.metadata["source"] for doc in context]
         source_scores = [
             round(float(doc.metadata["sub_docs"][0].metadata["score"]), 3)
-            for doc in state["context"]
+            for doc in context
         ]
         sources_and_scores = [
             f"({source}, {score:.3f})" for source, score in zip(sources, source_scores)
@@ -417,7 +502,7 @@ class RAG:
                 f"similarity score: {round(float(doc.metadata['sub_docs'][0].metadata['score']), 3)}. "
                 f"Content:\n{doc.page_content}"
             )
-            for doc in state["context"]
+            for doc in context
         ]
 
         docs_content = "\n".join(retrieved_docs + [sources_str])
@@ -562,7 +647,14 @@ class RAG:
         CompiledStateGraph
             The compiled state graph.
         """
-        graph_builder = StateGraph(State).add_sequence([self.retrieve, self.generate])
+        if self.rerank:
+            graph_builder = StateGraph(State).add_sequence(
+                [self.retrieve, self.rerank_documents, self.generate]
+            )
+        else:
+            graph_builder = StateGraph(State).add_sequence(
+                [self.retrieve, self.generate]
+            )
         graph_builder.add_edge(START, "retrieve")
         graph = graph_builder.compile(checkpointer=self.memory)
         return graph
@@ -694,8 +786,9 @@ class RAG:
         """
         response = await self._aquery(question=question, user_id=user_id)
 
+        context = response["reranked_context"] if self.rerank else response["context"]
         # extract the sources of the documents used in the context
-        pulled_context = [doc.metadata["source"] for doc in response["context"]]
+        pulled_context = [doc.metadata["source"] for doc in context]
 
         # compose response with the context and answer
         if isinstance(response, State):
@@ -732,10 +825,11 @@ class RAG:
         """
         response = await self._aquery(question=question, user_id=user_id)
 
+        context = response["reranked_context"] if self.rerank else response["context"]
         # extract the sources and contents of the documents used in the context
         pulled_context = [
             f"{'-' * 100}\nSource: {doc.metadata['source']}\nContent:\n{doc.page_content}"
-            for doc in response["context"]
+            for doc in context
         ]
 
         # compose response with the context and answer
@@ -764,6 +858,13 @@ def build_rag(
     extra_body: dict | str | None = None,
     budget_forcing: bool = False,
     budget_forcing_kwargs: dict | str | None = None,
+    budget_forcing_tokenizer: str | None = None,
+    rerank: bool = False,
+    rerank_prompt_template_path: str | Path | None = None,
+    rerank_llm_provider: str | None = None,
+    rerank_llm_model_name: str | None = None,
+    rerank_extra_body: dict | str | None = None,
+    rerank_k: int = 5,
 ) -> RAG:
     if budget_forcing and llm_provider != "openai_completion":
         raise ValueError(
@@ -817,6 +918,56 @@ def build_rag(
             f"Unknown LLM provider: {llm_provider}. Use 'huggingface', 'azure_openai', or 'azure'."
         )
 
+    if rerank:
+        # obtain the prompt template for reranking
+        if rerank_prompt_template_path is None:
+            raise ValueError(
+                "Reranking is enabled, but no prompt template path is provided. Please provide a `rerank_prompt_template_path`."
+            )
+        else:
+            from t0_001.rag.custom_prompt_template import read_prompt_template
+
+            rerank_prompt_template = read_prompt_template(
+                prompt_template_path=rerank_prompt_template_path,
+            )
+
+        # obtain the LLM for reranking
+        if rerank_llm_provider == "huggingface":
+            from t0_001.rag.chat_model import get_huggingface_chat_model
+
+            rerank_llm = get_huggingface_chat_model(
+                method="pipeline", model_name=rerank_llm_model_name
+            )
+        elif rerank_llm_provider == "azure_openai":
+            from t0_001.rag.chat_model import get_azure_openai_chat_model
+
+            rerank_llm = get_azure_openai_chat_model(model_name=rerank_llm_model_name)
+        elif rerank_llm_provider == "azure":
+            from t0_001.rag.chat_model import get_azure_endpoint_chat_model
+
+            rerank_llm = get_azure_endpoint_chat_model(model_name=rerank_llm_model_name)
+        elif rerank_llm_provider == "openai":
+            from t0_001.rag.chat_model import get_openai_chat_model
+
+            rerank_llm = get_openai_chat_model(
+                model_name=rerank_llm_model_name, extra_body=rerank_extra_body
+            )
+        elif rerank_llm_provider == "openai_completion":
+            from t0_001.rag.chat_model import get_openai_completion_model
+
+            rerank_llm = get_openai_completion_model(
+                model_name=rerank_llm_model_name, extra_body=rerank_extra_body
+            )
+        else:
+            raise ValueError(
+                f"Unknown LLM provider: {rerank_llm_provider}. Use 'huggingface', 'azure_openai', or 'azure'."
+            )
+    else:
+        rerank_llm = None
+        rerank_prompt_template = None
+        rerank_extra_body = None
+        rerank_k = 0
+
     rag = RAG(
         retriever=retriever,
         prompt=prompt_template,
@@ -831,6 +982,11 @@ def build_rag(
             "num_stop_skips": 3,
         }
         | process_arg_to_dict(budget_forcing_kwargs),
+        budget_forcing_tokenizer=budget_forcing_tokenizer,
+        rerank=rerank,
+        rerank_prompt=rerank_prompt_template,
+        rerank_llm=rerank_llm,
+        rerank_k=rerank_k,
     )
 
     return rag

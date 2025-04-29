@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import uvicorn
 from fastapi import FastAPI
 from t0_001.rag.build_rag import (
@@ -39,6 +41,13 @@ def main(
     extra_body: dict | str | None = None,
     budget_forcing: bool = False,
     budget_forcing_kwargs: dict | str | None = None,
+    budget_forcing_tokenizer: str | None = None,
+    rerank: bool = False,
+    rerank_prompt_template_path: str | Path | None = None,
+    rerank_llm_provider: str | None = None,
+    rerank_llm_model_name: str | None = None,
+    rerank_extra_body: dict | str | None = None,
+    rerank_k: int = 5,
 ):
     rag = build_rag(
         conditions_file=conditions_file,
@@ -52,6 +61,13 @@ def main(
         extra_body=extra_body,
         budget_forcing=budget_forcing,
         budget_forcing_kwargs=budget_forcing_kwargs,
+        budget_forcing_tokenizer=budget_forcing_tokenizer,
+        rerank=rerank,
+        rerank_prompt_template_path=rerank_prompt_template_path,
+        rerank_llm_provider=rerank_llm_provider,
+        rerank_llm_model_name=rerank_llm_model_name,
+        rerank_extra_body=rerank_extra_body,
+        rerank_k=rerank_k,
     )
     app = create_rag_app(rag)
     uvicorn.run(app, host=host, port=port)

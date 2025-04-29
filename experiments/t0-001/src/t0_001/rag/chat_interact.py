@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from t0_001.rag.build_rag import DEFAULT_RETRIEVER_CONFIG, RetrieverConfig, build_rag
 
 INPUT_PROMPT: str = ">>> "
@@ -16,6 +18,13 @@ async def run_chat_interact(
     extra_body: dict | str | None = None,
     budget_forcing: bool = False,
     budget_forcing_kwargs: dict | str | None = None,
+    budget_forcing_tokenizer: str | None = None,
+    rerank: bool = False,
+    rerank_prompt_template_path: str | Path | None = None,
+    rerank_llm_provider: str | None = None,
+    rerank_llm_model_name: str | None = None,
+    rerank_extra_body: dict | str | None = None,
+    rerank_k: int = 5,
 ):
     rag = build_rag(
         conditions_file=conditions_file,
@@ -29,6 +38,13 @@ async def run_chat_interact(
         extra_body=extra_body,
         budget_forcing=budget_forcing,
         budget_forcing_kwargs=budget_forcing_kwargs,
+        budget_forcing_tokenizer=budget_forcing_tokenizer,
+        rerank=rerank,
+        rerank_prompt_template_path=rerank_prompt_template_path,
+        rerank_llm_provider=rerank_llm_provider,
+        rerank_llm_model_name=rerank_llm_model_name,
+        rerank_extra_body=rerank_extra_body,
+        rerank_k=rerank_k,
     )
     user_id = "command_line_chat"
     mode = "query-with-sources"
