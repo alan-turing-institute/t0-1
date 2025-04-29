@@ -202,6 +202,16 @@ async def process_query(
             "retrieved_documents_sources": [
                 doc.metadata["source"] for doc in response["context"]
             ],
+            "reranked_documents": [
+                doc.page_content for doc in response.get("reranked_context", [])
+            ],
+            "reranked_documents_scores": [
+                float(doc.metadata["sub_docs"][0].metadata["score"])
+                for doc in response.get("reranked_context", [])
+            ],
+            "reranked_documents_sources": [
+                doc.metadata["source"] for doc in response.get("reranked_context", [])
+            ],
             "rag_message": [
                 message.content for message in response["messages"].messages
             ],
@@ -225,6 +235,9 @@ async def process_query(
             "retrieved_documents_sources": [
                 doc.metadata["source"] for doc in retrieved_docs
             ],
+            "reranked_documents": [],
+            "reranked_documents_scores": [],
+            "reranked_documents_sources": [],
             "error": str(e),
         }
 
@@ -238,6 +251,9 @@ async def process_query(
         # check for match between the source of the retrieved documents and the target document source
         res["retriever_match"] = target_document in set(
             res["retrieved_documents_sources"]
+        )
+        res["reranked_retriever_match"] = target_document in set(
+            res["reranked_documents_sources"]
         )
 
         if deepseek_r1 or s1:
@@ -330,11 +346,17 @@ async def evaluate_rag(
     if not generate_only:
         # calculate sums
         retriever_match_sum = sum([res["retriever_match"] for res in results])
+        reranked_retriever_match_sum = sum(
+            [res["reranked_retriever_match"] for res in results]
+        )
         conditions_sum = sum([res["conditions_match"] for res in results])
         severity_sum = sum([res["severity_match"] for res in results])
 
         logging.info(
             f"Proportion of retriever matches: {retriever_match_sum}/{len(data)} = {retriever_match_sum / len(data):.2%}"
+        )
+        logging.info(
+            f"Proportion of reranked retriever matches: {reranked_retriever_match_sum}/{len(data)} = {reranked_retriever_match_sum / len(data):.2%}"
         )
         logging.info(
             f"Proportion of condition matches: {conditions_sum}/{len(data)} = {conditions_sum / len(data):.2%}"

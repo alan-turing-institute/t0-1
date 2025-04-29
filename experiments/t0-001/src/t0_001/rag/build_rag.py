@@ -32,11 +32,12 @@ class RerankingError(ValueError):
 class State(TypedDict):
     """
     State is a TypedDict that represents the state of a RAG query.
-    It contains the question, context, demographics, messages, and answer.
+    It contains the question, context, reranked context (if applicable), demographics, messages, and answer.
     """
 
     question: str
     context: list[Document]
+    reranked_context: list[Document] | None
     demographics: str | None
     messages: str
     answer: str
@@ -177,7 +178,7 @@ class RAG:
             for doc in state["context"]
             if doc.metadata["source"] in reranked_docs_titles
         ]
-        return {"context": reranked_docs}
+        return {"reranked_context": reranked_docs}
 
     def _budget_forcing_invoke(self, messages) -> AIMessage:
         import logging
@@ -382,11 +383,15 @@ class RAG:
         return AIMessage(output + response)
 
     def obtain_context_and_sources(self, state: State) -> tuple[str, list[str]]:
+        if self.rerank:
+            context = state["reranked_context"]
+        else:
+            context = state["context"]
         # obtain the sources and the context from the retrieved documents
-        sources = [doc.metadata["source"] for doc in state["context"]]
+        sources = [doc.metadata["source"] for doc in context]
         source_scores = [
             round(float(doc.metadata["sub_docs"][0].metadata["score"]), 3)
-            for doc in state["context"]
+            for doc in context
         ]
         sources_and_scores = [
             f"({source}, {score:.3f})" for source, score in zip(sources, source_scores)
@@ -400,7 +405,7 @@ class RAG:
                 f"similarity score: {round(float(doc.metadata['sub_docs'][0].metadata['score']), 3)}. "
                 f"Content:\n{doc.page_content}"
             )
-            for doc in state["context"]
+            for doc in context
         ]
 
         docs_content = "\n".join(retrieved_docs + [sources_str])
@@ -571,8 +576,9 @@ class RAG:
         """
         response = await self._query(question=question, user_id=user_id)
 
+        context = response["reranked_context"] if self.rerank else response["context"]
         # extract the sources of the documents used in the context
-        pulled_context = [doc.metadata["source"] for doc in response["context"]]
+        pulled_context = [doc.metadata["source"] for doc in context]
 
         # compose response with the context and answer
         response_with_context = "\n".join(
@@ -604,10 +610,11 @@ class RAG:
         """
         response = await self._aquery(question=question, user_id=user_id)
 
+        context = response["reranked_context"] if self.rerank else response["context"]
         # extract the sources and contents of the documents used in the context
         pulled_context = [
             f"{'-' * 100}\nSource: {doc.metadata['source']}\nContent:\n{doc.page_content}"
-            for doc in response["context"]
+            for doc in context
         ]
 
         # compose response with the context and answer
@@ -739,6 +746,11 @@ def build_rag(
             raise ValueError(
                 f"Unknown LLM provider: {rerank_llm_provider}. Use 'huggingface', 'azure_openai', or 'azure'."
             )
+    else:
+        rerank_llm = None
+        rerank_prompt_template = None
+        rerank_extra_body = None
+        rerank_k = 0
 
     rag = RAG(
         retriever=retriever,
