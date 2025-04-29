@@ -389,7 +389,7 @@ def serve_rag(
         typer.Option(help=HELP_TEXT["rerank_llm_model_name"]),
     ] = DEFAULTS["rerank_llm_model_name"],
     rerank_extra_body: Annotated[
-        dict | str | None,
+        str | None,
         typer.Option(help=HELP_TEXT["rerank_extra_body"]),
     ] = None,
     rerank_k: Annotated[
@@ -563,7 +563,7 @@ def evaluate_rag(
         typer.Option(help=HELP_TEXT["rerank_llm_model_name"]),
     ] = DEFAULTS["rerank_llm_model_name"],
     rerank_extra_body: Annotated[
-        dict | str | None,
+        str | None,
         typer.Option(help=HELP_TEXT["rerank_extra_body"]),
     ] = None,
     rerank_k: Annotated[
@@ -746,7 +746,7 @@ def rag_chat(
         typer.Option(help=HELP_TEXT["rerank_llm_model_name"]),
     ] = DEFAULTS["rerank_llm_model_name"],
     rerank_extra_body: Annotated[
-        dict | str | None,
+        str | None,
         typer.Option(help=HELP_TEXT["rerank_extra_body"]),
     ] = None,
     rerank_k: Annotated[
