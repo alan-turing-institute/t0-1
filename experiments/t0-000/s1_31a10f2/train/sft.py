@@ -8,6 +8,8 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 from datasets import load_dataset, load_from_disk
 import transformers
 import trl
+from peft import LoraConfig
+
 
 @dataclass
 class TrainingConfig:
@@ -17,6 +19,7 @@ class TrainingConfig:
     wandb_entity: Optional[str] = field(default="hashimoto-group")
     train_file_path: Optional[str] = field(default='simplescaling/s1K_tokenized')
     dagger: bool = field(default=False)
+    lora: bool = field(default=False)
 
     def __post_init__(self):
         os.environ['WANDB_PROJECT'] = self.wandb_project
@@ -40,6 +43,19 @@ def train():
         kwargs = {"use_cache": False}
 
     model = transformers.AutoModelForCausalLM.from_pretrained(config.model_name, **kwargs)
+
+    lora_config = None
+    if config.lora:
+        lora_config_path = "train/lora_config.json"
+
+        if os.path.exists(lora_config_path):
+            with open(lora_config_path, "r") as f:
+                lora_config = LoraConfig(**LoraConfig.from_json_file(lora_config_path))
+        else:
+            logging.error(f"LoRA configuration file not found at {lora_config_path}.")
+            raise FileNotFoundError(f"LoRA configuration file not found at {lora_config_path}.")
+
+        logging.info("LoRA configuration loaded successfully.")
 
     try:
         dataset = load_dataset(config.train_file_path)
@@ -77,7 +93,8 @@ def train():
         train_dataset=dataset['train'],
         eval_dataset=dataset['test'] if 'test' in dataset else dataset['train'],
         args=args,
-        data_collator=collator
+        data_collator=collator,
+        peft_config=lora_config,
     )
 
     trainer.train()
