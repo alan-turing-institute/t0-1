@@ -51,8 +51,9 @@ class CustomMessagesState(MessagesState):
     Messages state for the RAG class.
     """
 
-    query: str
-    context: list[Document]
+    system_messages: list[str | None]
+    retriever_queries: list[str]
+    context: list[list[Document]]
     demographics: str | None
 
 
@@ -74,39 +75,37 @@ class RAG:
         rerank_k: int = 5,
     ):
         """
-                Initialise the RAG class with the vector store, prompt, and LLM.
-                The vector store is used to retrieve documents, the prompt is used to
-                format the input for the LLM, and the LLM is used to generate the answer.
-                Upon initialisation, the class builds a Langchain compiled state graph
-                with the retrieve and generate functions as nodes.
+        Initialise the RAG class with the vector store, prompt, and LLM.
+        The vector store is used to retrieve documents, the prompt is used to
+        format the input for the LLM, and the LLM is used to generate the answer.
+        Upon initialisation, the class builds a Langchain compiled state graph
+        with the retrieve and generate functions as nodes.
 
-                Parameters
-                ----------
-                vector_store : VectorStore
-                    Vector store to use for retrieval.
-                prompt : PromptTemplate
-                    Prompt template to use for the LLM.
-                llm : LLM
-                    LLM to use for generation.
-                conversational : bool, optional
-                    Whether to use conversational mode. By default False.
-                    This uses a different state graph with a tool node for
-                    retrieval to allow for the LLM to call the retriever as a tool
-                    and use the conversational memory to rewrite the query
-                    to the retriever.
-                tools : list | None, optional
-                    List of tools to bind to the LLM. By default None.
-                tools_kwargs : dict, optional
-                    Keyword arguments to pass to the tools. By default {}.
-                budget_forcing : bool, optional
-                    Whether to use budget forcing. By default False.
-                budget_forcing_kwargs : dict | str | None, optional
-                    Keyword arguments to pass to the budget forcing. By default None.
-        <<<<<<< HEAD
-        =======
-                budget_forcing_tokenizer : str | None, optional
-                    Tokenizer to use for the LLM if using budget forcing. By default None - will use the LLM model name.
-        >>>>>>> main
+        Parameters
+        ----------
+        vector_store : VectorStore
+            Vector store to use for retrieval.
+        prompt : PromptTemplate
+            Prompt template to use for the LLM.
+        llm : LLM
+            LLM to use for generation.
+        conversational : bool, optional
+            Whether to use conversational mode. By default False.
+            This uses a different state graph with a tool node for
+            retrieval to allow for the LLM to call the retriever as a tool
+            and use the conversational memory to rewrite the query
+            to the retriever.
+        tools : list | None, optional
+            List of tools to bind to the LLM. By default None.
+        tools_kwargs : dict, optional
+            Keyword arguments to pass to the tools. By default {}.
+        budget_forcing : bool, optional
+            Whether to use budget forcing. By default False.
+        budget_forcing_kwargs : dict | str | None, optional
+            Keyword arguments to pass to the budget forcing. By default None.
+        budget_forcing_tokenizer : str | None, optional
+            Tokenizer to use for the LLM if using budget forcing. By default None.
+            If None, will use the LLM model name.
         """
         self.retriever: CustomParentDocumentRetriever = retriever
         self.prompt: PromptTemplate = prompt
@@ -169,7 +168,7 @@ class RAG:
     def retrieve_as_tool(
         self,
         query: str,
-    ) -> dict[str, str | list[Document]]:
+    ) -> tuple[str, dict[str, str | list[Document]]]:
         """
         Retrieve documents from the vector store based on the query.
 
@@ -179,13 +178,17 @@ class RAG:
             The query to retrieve documents for.
 
         Returns
-        -------
+        ------
         dict[str, str | list[Document]]
             A dictionary containing the query and the retrieved documents.
         """
         retrieved_docs: list[Document] = self.retriever.invoke(input=query)
+        serialised = "\n\n".join(
+            (f"Source: {doc.metadata}\nContent: {doc.page_content}")
+            for doc in retrieved_docs
+        )
 
-        return {"query": query, "context": retrieved_docs}
+        return serialised, {"query": query, "context": retrieved_docs}
 
     def rerank_documents(
         self,
@@ -468,11 +471,11 @@ class RAG:
                 else:
                     break
 
-            tool_messages = recent_tool_messages[::-1]
-            if tool_messages:
+            if recent_tool_messages:
+                # extract the latest query and context pulled
                 query, state["context"] = (
-                    tool_messages["query"],
-                    tool_messages["context"],
+                    recent_tool_messages[-1].artifact["query"],
+                    recent_tool_messages[-1].artifact["context"],
                 )
             else:
                 query, state["context"] = "", []
@@ -549,17 +552,17 @@ class RAG:
                 if message.type in ("human", "system")
                 or (message.type == "ai" and not message.tool_calls)
             ]
-            if messages_from_prompt[0].type == "system":
-                messages = [messages_from_prompt[0]] + conversation_messages
+            if messages_from_prompt.messages[0].type == "system":
+                messages = [messages_from_prompt.messages[0]] + conversation_messages
             else:
                 messages = conversation_messages
 
             if (
-                messages_from_prompt[-1].type == "human"
-                and messages_from_prompt[-1].content != ""
+                messages_from_prompt.messages[-1].type == "human"
+                and messages_from_prompt.messages[-1].content != ""
                 and messages[-1].type == "human"
             ):
-                messages[-1] = messages_from_prompt[-1]
+                messages[-1] = messages_from_prompt.messages[-1]
         else:
             messages = messages_from_prompt
 
@@ -570,9 +573,16 @@ class RAG:
 
         if self.conversational:
             return {
+                "system_messages": (
+                    state.get("system_messages", [])
+                    + [messages_from_prompt.messages[0]]
+                    if messages_from_prompt.messages[0].type == "system"
+                    else state.get("system_messages", []) + [None]
+                ),
                 "messages": [response],
-                "context": retriever_response["context"],
-                "query": response["query"],
+                "context": state.get("context", []) + [retriever_response["context"]],
+                "retriever_queries": state.get("retriever_queries", [])
+                + [retriever_response["query"]],
             }
         else:
             return {"messages": messages, "answer": response}
@@ -612,18 +622,17 @@ class RAG:
                 if message.type in ("human", "system")
                 or (message.type == "ai" and not message.tool_calls)
             ]
-            if messages_from_prompt[0].type == "system":
-                messages = [messages_from_prompt[0]] + conversation_messages
+            if messages_from_prompt.messages[0].type == "system":
+                messages = [messages_from_prompt.messages[0]] + conversation_messages
             else:
                 messages = conversation_messages
 
             if (
-                len(messages_from_prompt) > 1
-                and messages_from_prompt[1].type == "human"
-                and messages_from_prompt[1].content != ""
+                messages_from_prompt.messages[-1].type == "human"
+                and messages_from_prompt.messages[-1].content != ""
                 and messages[-1].type == "human"
             ):
-                messages[-1] = messages_from_prompt[1]
+                messages[-1] = messages_from_prompt.messages[-1]
         else:
             messages = messages_from_prompt
 
@@ -633,7 +642,18 @@ class RAG:
             response = await self.llm.ainvoke(messages)
 
         if self.conversational:
-            return {"messages": [response], "context": retriever_response["context"]}
+            return {
+                "system_messages": (
+                    state.get("system_messages", [])
+                    + [messages_from_prompt.messages[0]]
+                    if messages_from_prompt.messages[0].type == "system"
+                    else state.get("system_messages", []) + [None]
+                ),
+                "messages": [response],
+                "context": state.get("context", []) + [retriever_response["context"]],
+                "retriever_queries": state.get("retriever_queries", [])
+                + [retriever_response["query"]],
+            }
         else:
             return {"messages": messages, "answer": response}
 
@@ -693,7 +713,7 @@ class RAG:
     ) -> CustomMessagesState:
         if self.conversational:
             input = {
-                "messages": {"messages": [{"role": "user", "content": question}]},
+                "messages": {"role": "user", "content": question},
                 "demographics": demographics,
             }
         else:
@@ -710,7 +730,7 @@ class RAG:
     ) -> CustomMessagesState:
         if self.conversational:
             input = {
-                "messages": {"messages": [{"role": "user", "content": question}]},
+                "messages": {"role": "user", "content": question},
                 "demographics": demographics,
             }
         else:
