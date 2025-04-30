@@ -207,8 +207,6 @@ class RAG:
         state: State,
     ) -> dict[str, list[Document]]:
         if self.conversational:
-            print(type(state["context"]))
-            print(len(state["context"]))
             context = state["context"][-1]
         else:
             context = state["context"]
