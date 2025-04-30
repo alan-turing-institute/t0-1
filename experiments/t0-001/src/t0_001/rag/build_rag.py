@@ -47,6 +47,10 @@ class CustomMessagesState(MessagesState):
     system_messages: list[str | None]
     retriever_queries: list[str]
     context: list[list[Document]]
+    reranked_context: list[list[Document]] | None
+    reranker_response: list[str | None]
+    reranker_response_processed: list[list[str] | None]
+    reranker_success: list[bool | None]
     demographics: str | None
 
 
@@ -202,21 +206,39 @@ class RAG:
         self,
         state: State,
     ) -> dict[str, list[Document]]:
+        if self.conversational:
+            print(type(state["context"]))
+            print(len(state["context"]))
+            context = state["context"][-1]
+        else:
+            context = state["context"]
+
         # obtain the sources and the context from the retrieved documents
-        sources = [doc.metadata["source"] for doc in state["context"]]
+        sources = [doc.metadata["source"] for doc in context]
         source_scores = [
             round(float(doc.metadata["sub_docs"][0].metadata["score"]), 3)
-            for doc in state["context"]
+            for doc in context
         ]
 
         if len(sources) <= self.rerank_k:
             # no need to rerank if we have less than k documents
-            return {
-                "reranked_context": state["context"],
-                "reranker_response": None,
-                "reranker_response_processed": None,
-                "reranker_success": None,
-            }
+            if self.conversational:
+                return {
+                    "reranked_context": state.get("reranked_context", []) + [context],
+                    "reranker_response": state.get("reranker_response", []) + [None],
+                    "reranker_response_processed": state.get(
+                        "reranker_response_processed", []
+                    )
+                    + [None],
+                    "reranker_success": state.get("reranker_success", []) + [None],
+                }
+            else:
+                return {
+                    "reranked_context": context,
+                    "reranker_response": None,
+                    "reranker_response_processed": None,
+                    "reranker_success": None,
+                }
 
         messages = self.rerank_prompt.invoke(
             {
@@ -224,7 +246,7 @@ class RAG:
                     state["messages"] if self.conversational else state["question"]
                 ),
                 "document_titles": zip(sources, source_scores),
-                "document_text": state["context"],
+                "document_text": context,
                 "k": self.rerank_k,
             },
         )
@@ -242,9 +264,7 @@ class RAG:
             for title in reranker_response.content.split(",")
         ]
         reranked_docs = [
-            doc
-            for doc in state["context"]
-            if doc.metadata["source"] in reranked_docs_titles
+            doc for doc in context if doc.metadata["source"] in reranked_docs_titles
         ]
 
         if len(reranked_docs) == self.rerank_k:
@@ -253,14 +273,27 @@ class RAG:
         else:
             # fall back to the top rerank_k retrieved documents
             reranker_success = False
-            reranked_docs = state["context"][: self.rerank_k]
+            reranked_docs = context[: self.rerank_k]
 
-        return {
-            "reranked_context": reranked_docs,
-            "reranker_response": reranker_response.content,
-            "reranker_response_processed": reranked_docs_titles,
-            "reranker_success": reranker_success,
-        }
+        if self.conversational:
+            return {
+                "reranked_context": state.get("reranked_context", []) + [reranked_docs],
+                "reranker_response": state.get("reranker_response", [])
+                + [reranker_response.content],
+                "reranker_response_processed": state.get(
+                    "reranker_response_processed", []
+                )
+                + [reranked_docs_titles],
+                "reranker_success": state.get("reranker_success", [])
+                + [reranker_success],
+            }
+        else:
+            return {
+                "reranked_context": reranked_docs,
+                "reranker_response": reranker_response.content,
+                "reranker_response_processed": reranked_docs_titles,
+                "reranker_success": reranker_success,
+            }
 
     def set_up_tokenizer(self):
         from transformers import AutoTokenizer
@@ -513,8 +546,10 @@ class RAG:
         # obtain the sources and the context from the retrieved documents
         if self.rerank:
             context = state["reranked_context"]
+            context = context[-1] if self.conversational else context
         else:
             context = state["context"]
+            context = context[-1] if self.conversational else context
 
         # obtain the sources and the context from the retrieved documents
         sources = [doc.metadata["source"] for doc in context]
@@ -725,7 +760,12 @@ class RAG:
             tools_condition,
             {END: END, "tools": "tools"},
         )
-        graph_builder.add_edge("tools", "generate")
+        graph_builder.add_edge("tools", "process_tool_response")
+        if self.rerank:
+            graph_builder.add_edge("process_tool_response", "rerank_documents")
+            graph_builder.add_edge("rerank_documents", "generate")
+        else:
+            graph_builder.add_edge("process_tool_response", "generate")
         graph_builder.add_edge("generate", END)
 
         graph = graph_builder.compile(checkpointer=self.memory)
