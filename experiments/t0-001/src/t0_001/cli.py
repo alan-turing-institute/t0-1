@@ -24,6 +24,9 @@ HELP_TEXT = {
     "with_score": "If True, return the score of the similarity search.",
     "llm_provider": "Service provider for the LLM.",
     "llm_model_name": "Name of the LLM model.",
+    "conversational": "If True, use the LLM in conversational mode.",
+    "conversational_agent_llm_provider": "Service provider for the conversational retriever agent LLM.",
+    "conversational_agent_llm_model_name": "Name of the conversational retriever agent LLM model.",
     "prompt_template_path": "Path to the prompt template file.",
     "system_prompt_path": "Path to the system prompt file.",
     "generate_only": "If True, only generate the responses from the queries without evaluating.",
@@ -348,6 +351,18 @@ def serve_rag(
     llm_model_name: Annotated[
         str, typer.Option(help=HELP_TEXT["llm_model_name"])
     ] = DEFAULTS["llm_model_name"],
+    conversational: Annotated[
+        bool,
+        typer.Option(help=HELP_TEXT["conversational"]),
+    ] = DEFAULTS["conversational"],
+    conversational_agent_llm_provider: Annotated[
+        str | None,
+        typer.Option(help=HELP_TEXT["conversational_agent_llm_provider"]),
+    ] = DEFAULTS["conversational_agent_llm_provider"],
+    conversational_agent_llm_model_name: Annotated[
+        str | None,
+        typer.Option(help=HELP_TEXT["conversational_agent_llm_model_name"]),
+    ] = DEFAULTS["conversational_agent_llm_model_name"],
     prompt_template_path: Annotated[
         str | None,
         typer.Option(help=HELP_TEXT["prompt_template_path"]),
@@ -428,6 +443,9 @@ def serve_rag(
         trust_source=trust_source,
         llm_provider=llm_provider,
         llm_model_name=llm_model_name,
+        conversational=conversational,
+        conversational_agent_llm_provider=conversational_agent_llm_provider,
+        conversational_agent_llm_model_name=conversational_agent_llm_model_name,
         prompt_template_path=prompt_template_path,
         system_prompt_path=system_prompt_path,
         host=host,
@@ -523,6 +541,18 @@ def evaluate_rag(
     llm_model_name: Annotated[
         str, typer.Option(help=HELP_TEXT["llm_model_name"])
     ] = DEFAULTS["llm_model_name"],
+    conversational: Annotated[
+        bool,
+        typer.Option(help=HELP_TEXT["conversational"]),
+    ] = DEFAULTS["conversational"],
+    conversational_agent_llm_provider: Annotated[
+        str | None,
+        typer.Option(help=HELP_TEXT["conversational_agent_llm_provider"]),
+    ] = DEFAULTS["conversational_agent_llm_provider"],
+    conversational_agent_llm_model_name: Annotated[
+        str | None,
+        typer.Option(help=HELP_TEXT["conversational_agent_llm_model_name"]),
+    ] = DEFAULTS["conversational_agent_llm_model_name"],
     prompt_template_path: Annotated[
         str | None,
         typer.Option(help=HELP_TEXT["prompt_template_path"]),
@@ -618,6 +648,9 @@ def evaluate_rag(
         trust_source=trust_source,
         llm_provider=llm_provider,
         llm_model_name=llm_model_name,
+        conversational=conversational,
+        conversational_agent_llm_provider=conversational_agent_llm_provider,
+        conversational_agent_llm_model_name=conversational_agent_llm_model_name,
         prompt_template_path=prompt_template_path,
         system_prompt_path=system_prompt_path,
         deepseek_r1=deepseek_r1,
