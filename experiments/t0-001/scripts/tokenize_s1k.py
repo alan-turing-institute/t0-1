@@ -73,6 +73,8 @@ def load_hf_dataset(input_path: str | Path) -> datasets.DatasetDict:
         input_path = input_path.replace("hf://", "")
         return load_dataset(input_path)
     dataset = read_jsonl(input_path)
+    dataset = [i for i in dataset if "error" not in i]
+
     with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
         tmp_file_path = tmp_file.name + ".parquet"
         pd.DataFrame(dataset).to_parquet(tmp_file_path)
