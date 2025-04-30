@@ -57,7 +57,7 @@ class RAG:
         prompt: PromptTemplate,
         llm: LLM,
         conversational: bool = False,
-        conversational_retriever_agent_llm: LLM | None = None,
+        conversational_agent_llm: LLM | None = None,
         tools: list | None = None,
         tools_kwargs: dict = {},
         budget_forcing: bool = False,
@@ -89,7 +89,7 @@ class RAG:
             retrieval to allow for the LLM to call the retriever as a tool
             and use the conversational memory to rewrite the query
             to the retriever.
-        conversational_retriever_agent_llm : LLM | None, optional
+        conversational_agent_llm : LLM | None, optional
             LLM to use for the conversational retriever agent.
             This essentially is the LLM that decides whether or not to
             query the retriever or respond directly to the user.
@@ -118,9 +118,7 @@ class RAG:
         self.prompt: PromptTemplate = prompt
         self.llm: LLM = llm
         self.conversational: bool = conversational
-        self.conversational_retriever_agent_llm: LLM | None = (
-            conversational_retriever_agent_llm
-        )
+        self.conversational_agent_llm: LLM | None = conversational_agent_llm
         self.tools: list | None = tools
         if tools is not None:
             self.llm = self.llm.bind_tools(tools, **tools_kwargs)
@@ -475,7 +473,7 @@ class RAG:
         # model can decide whether to use the tool or respond directly
         from langchain_core.messages.system import SystemMessage
 
-        llm_with_retrieve_tool = self.conversational_retriever_agent_llm.bind_tools(
+        llm_with_retrieve_tool = self.conversational_agent_llm.bind_tools(
             [create_retreiver_tool(self.retrieve_as_tool)]
         )
         response = llm_with_retrieve_tool.invoke(
@@ -940,8 +938,8 @@ def build_rag(
     llm_provider: str = "huggingface",
     llm_model_name: str = "Qwen/Qwen2.5-1.5B-Instruct",
     conversational: bool = False,
-    conversational_retriever_agent_llm_provider: str | None = None,
-    conversational_retriever_agent_llm_model_name: str | None = None,
+    conversational_agent_llm_provider: str | None = None,
+    conversational_agent_llm_model_name: str | None = None,
     tools: list | None = None,
     tools_kwargs: dict = {},
     prompt_template_path: str | Path | None = None,
@@ -990,13 +988,13 @@ def build_rag(
 
     if conversational:
         # obtain the LLM for conversational retriever agent
-        conversational_retriever_agent_llm = load_llm(
-            llm_provider=conversational_retriever_agent_llm_provider,
-            llm_model_name=conversational_retriever_agent_llm_model_name,
+        conversational_agent_llm = load_llm(
+            llm_provider=conversational_agent_llm_provider,
+            llm_model_name=conversational_agent_llm_model_name,
             extra_body=extra_body,
         )
     else:
-        conversational_retriever_agent_llm = None
+        conversational_agent_llm = None
 
     if rerank:
         # obtain the prompt template for reranking
@@ -1028,7 +1026,7 @@ def build_rag(
         prompt=prompt_template,
         llm=llm,
         conversational=conversational,
-        conversational_retriever_agent_llm=conversational_retriever_agent_llm,
+        conversational_agent_llm=conversational_agent_llm,
         tools=tools,
         tools_kwargs=tools_kwargs,
         budget_forcing=budget_forcing,

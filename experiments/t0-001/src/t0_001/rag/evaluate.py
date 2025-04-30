@@ -199,8 +199,9 @@ async def process_query(
                 doc.metadata["source"] for doc in response["context"]
             ],
             "retrieved_documents_scores": retrieved_docs_scores,
-            "retrieved_documents_scores_sorted": retrieved_docs_scores
-            == sorted(retrieved_docs_scores),
+            "retrieved_documents_scores_sorted": (
+                retrieved_docs_scores == sorted(retrieved_docs_scores)
+            ),
             "reranked_documents_sources": [
                 doc.metadata["source"] for doc in response.get("reranked_context", [])
             ],
@@ -236,8 +237,9 @@ async def process_query(
                 doc.metadata["source"] for doc in retrieved_docs
             ],
             "retrieved_documents_scores": retrieved_docs_scores,
-            "retrieved_documents_scores_sorted": retrieved_docs_scores
-            == sorted(retrieved_docs_scores),
+            "retrieved_documents_scores_sorted": (
+                retrieved_docs_scores == sorted(retrieved_docs_scores)
+            ),
             "reranked_documents_sources": [],
             "reranked_documents_scores": [],
             "reranked_documents_scores_sorted": None,
@@ -398,6 +400,9 @@ def main(
     trust_source: bool = False,
     llm_provider: str = "huggingface",
     llm_model_name: str = "Qwen/Qwen2.5-1.5B-Instruct",
+    conversational: bool = False,
+    conversational_agent_llm_provider: str | None = None,
+    conversational_agent_llm_model_name: str | None = None,
     prompt_template_path: str | None = None,
     system_prompt_path: str | None = None,
     deepseek_r1: bool = False,
@@ -420,6 +425,9 @@ def main(
         trust_source=trust_source,
         llm_provider=llm_provider,
         llm_model_name=llm_model_name,
+        conversational=conversational,
+        conversational_agent_llm_provider=conversational_agent_llm_provider,
+        conversational_agent_llm_model_name=conversational_agent_llm_model_name,
         tools=(
             [submit_condition_recommendation]
             if not (deepseek_r1 or budget_forcing)
