@@ -16,8 +16,8 @@ def create_retreiver_tool(callable: Callable):
     the @tool decorator which does not work out the box with
     member methods: see langchain#9404.
     """
-    from langchain.pydantic_v1 import Field, create_model
     from langchain.tools import StructuredTool
+    from pydantic.v1 import Field, create_model
 
     method = callable
     name = method.__name__
@@ -37,5 +37,6 @@ def create_retreiver_tool(callable: Callable):
         description=func_desc,
         args_schema=Model,
         return_direct=False,
+        response_format="content_and_artifact",
     )
     return tool
