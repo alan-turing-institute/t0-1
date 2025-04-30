@@ -116,11 +116,7 @@ async def process_query(
     deepseek_r1: bool,
     s1: bool,
     output_file: str,
-    request_interval: float,
 ):
-    # wait interval between requests
-    await asyncio.sleep(request_interval)
-
     query = item[query_field]
     target_document = item[target_document_field]
 
@@ -188,27 +184,35 @@ async def process_query(
                     severity_match = False
 
         # create dictionary to store the results
+        retrieved_docs_scores = [
+            float(doc.metadata["sub_docs"][0].metadata["score"])
+            for doc in response["context"]
+        ]
+        reranked_docs_scores = [
+            float(doc.metadata["sub_docs"][0].metadata["score"])
+            for doc in response.get("reranked_context", [])
+        ]
         res = item | {
             "query_field": query_field,
             "target_document_field": target_document_field,
-            "retrieved_documents": [doc.page_content for doc in response["context"]],
-            "retrieved_documents_scores": [
-                float(doc.metadata["sub_docs"][0].metadata["score"])
-                for doc in response["context"]
-            ],
             "retrieved_documents_sources": [
                 doc.metadata["source"] for doc in response["context"]
             ],
-            "reranked_documents": [
-                doc.page_content for doc in response.get("reranked_context", [])
-            ],
-            "reranked_documents_scores": [
-                float(doc.metadata["sub_docs"][0].metadata["score"])
-                for doc in response.get("reranked_context", [])
-            ],
+            "retrieved_documents_scores": retrieved_docs_scores,
+            "retrieved_documents_scores_sorted": retrieved_docs_scores
+            == sorted(retrieved_docs_scores),
             "reranked_documents_sources": [
                 doc.metadata["source"] for doc in response.get("reranked_context", [])
             ],
+            "reranked_documents_scores": reranked_docs_scores,
+            "reranked_documents_scores_sorted": (
+                reranked_docs_scores == sorted(reranked_docs_scores)
+                if reranked_docs_scores
+                else None
+            ),
+            "reranker_response": response.get("reranker_response"),
+            "reranker_response_processed": response.get("reranker_response_processed"),
+            "reranker_success": response.get("reranker_success"),
             "rag_message": [
                 message.content for message in response["messages"].messages
             ],
@@ -221,20 +225,25 @@ async def process_query(
         retrieved_docs = await rag.retriever.ainvoke(input=query)
 
         # create dictionary to store the results
+        retrieved_docs_scores = [
+            float(doc.metadata["sub_docs"][0].metadata["score"])
+            for doc in retrieved_docs
+        ]
         res = item | {
             "query_field": query_field,
             "target_document_field": target_document_field,
-            "retrieved_documents": [doc.page_content for doc in retrieved_docs],
-            "retrieved_documents_scores": [
-                float(doc.metadata["sub_docs"][0].metadata["score"])
-                for doc in retrieved_docs
-            ],
             "retrieved_documents_sources": [
                 doc.metadata["source"] for doc in retrieved_docs
             ],
-            "reranked_documents": [],
-            "reranked_documents_scores": [],
+            "retrieved_documents_scores": retrieved_docs_scores,
+            "retrieved_documents_scores_sorted": retrieved_docs_scores
+            == sorted(retrieved_docs_scores),
             "reranked_documents_sources": [],
+            "reranked_documents_scores": [],
+            "reranked_documents_scores_sorted": None,
+            "reranker_response": None,
+            "reranker_response_processed": None,
+            "reranker_success": None,
             "error": str(e),
         }
 
@@ -319,10 +328,23 @@ async def evaluate_rag(
     logging.info(f"Writing results to {output_file}...")
     logging.info(f"Query field: {query_field}")
     logging.info(f"Target document field: {target_document_field}")
-    logging.info(f"Request interval: {60 / max_queries_per_minute} seconds")
 
-    tasks = [
-        asyncio.create_task(
+    request_interval = 60 / max_queries_per_minute
+    logging.info(f"Request interval: {request_interval} seconds")
+
+    tasks = []
+
+    from tqdm import tqdm
+
+    for item in tqdm(
+        data,
+        desc=f"Sending {len(data)} queries with request interval {request_interval} seconds",
+        unit="query",
+    ):
+        # wait interval between requests
+        await asyncio.sleep(request_interval)
+
+        task = asyncio.create_task(
             process_query(
                 item=item,
                 query_field=query_field,
@@ -332,12 +354,13 @@ async def evaluate_rag(
                 deepseek_r1=deepseek_r1,
                 s1=s1,
                 output_file=output_file,
-                request_interval=60 / max_queries_per_minute,
             )
         )
-        for item in data
-    ]
-    results = await tqdm_asyncio.gather(*tasks)
+        tasks.append(task)
+
+    results = await tqdm_asyncio.gather(
+        *tasks, desc="Waiting for responses...", unit="query"
+    )
     logging.info("All tasks completed.")
 
     if not generate_only:
