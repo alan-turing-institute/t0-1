@@ -54,6 +54,7 @@ class RAG:
         prompt: PromptTemplate,
         llm: LLM,
         conversational: bool = False,
+        conversational_retriever_agent_llm: LLM | None = None,
         tools: list | None = None,
         tools_kwargs: dict = {},
         budget_forcing: bool = False,
@@ -85,6 +86,11 @@ class RAG:
             retrieval to allow for the LLM to call the retriever as a tool
             and use the conversational memory to rewrite the query
             to the retriever.
+        conversational_retriever_agent_llm : LLM | None, optional
+            LLM to use for the conversational retriever agent.
+            This essentially is the LLM that decides whether or not to
+            query the retriever or respond directly to the user.
+            By default None. If None, the LLM used for the RAG is used.
         tools : list | None, optional
             List of tools to bind to the LLM. By default None.
         tools_kwargs : dict, optional
@@ -96,11 +102,22 @@ class RAG:
         budget_forcing_tokenizer : str | None, optional
             Tokenizer to use for the LLM if using budget forcing. By default None.
             If None, will use the LLM model name.
+        rerank : bool, optional
+            Whether to use reranking. By default False.
+        rerank_prompt : str | Path | None, optional
+            Prompt template to use for reranking. By default None.
+        rerank_llm : LLM | None, optional
+            LLM to use for reranking. By default None.
+        rerank_k : int, optional
+            Number of documents to rerank and filter to. By default 5.
         """
         self.retriever: CustomParentDocumentRetriever = retriever
         self.prompt: PromptTemplate = prompt
         self.llm: LLM = llm
         self.conversational: bool = conversational
+        self.conversational_retriever_agent_llm: LLM | None = (
+            conversational_retriever_agent_llm
+        )
         self.tools: list | None = tools
         if tools is not None:
             self.llm = self.llm.bind_tools(tools, **tools_kwargs)
@@ -436,10 +453,11 @@ class RAG:
         return AIMessage(output + response)
 
     def query_or_respond(self, state: CustomMessagesState):
-        """Generate tool call for retrieval or respond."""
+        # generate tool call for retrieval or respond
+        # model can decide whether to use the tool or respond directly
         from langchain_core.messages.system import SystemMessage
 
-        llm_with_retrieve_tool = self.llm.bind_tools(
+        llm_with_retrieve_tool = self.conversational_retriever_agent_llm.bind_tools(
             [create_retreiver_tool(self.retrieve_as_tool)]
         )
         response = llm_with_retrieve_tool.invoke(
@@ -853,6 +871,49 @@ class RAG:
         return response_with_context
 
 
+def load_llm(
+    llm_provider: str, llm_model_name: str, extra_body: dict | str | None = None
+) -> LLM:
+    if not llm_provider:
+        raise ValueError(
+            "LLM provider is not specified. Please provide a valid LLM provider."
+        )
+    if not llm_model_name:
+        raise ValueError(
+            "LLM model name is not specified. Please provide a valid LLM model name."
+        )
+
+    if llm_provider == "huggingface":
+        from t0_001.rag.chat_model import get_huggingface_chat_model
+
+        llm = get_huggingface_chat_model(method="pipeline", model_name=llm_model_name)
+    elif llm_provider == "azure_openai":
+        from t0_001.rag.chat_model import get_azure_openai_chat_model
+
+        llm = get_azure_openai_chat_model(model_name=llm_model_name)
+    elif llm_provider == "azure":
+        from t0_001.rag.chat_model import get_azure_endpoint_chat_model
+
+        llm = get_azure_endpoint_chat_model(model_name=llm_model_name)
+    elif llm_provider == "openai":
+        from t0_001.rag.chat_model import get_openai_chat_model
+
+        llm = get_openai_chat_model(model_name=llm_model_name, extra_body=extra_body)
+    elif llm_provider == "openai_completion":
+        from t0_001.rag.chat_model import get_openai_completion_model
+
+        llm = get_openai_completion_model(
+            model_name=llm_model_name, extra_body=extra_body
+        )
+    else:
+        raise ValueError(
+            f"Unknown LLM provider: {llm_provider}. Use 'huggingface', "
+            "'azure_openai', 'azure', 'openai', or 'openai_completion'."
+        )
+
+    return llm
+
+
 def build_rag(
     conditions_file: str,
     config: RetrieverConfig = DEFAULT_RETRIEVER_CONFIG,
@@ -861,6 +922,8 @@ def build_rag(
     llm_provider: str = "huggingface",
     llm_model_name: str = "Qwen/Qwen2.5-1.5B-Instruct",
     conversational: bool = False,
+    conversational_retriever_agent_llm_provider: str | None = None,
+    conversational_retriever_agent_llm_model_name: str | None = None,
     tools: list | None = None,
     tools_kwargs: dict = {},
     prompt_template_path: str | Path | None = None,
@@ -901,31 +964,18 @@ def build_rag(
         )
 
     # obtain the LLM for RAG
-    if llm_provider == "huggingface":
-        from t0_001.rag.chat_model import get_huggingface_chat_model
+    llm = load_llm(
+        llm_provider=llm_provider,
+        llm_model_name=llm_model_name,
+        extra_body=extra_body,
+    )
 
-        llm = get_huggingface_chat_model(method="pipeline", model_name=llm_model_name)
-    elif llm_provider == "azure_openai":
-        from t0_001.rag.chat_model import get_azure_openai_chat_model
-
-        llm = get_azure_openai_chat_model(model_name=llm_model_name)
-    elif llm_provider == "azure":
-        from t0_001.rag.chat_model import get_azure_endpoint_chat_model
-
-        llm = get_azure_endpoint_chat_model(model_name=llm_model_name)
-    elif llm_provider == "openai":
-        from t0_001.rag.chat_model import get_openai_chat_model
-
-        llm = get_openai_chat_model(model_name=llm_model_name, extra_body=extra_body)
-    elif llm_provider == "openai_completion":
-        from t0_001.rag.chat_model import get_openai_completion_model
-
-        llm = get_openai_completion_model(
-            model_name=llm_model_name, extra_body=extra_body
-        )
-    else:
-        raise ValueError(
-            f"Unknown LLM provider: {llm_provider}. Use 'huggingface', 'azure_openai', or 'azure'."
+    if conversational:
+        # obtain the LLM for conversational retriever agent
+        conversational_retriever_agent_llm = load_llm(
+            llm_provider=conversational_retriever_agent_llm_provider,
+            llm_model_name=conversational_retriever_agent_llm_model_name,
+            extra_body=extra_body,
         )
 
     if rerank:
@@ -942,36 +992,11 @@ def build_rag(
             )
 
         # obtain the LLM for reranking
-        if rerank_llm_provider == "huggingface":
-            from t0_001.rag.chat_model import get_huggingface_chat_model
-
-            rerank_llm = get_huggingface_chat_model(
-                method="pipeline", model_name=rerank_llm_model_name
-            )
-        elif rerank_llm_provider == "azure_openai":
-            from t0_001.rag.chat_model import get_azure_openai_chat_model
-
-            rerank_llm = get_azure_openai_chat_model(model_name=rerank_llm_model_name)
-        elif rerank_llm_provider == "azure":
-            from t0_001.rag.chat_model import get_azure_endpoint_chat_model
-
-            rerank_llm = get_azure_endpoint_chat_model(model_name=rerank_llm_model_name)
-        elif rerank_llm_provider == "openai":
-            from t0_001.rag.chat_model import get_openai_chat_model
-
-            rerank_llm = get_openai_chat_model(
-                model_name=rerank_llm_model_name, extra_body=rerank_extra_body
-            )
-        elif rerank_llm_provider == "openai_completion":
-            from t0_001.rag.chat_model import get_openai_completion_model
-
-            rerank_llm = get_openai_completion_model(
-                model_name=rerank_llm_model_name, extra_body=rerank_extra_body
-            )
-        else:
-            raise ValueError(
-                f"Unknown LLM provider: {rerank_llm_provider}. Use 'huggingface', 'azure_openai', or 'azure'."
-            )
+        rerank_llm = load_llm(
+            llm_provider=rerank_llm_provider,
+            llm_model_name=rerank_llm_model_name,
+            extra_body=rerank_extra_body,
+        )
     else:
         rerank_llm = None
         rerank_prompt_template = None
@@ -983,6 +1008,7 @@ def build_rag(
         prompt=prompt_template,
         llm=llm,
         conversational=conversational,
+        conversational_retriever_agent_llm=conversational_retriever_agent_llm,
         tools=tools,
         tools_kwargs=tools_kwargs,
         budget_forcing=budget_forcing,
