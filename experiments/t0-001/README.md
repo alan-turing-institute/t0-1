@@ -5,7 +5,7 @@
 Clone the repository:
 ```bash
 git clone git@github.com:alan-turing-institute/t0.git
-cd experiments/t0-001
+cd t0/experiments/t0-001
 ```
 
 Create a virtual environment, activate it and install required dependencies (in editable mode) using [uv](https://github.com/astral-sh/uv):
