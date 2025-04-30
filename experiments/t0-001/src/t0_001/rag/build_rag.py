@@ -22,16 +22,6 @@ from t0_001.utils import process_arg_to_dict
 from typing_extensions import TypedDict
 
 
-class RerankingError(ValueError):
-    """
-    Custom error class for reranking errors.
-    """
-
-    def __init__(self, message: str):
-        super().__init__(message)
-        self.message = message
-
-
 class State(TypedDict):
     """
     State is a TypedDict that represents the state of a RAG query.
@@ -227,16 +217,16 @@ class RAG:
             title.strip() for title in reranked_docs_titles.content.split(",")
         ]
 
-        if len(reranked_docs_titles) != self.rerank_k:
-            raise RerankingError(
-                f"Reranked documents titles should be of length {self.rerank_k}, but got {len(reranked_docs_titles)}."
-            )
+        if len(reranked_docs_titles) == self.rerank_k:
+            reranked_docs = [
+                doc
+                for doc in state["context"]
+                if doc.metadata["source"] in reranked_docs_titles
+            ]
+        else:
+            # fall back to the top rerank_k retrieved documents
+            reranked_docs = state["context"][: self.rerank_k]
 
-        reranked_docs = [
-            doc
-            for doc in state["context"]
-            if doc.metadata["source"] in reranked_docs_titles
-        ]
         return {"reranked_context": reranked_docs}
 
     def set_up_tokenizer(self):
