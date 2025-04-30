@@ -1,0 +1,32 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,600;1,400;1,600&family=Fira+Mono:wght@400;700&display=swap');
+
+/* https://css-tricks.com/box-sizing/ */
+html {
+    font-family: "IBM Plex Sans", sans-serif;
+    box-sizing: border-box;
+    font-size: 16px;
+    line-height: 1.5;
+}
+
+*, *:before, *:after {
+    box-sizing: inherit;
+}
+
+/* Override browser default style sheet. */
+body {
+    margin: 0px;
+    padding: 0px;
+    overflow: hidden;
+}
+
+textarea, button {
+    font-size: inherit;
+}
+
+textarea {
+    font-family: "Fira Mono", monospace;
+}
+
+button {
+    font-family: inherit;
+}
