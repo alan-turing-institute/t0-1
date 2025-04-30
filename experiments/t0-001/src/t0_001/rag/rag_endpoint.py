@@ -2,6 +2,7 @@ from pathlib import Path
 
 import uvicorn
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from t0_001.rag.build_rag import (
     DEFAULT_RETRIEVER_CONFIG,
     RAG,
@@ -23,6 +24,14 @@ def create_rag_app(rag: RAG) -> FastAPI:
     ):
         response = rag._query(query)
         return {"response": response}
+
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["http://localhost:5173"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
     return app
 
