@@ -161,6 +161,15 @@ class RAG:
 
         return {"context": retrieved_docs}
 
+    def clear_history(self):
+        """
+        Reset the history of the RAG query by rebuilding the graph.
+        """
+        if self.conversational:
+            self.graph: CompiledStateGraph = self.build_conversation_graph()
+        else:
+            self.graph: CompiledStateGraph = self.build_graph()
+
     def retrieve(self, state: State) -> dict[str, list[Document]]:
         """
         Retrieve documents from the vector store based on the question in the state.

@@ -16,6 +16,7 @@ async def run_chat_interact(
     conversational: bool = False,
     conversational_agent_llm_provider: str | None = None,
     conversational_agent_llm_model_name: str | None = None,
+    conversational_agent_extra_body: dict | str | None = None,
     prompt_template_path: str | None = None,
     system_prompt_path: str | None = None,
     extra_body: dict | str | None = None,
@@ -39,6 +40,7 @@ async def run_chat_interact(
         conversational=conversational,
         conversational_agent_llm_provider=conversational_agent_llm_provider,
         conversational_agent_llm_model_name=conversational_agent_llm_model_name,
+        conversational_agent_extra_body=conversational_agent_extra_body,
         prompt_template_path=prompt_template_path,
         system_prompt_path=system_prompt_path,
         extra_body=extra_body,
@@ -72,6 +74,11 @@ async def run_chat_interact(
             print("Switched to query-with-context mode.")
             continue
         elif message == "":
+            continue
+
+        if message == "\\clear-history":
+            rag.clear_history(user_id=user_id)
+            print("Chat history cleared.")
             continue
 
         if mode == "query":
