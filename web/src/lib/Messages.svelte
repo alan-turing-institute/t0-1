@@ -1,6 +1,7 @@
 <script lang="ts">
     import { type ChatEntry } from "./types";
-    import Typewriter from "svelte-typewriter";
+    import Loading from "./Loading.svelte";
+    // import Typewriter from "svelte-typewriter";
 
     interface Props {
         history: Array<ChatEntry>;
@@ -56,7 +57,7 @@
         </div>
     {/each}
     {#if loading}
-        <div id="loading"></div>
+        <Loading />
     {/if}
 </div>
 
@@ -68,6 +69,7 @@
         display: flex;
         flex-direction: column;
         gap: 30px;
+        margin: 10px 0;
         padding: 0px 10px 20px 10px;
         scroll-behavior: smooth;
     }
@@ -109,8 +111,7 @@
     }
 
     div.human,
-    div.ai,
-    div#loading {
+    div.ai {
         width: max-content;
         display: flex;
         flex-direction: column;
@@ -126,34 +127,9 @@
         margin-left: auto;
     }
 
-    div.ai,
-    div#loading {
+    div.ai {
         width: 100%;
         text-align: left;
         margin-right: auto;
-    }
-
-    div#loading::after {
-        content: "";
-        display: inline-block;
-        animation: dots 1.5s steps(4, start) infinite;
-        white-space: pre;
-    }
-    @keyframes dots {
-        0% {
-            content: " ";
-        }
-        5% {
-            content: ".";
-        }
-        10% {
-            content: "..";
-        }
-        15% {
-            content: "...";
-        }
-        100% {
-            content: " ";
-        }
     }
 </style>
