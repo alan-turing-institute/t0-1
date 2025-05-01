@@ -1100,6 +1100,8 @@ def build_rag(
         )
     else:
         rerank_llm = None
+        rerank_prompt_template = None
+        rerank_k = None
 
     rag = RAG(
         retriever=retriever,
