@@ -10,7 +10,7 @@
         disableForm = true;
         history.push(makeHumanEntry(query));
 
-        const host = "http://0.0.0.0";
+        const host = "http://localhost";
         const port = 8000;
         const params = new URLSearchParams([["query", query]]).toString();
         const url = `${host}:${port}/query?${params}`;

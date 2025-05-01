@@ -10,7 +10,7 @@ t0-001 serve-rag \
   --local-file-store $HOME/test/_t0lfs \
   --extra-body '{"max_tokens":4056}' \
   --env-file ../.env \
-  --host 0.0.0.0 \
+  --host localhost \
   --port 8000 \
   --conversational \
   --conversational-agent-llm-provider azure_openai \
