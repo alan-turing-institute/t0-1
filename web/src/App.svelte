@@ -1,11 +1,7 @@
 <script lang="ts">
     import ChatLog from "./lib/ChatLog.svelte";
     import Form from "./lib/Form.svelte";
-    import {
-        type ChatEntry,
-        makeUserEntry,
-        makeResponseEntry,
-    } from "./lib/types";
+    import { type ChatEntry, makeHumanEntry, makeAIEntry } from "./lib/types";
 
     let history: Array<ChatEntry> = $state([]);
     let disableForm: boolean = $state(false);
@@ -13,7 +9,7 @@
 
     function queryLLM(query: string) {
         disableForm = true;
-        history.push(makeUserEntry(query));
+        history.push(makeHumanEntry(query));
         log.scrollToBottom();
 
         const host = "http://0.0.0.0";
@@ -35,9 +31,18 @@
                 response.json().then((data) => {
                     // TODO convert Markdown into HTML
                     console.log(data);
-                    history.push(
-                        makeResponseEntry(data.response.answer.content),
-                    );
+                    const last_message =
+                        data.response.messages[
+                            data.response.messages.length - 1
+                        ];
+                    if (last_message.type !== "ai") {
+                        console.error(
+                            "Last message was not AI, something went wrong"
+                        );
+                        disableForm = false;
+                        return;
+                    }
+                    history.push(makeAIEntry(last_message.content));
                     log.scrollToBottom();
                     disableForm = false;
                 });

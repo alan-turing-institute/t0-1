@@ -1,10 +1,10 @@
 export type ChatEntry = {
-    role: "user" | "response";
+    role: "human" | "ai";
     content: string;
 };
-export function makeUserEntry(message: string): ChatEntry {
-    return { role: "user", content: message };
+export function makeHumanEntry(message: string): ChatEntry {
+    return { role: "human", content: message };
 }
-export function makeResponseEntry(message: string): ChatEntry {
-    return { role: "response", content: message };
+export function makeAIEntry(message: string): ChatEntry {
+    return { role: "ai", content: message };
 }
