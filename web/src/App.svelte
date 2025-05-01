@@ -1,6 +1,7 @@
 <script lang="ts">
-    import ChatLog from "./lib/ChatLog.svelte";
+    import Messages from "./lib/Messages.svelte";
     import Form from "./lib/Form.svelte";
+    import Header from "./lib/Header.svelte";
     import { type ChatEntry, makeHumanEntry, makeAIEntry } from "./lib/types";
 
     let history: Array<ChatEntry> = $state([]);
@@ -56,7 +57,8 @@
 
 <div id="wrapper">
     <main>
-        <ChatLog {history} {loading} />
+        <Header></Header>
+        <Messages {history} {loading} />
         <Form {disableForm} {queryLLM} />
     </main>
 </div>
@@ -78,7 +80,7 @@
         margin: 40px 0;
         display: flex;
         flex-direction: column;
-        align-items: center;
-        justify-content: flex-end;
+        align-items: left;
+        justify-content: end;
     }
 </style>
