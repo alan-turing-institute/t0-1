@@ -38,7 +38,7 @@
         border: none;
         cursor: pointer;
         font: inherit;
-        color: #494949;
+        color: var(--secondary-fg);
         width: max-content;
         padding: 0;
         margin: 0;

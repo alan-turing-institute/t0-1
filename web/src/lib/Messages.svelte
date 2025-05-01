@@ -41,9 +41,11 @@
             // find the last human message and scroll to the top of that -
             // this mimics chatgpt behaviour
             const messageNodes = node.parentElement.children;
-            const lastHumanMessage = Array.from(messageNodes).reverse().find((child) => {
-                return child.classList.contains("human");
-            });
+            const lastHumanMessage = Array.from(messageNodes)
+                .reverse()
+                .find((child) => {
+                    return child.classList.contains("human");
+                });
             lastHumanMessage.scrollIntoView(true);
         }
     }
@@ -128,7 +130,7 @@
 
     div.human {
         max-width: 60%;
-        background-color: #ededed;
+        background-color: var(--user-message-bg);
         border-radius: 15px;
         padding: 10px 15px;
         margin-left: auto;

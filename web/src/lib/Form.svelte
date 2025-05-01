@@ -70,7 +70,9 @@
         width: 100%;
         max-width: 100%;
         max-height: 300px;
-        border: 1px solid black;
+        border: 1px solid var(--foreground);
+        color: var(--foreground);
+        background-color: var(--secondary-bg);
         border-radius: 20px;
         padding: 0.5rem 1rem;
         font-family: "Fira Code", monospace;
@@ -83,6 +85,11 @@
         font-family: inherit;
         font-size: inherit;
         height: min-content;
+        background-color: var(--secondary-bg);
+        color: var(--foreground);
+        border-radius: 5px;
+        padding: 2px 5px;
+        border: 1px solid var(--foreground);
     }
 
     button:disabled {
