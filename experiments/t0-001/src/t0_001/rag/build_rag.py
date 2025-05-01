@@ -255,11 +255,7 @@ class RAG:
 
         messages = self.rerank_prompt.invoke(
             {
-                "symptoms_description": (
-                    state["retriever_queries"][-1]
-                    if self.conversational
-                    else state["question"]
-                ),
+                "symptoms_description": state["retriever_queries"][-1],
                 "document_titles": zip(sources, source_scores),
                 "document_text": context,
                 "k": self.rerank_k,
