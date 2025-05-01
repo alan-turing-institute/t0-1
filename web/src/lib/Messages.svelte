@@ -1,6 +1,7 @@
 <script lang="ts">
     import { type ChatEntry } from "./types";
     import Loading from "./Loading.svelte";
+    import Reasoning from "./Reasoning.svelte";
     // import Typewriter from "svelte-typewriter";
 
     interface Props {
@@ -51,6 +52,7 @@
                 <!-- <Typewriter cursor={false} mode="cascade" interval="8" -->
                 <!--     >{@html entry.content}</Typewriter -->
                 <!-- > -->
+                <Reasoning reasoning={entry.reasoning} />
             {:else}
                 {@html entry.content}
             {/if}

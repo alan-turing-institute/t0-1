@@ -1,10 +1,17 @@
 import showdown from "showdown";
 import sanitizeHtml from 'sanitize-html';
 
-export type ChatEntry = {
-    role: "human" | "ai";
+type HumanChatEntry = {
+    role: "human";
     content: string;
-};
+}
+type AIChatEntry = {
+    role: "ai";
+    content: string;
+    reasoning: string | null;
+}
+
+export type ChatEntry = HumanChatEntry | AIChatEntry;
 
 const converter = new showdown.Converter({
     disableForced4SpacesIndentedSublists:
@@ -19,5 +26,7 @@ export function makeHumanEntry(message: string): ChatEntry {
     return { role: "human", content: mdToHtml(message) };
 }
 export function makeAIEntry(message: string): ChatEntry {
-    return { role: "ai", content: mdToHtml(message) };
+    // TODO: Some chat messages may require parsing to separate it into
+    // reasoning + content.
+    return { role: "ai", content: mdToHtml(message), reasoning: mdToHtml("Some kind of reasoning") };
 }
