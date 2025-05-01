@@ -131,7 +131,7 @@ async def process_query(
                 logging.info("Using deepseek-r1 parser for evaluation.")
                 # extract condition and severity level from the response
                 parsed_condition, parsed_severity_level = parse_deepseek_r1(
-                    response["answer"].content
+                    response["messages"][-1].content
                 )
                 prediction_condition = remove_dash_and_spaces(parsed_condition)
                 target_condition = remove_dash_and_spaces(target_document)
@@ -143,7 +143,7 @@ async def process_query(
                 logging.info("Using s1 parser for evaluation.")
                 # extract condition and severity level from the response
                 parsed_condition, parsed_severity_level = parse_s1(
-                    response["answer"].content
+                    response["messages"][-1].content
                 )
                 prediction_condition = remove_dash_and_spaces(parsed_condition)
                 target_condition = remove_dash_and_spaces(target_document)
@@ -154,11 +154,13 @@ async def process_query(
             else:
                 logging.info("Using tool calls for evaluation.")
                 if (
-                    response["answer"].additional_kwargs.get("tool_calls") is not None
-                    and len(response["answer"].additional_kwargs["tool_calls"]) == 1
+                    response["messages"][-1].additional_kwargs.get("tool_calls")
+                    is not None
+                    and len(response["messages"][-1].additional_kwargs["tool_calls"])
+                    == 1
                 ):
                     arguments = json.loads(
-                        response["answer"].additional_kwargs["tool_calls"][0][
+                        response["messages"][-1].additional_kwargs["tool_calls"][0][
                             "function"
                         ]["arguments"]
                     )
@@ -186,24 +188,25 @@ async def process_query(
         # create dictionary to store the results
         retrieved_docs_scores = [
             float(doc.metadata["sub_docs"][0].metadata["score"])
-            for doc in response["context"]
+            for doc in response["context"][-1]
         ]
         reranked_docs_scores = [
             float(doc.metadata["sub_docs"][0].metadata["score"])
-            for doc in response.get("reranked_context", [])
+            for doc in response.get("reranked_context", [[]])[-1]
         ]
         res = item | {
             "query_field": query_field,
             "target_document_field": target_document_field,
             "retrieved_documents_sources": [
-                doc.metadata["source"] for doc in response["context"]
+                doc.metadata["source"] for doc in response["context"][-1]
             ],
             "retrieved_documents_scores": retrieved_docs_scores,
             "retrieved_documents_scores_sorted": (
                 retrieved_docs_scores == sorted(retrieved_docs_scores)
             ),
             "reranked_documents_sources": [
-                doc.metadata["source"] for doc in response.get("reranked_context", [])
+                doc.metadata["source"]
+                for doc in response.get("reranked_context", [[]])[-1]
             ],
             "reranked_documents_scores": reranked_docs_scores,
             "reranked_documents_scores_sorted": (
@@ -211,14 +214,17 @@ async def process_query(
                 if reranked_docs_scores
                 else None
             ),
-            "reranker_response": response.get("reranker_response"),
-            "reranker_response_processed": response.get("reranker_response_processed"),
-            "reranker_success": response.get("reranker_success"),
-            "rag_message": [
-                message.content for message in response["messages"].messages
-            ],
-            "rag_answer": response["answer"].content,
-            "rag_tool_calls": response["answer"].additional_kwargs.get("tool_calls"),
+            "reranker_response": response.get("reranker_response", [[]])[-1],
+            "reranker_response_processed": response.get(
+                "reranker_response_processed", [[]]
+            )[-1],
+            "reranker_success": response.get("reranker_success", [[]])[-1],
+            "system_prompt": response["system_messages"][0].content,
+            "rag_message": response["messages"][0].content,
+            "rag_answer": response["messages"][-1].content,
+            "rag_tool_calls": response["messages"][-1].additional_kwargs.get(
+                "tool_calls"
+            ),
         }
     except Exception as e:
         logging.error(f"Error querying RAG: {e}")
