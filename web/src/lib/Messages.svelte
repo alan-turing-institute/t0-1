@@ -38,7 +38,13 @@
             autoScroll = true;
         }
         if (autoScroll) {
-            node.scrollIntoView(true);
+            // find the last human message and scroll to the top of that -
+            // this mimics chatgpt behaviour
+            const messageNodes = node.parentElement.children;
+            const lastHumanMessage = Array.from(messageNodes).reverse().find((child) => {
+                return child.classList.contains("human");
+            });
+            lastHumanMessage.scrollIntoView(true);
         }
     }
 </script>
