@@ -123,7 +123,6 @@
         background-color: #ededed;
         border-radius: 15px;
         padding: 10px 15px;
-        text-align: right;
         margin-left: auto;
     }
 
