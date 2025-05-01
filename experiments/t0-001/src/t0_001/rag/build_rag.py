@@ -260,31 +260,41 @@ class RAG:
             },
         )
 
-        reranker_response = self.rerank_llm.invoke(messages)
+        try:
+            reranker_response = self.rerank_llm.invoke(messages)
 
-        reranked_docs_titles = [
-            title.strip()
-            .lower()
-            .replace(" ", "-")
-            .replace("'", "")
-            .replace('"', "")
-            .replace("(", "")
-            .replace(")", "")
-            for title in reranker_response.content.split(",")
-        ]
-        reranked_docs = [
-            doc for doc in context if doc.metadata["source"] in reranked_docs_titles
-        ]
+            reranked_docs_titles = [
+                title.strip()
+                .lower()
+                .replace(" ", "-")
+                .replace("'", "")
+                .replace('"', "")
+                .replace("(", "")
+                .replace(")", "")
+                for title in reranker_response.content.split(",")
+            ]
+            reranked_docs = [
+                doc for doc in context if doc.metadata["source"] in reranked_docs_titles
+            ]
 
-        if len(reranked_docs) == self.rerank_k:
-            # reranker able to select rerank_k number of documents
-            logging.info("Reranker successfully selected the top k documents")
-            reranker_success = True
-        else:
-            # fall back to the top rerank_k retrieved documents
-            logging.info(
-                "Reranker failed to select the top k documents - falling back to the top retrieved documents"
-            )
+            if len(reranked_docs) == self.rerank_k:
+                # reranker able to select rerank_k number of documents
+                logging.info("Reranker successfully selected the top k documents")
+                reranker_success = True
+            else:
+                # fall back to the top rerank_k retrieved documents
+                logging.info(
+                    "Reranker failed to select the top k documents - falling back to the top retrieved documents"
+                )
+                reranker_success = False
+                reranked_docs = context[: self.rerank_k]
+
+        except Exception as e:
+            logging.error(f"Reranking failure: {e}")
+            logging.info(f"Falling back to the top {self.rerank_k} retrieved documents")
+
+            reranker_response = AIMessage("")
+            reranked_docs_titles = []
             reranker_success = False
             reranked_docs = context[: self.rerank_k]
 
