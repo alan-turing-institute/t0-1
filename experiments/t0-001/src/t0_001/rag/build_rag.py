@@ -36,7 +36,7 @@ class State(TypedDict):
     reranker_response_processed: list[str] | None
     reranker_success: bool | None
     demographics: str | None
-    messages: str
+    messages: list[str]
     answer: str
 
 
@@ -48,7 +48,7 @@ class CustomMessagesState(MessagesState):
     system_messages: list[str | None]
     retriever_queries: list[str]
     context: list[list[Document]]
-    reranked_context: list[list[Document]] | None
+    reranked_context: list[list[Document] | None]
     reranker_response: list[str | None]
     reranker_response_processed: list[list[str] | None]
     reranker_success: list[bool | None]
@@ -154,7 +154,7 @@ class RAG:
         dict[str, list[Document]]
             A dictionary containing the retrieved documents.
         """
-        logging.debug(f"Retrieving documents for question: {state['question']}")
+        logging.info(f"Retrieving documents for question: {state['question']}")
         retrieved_docs: list[Document] = await self.retriever.ainvoke(
             input=state["question"]
         )
@@ -175,7 +175,7 @@ class RAG:
         dict[str, list[Document]]
             A dictionary containing the retrieved documents.
         """
-        logging.debug(f"Retrieving documents for question: {state['question']}")
+        logging.info(f"Retrieving documents for question: {state['question']}")
         retrieved_docs: list[Document] = self.retriever.invoke(input=state["question"])
 
         return {"context": retrieved_docs}
@@ -197,7 +197,7 @@ class RAG:
         dict[str, str | list[Document]]
             A dictionary containing the query and the retrieved documents.
         """
-        logging.debug(f"Retrieving documents for query: {query}")
+        logging.info(f"Retrieving documents for query: {query}")
         retrieved_docs: list[Document] = self.retriever.invoke(input=query)
         serialised = "\n\n".join(
             (f"Source: {doc.metadata}\nContent: {doc.page_content}")
@@ -211,7 +211,7 @@ class RAG:
         state: State,
     ) -> dict[str, list[Document]]:
         # rerank the documents using an LLM to select the top rerank_k documents
-        logging.debug(f"Reranking documents to {self.rerank_k} documents")
+        logging.info(f"Reranking documents to {self.rerank_k} documents...")
 
         if self.conversational:
             context = state["context"][-1]
@@ -226,7 +226,7 @@ class RAG:
         ]
 
         if len(sources) <= self.rerank_k:
-            logging.debug(
+            logging.info(
                 f"No need to rerank, retrieval already has less than {self.rerank_k} documents"
             )
 
@@ -278,11 +278,11 @@ class RAG:
 
         if len(reranked_docs) == self.rerank_k:
             # reranker able to select rerank_k number of documents
-            logging.debug("Reranker successfully selected the top k documents")
+            logging.info("Reranker successfully selected the top k documents")
             reranker_success = True
         else:
             # fall back to the top rerank_k retrieved documents
-            logging.debug(
+            logging.info(
                 "Reranker failed to select the top k documents - falling back to the top retrieved documents"
             )
             reranker_success = False
@@ -321,7 +321,7 @@ class RAG:
         return tokenizer
 
     def _budget_forcing_invoke(self, messages) -> AIMessage:
-        logging.debug("Budget forcing invoked")
+        logging.info("Budget forcing invoked")
 
         from langchain_openai import OpenAI
 
@@ -377,10 +377,10 @@ class RAG:
                 # to suppress the ending
                 output += ignore_str
                 prompt += ignore_str
-                logging.debug("Suppressing end to encourage more thinking")
+                logging.info("Suppressing end to encourage more thinking")
 
-            logging.debug(f"Thinking round {i + 1} out of {max_thinking_steps}")
-            logging.debug(f"Thinking tokens remaining: {thinking_tokens_remaining}")
+            logging.info(f"Thinking round {i + 1} out of {max_thinking_steps}")
+            logging.info(f"Thinking tokens remaining: {thinking_tokens_remaining}")
             response = self.llm.invoke(prompt, extra_body=sampling_params)
             output += response
             prompt += response
@@ -393,13 +393,13 @@ class RAG:
             i += 1
 
         if thinking_tokens_remaining <= 0:
-            logging.debug("Max thinking tokens reached, stopping thinking")
+            logging.info("Max thinking tokens reached, stopping thinking")
         else:
-            logging.debug(
+            logging.info(
                 f"Max thinking rounds {max_thinking_steps} reached, stopping thinking"
             )
 
-        logging.debug(
+        logging.info(
             f"Thinking tokens used: {self.budget_forcing_kwargs['max_tokens_thinking'] - thinking_tokens_remaining}"
         )
 
@@ -418,7 +418,7 @@ class RAG:
         return AIMessage(output + response)
 
     async def _budget_forcing_ainvoke(self, messages) -> AIMessage:
-        logging.debug("Budget forcing invoked")
+        logging.info("Budget forcing invoked")
 
         from langchain_openai import OpenAI
 
@@ -474,10 +474,10 @@ class RAG:
                 # to suppress the ending
                 output += ignore_str
                 prompt += ignore_str
-                logging.debug("Suppressing end to encourage more thinking")
+                logging.info("Suppressing end to encourage more thinking")
 
-            logging.debug(f"Thinking round {i + 1} out of {max_thinking_steps}")
-            logging.debug(f"Thinking tokens remaining: {thinking_tokens_remaining}")
+            logging.info(f"Thinking round {i + 1} out of {max_thinking_steps}")
+            logging.info(f"Thinking tokens remaining: {thinking_tokens_remaining}")
             response = await self.llm.ainvoke(prompt, extra_body=sampling_params)
             output += response
             prompt += response
@@ -490,13 +490,13 @@ class RAG:
             i += 1
 
         if thinking_tokens_remaining <= 0:
-            logging.debug("Max thinking tokens reached, stopping thinking")
+            logging.info("Max thinking tokens reached, stopping thinking")
         else:
-            logging.debug(
+            logging.info(
                 f"Max thinking rounds {max_thinking_steps} reached, stopping thinking"
             )
 
-        logging.debug(
+        logging.info(
             f"Thinking tokens used: {self.budget_forcing_kwargs['max_tokens_thinking'] - thinking_tokens_remaining}"
         )
 
@@ -515,7 +515,7 @@ class RAG:
         return AIMessage(output + response)
 
     def query_or_respond(self, state: CustomMessagesState):
-        logging.debug("Query or respond invoked")
+        logging.info("Query or respond invoked")
 
         # generate tool call for retrieval or respond
         # model can decide whether to use the tool or respond directly
@@ -533,7 +533,7 @@ class RAG:
     def process_tool_response(
         self, state: CustomMessagesState
     ) -> dict[str, str | list[Document]]:
-        logging.debug("Process tool response invoked")
+        logging.info("Process tool response invoked")
 
         # get generated ToolMessages
         recent_tool_messages = []
@@ -560,7 +560,7 @@ class RAG:
     def obtain_context_and_sources(
         self, state: State | CustomMessagesState
     ) -> dict[str, str | list[str]]:
-        logging.debug("Obtaining context and sources...")
+        logging.info("Obtaining context and sources...")
 
         # obtain the sources and the context from the retrieved documents
         if self.rerank:
@@ -614,7 +614,7 @@ class RAG:
         dict[str, str]
             A dictionary containing the generated answer and the messages used to generate it.
         """
-        logging.debug("Generating answer...")
+        logging.info("Generating answer...")
 
         retriever_response = self.obtain_context_and_sources(state)
         messages_from_prompt = self.prompt.invoke(
@@ -683,7 +683,7 @@ class RAG:
         dict[str, str]
             A dictionary containing the generated answer and the messages used to generate it.
         """
-        logging.debug("Generating answer...")
+        logging.info("Generating answer...")
 
         retriever_response = self.obtain_context_and_sources(state)
         messages_from_prompt = self.prompt.invoke(
@@ -893,22 +893,30 @@ class RAG:
         """
         response = await self._aquery(question=question, user_id=user_id)
 
-        context = response["reranked_context"] if self.rerank else response["context"]
-        # extract the sources of the documents used in the context
-        pulled_context = [doc.metadata["source"] for doc in context]
-
-        # compose response with the context and answer
-        if isinstance(response, State):
-            answer = response["answer"].content
-        else:
+        if self.conversational:
             answer = response["messages"][-1].content
+        else:
+            answer = response["answer"].content
 
-        response_with_context = "\n".join(
-            [
-                f"\nSources: {pulled_context}\n",
-                f"{answer}",
-            ]
-        )
+        if "context" in response:
+            context = (
+                response["reranked_context"] if self.rerank else response["context"]
+            )
+            context = context[-1] if self.conversational else context
+
+            # extract the sources of the documents used in the context
+            sources = [doc.metadata["source"] for doc in context]
+
+            # compose response with the context and answer
+            response_with_context = "\n".join(
+                [
+                    f"Sources: {sources}",
+                    f"{answer}",
+                ]
+            )
+        else:
+            # if no context, just return the answer
+            response_with_context = answer
 
         return response_with_context
 
@@ -932,20 +940,31 @@ class RAG:
         """
         response = await self._aquery(question=question, user_id=user_id)
 
-        context = response["reranked_context"] if self.rerank else response["context"]
-        # extract the sources and contents of the documents used in the context
-        pulled_context = [
-            f"{'-' * 100}\nSource: {doc.metadata['source']}\nContent:\n{doc.page_content}"
-            for doc in context
-        ]
-
-        # compose response with the context and answer
-        if isinstance(response, State):
-            answer = response["answer"].content
-        else:
+        if self.conversational:
             answer = response["messages"][-1].content
+        else:
+            answer = response["answer"].content
 
-        response_with_context = "\n".join(["\nContext:\n"] + pulled_context + [answer])
+        if "context" in response:
+            context = (
+                response["reranked_context"] if self.rerank else response["context"]
+            )
+            context = context[-1] if self.conversational else context
+
+            # extract the sources and contents of the documents used in the context
+            pulled_context = [
+                f"{'-' * 100}\nSource: {doc.metadata['source']}\nContent:\n{doc.page_content}"
+                for doc in context
+            ]
+            sources = [doc.metadata["source"] for doc in context]
+
+            # compose response with the context and answer
+            response_with_context = "\n".join(
+                ["\nContext:"] + pulled_context + [f"Sources: {sources}"] + [answer]
+            )
+        else:
+            # if no context, just return the answer
+            response_with_context = answer
 
         return response_with_context
 
