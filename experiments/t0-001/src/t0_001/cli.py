@@ -377,7 +377,7 @@ def serve_rag(
         typer.Option(help=HELP_TEXT["conversational"]),
     ] = DEFAULTS["conversational"],
     conversational_agent_llm_provider: Annotated[
-        str | None,
+        LLMProvider | None,
         typer.Option(help=HELP_TEXT["conversational_agent_llm_provider"]),
     ] = DEFAULTS["conversational_agent_llm_provider"],
     conversational_agent_llm_model_name: Annotated[
@@ -420,7 +420,7 @@ def serve_rag(
         str | None, typer.Option(help=HELP_TEXT["rerank_prompt_template_path"])
     ] = DEFAULTS["rerank_prompt_template_path"],
     rerank_llm_provider: Annotated[
-        str | None,
+        LLMProvider | None,
         typer.Option(help=HELP_TEXT["rerank_llm_provider"]),
     ] = DEFAULTS["rerank_llm_provider"],
     rerank_llm_model_name: Annotated[
@@ -575,7 +575,7 @@ def evaluate_rag(
         typer.Option(help=HELP_TEXT["conversational"]),
     ] = DEFAULTS["conversational"],
     conversational_agent_llm_provider: Annotated[
-        str | None,
+        LLMProvider | None,
         typer.Option(help=HELP_TEXT["conversational_agent_llm_provider"]),
     ] = DEFAULTS["conversational_agent_llm_provider"],
     conversational_agent_llm_model_name: Annotated[
@@ -624,7 +624,7 @@ def evaluate_rag(
         str | None, typer.Option(help=HELP_TEXT["rerank_prompt_template_path"])
     ] = DEFAULTS["rerank_prompt_template_path"],
     rerank_llm_provider: Annotated[
-        str | None,
+        LLMProvider | None,
         typer.Option(help=HELP_TEXT["rerank_llm_provider"]),
     ] = DEFAULTS["rerank_llm_provider"],
     rerank_llm_model_name: Annotated[
@@ -787,6 +787,18 @@ def rag_chat(
     llm_model_name: Annotated[
         str, typer.Option(help=HELP_TEXT["llm_model_name"])
     ] = DEFAULTS["llm_model_name"],
+    conversational: Annotated[
+        bool,
+        typer.Option(help=HELP_TEXT["conversational"]),
+    ] = DEFAULTS["conversational"],
+    conversational_agent_llm_provider: Annotated[
+        LLMProvider | None,
+        typer.Option(help=HELP_TEXT["conversational_agent_llm_provider"]),
+    ] = DEFAULTS["conversational_agent_llm_provider"],
+    conversational_agent_llm_model_name: Annotated[
+        str | None,
+        typer.Option(help=HELP_TEXT["conversational_agent_llm_model_name"]),
+    ] = DEFAULTS["conversational_agent_llm_model_name"],
     prompt_template_path: Annotated[
         str | None,
         typer.Option(help=HELP_TEXT["prompt_template_path"]),
@@ -823,7 +835,7 @@ def rag_chat(
         str | None, typer.Option(help=HELP_TEXT["rerank_prompt_template_path"])
     ] = DEFAULTS["rerank_prompt_template_path"],
     rerank_llm_provider: Annotated[
-        str | None,
+        LLMProvider | None,
         typer.Option(help=HELP_TEXT["rerank_llm_provider"]),
     ] = DEFAULTS["rerank_llm_provider"],
     rerank_llm_model_name: Annotated[
@@ -872,6 +884,9 @@ def rag_chat(
             trust_source=trust_source,
             llm_provider=llm_provider,
             llm_model_name=llm_model_name,
+            conversational=conversational,
+            conversational_agent_llm_provider=conversational_agent_llm_provider,
+            conversational_agent_llm_model_name=conversational_agent_llm_model_name,
             prompt_template_path=prompt_template_path,
             system_prompt_path=system_prompt_path,
             extra_body=extra_body,
