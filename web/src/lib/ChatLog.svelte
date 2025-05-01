@@ -6,20 +6,39 @@
     }
 
     let { history }: Props = $props();
-    let chatLogDiv: HTMLDivElement | null = null;
 
-    export function scrollToBottom() {
-        if (chatLogDiv) {
-            setTimeout(() => {
-                chatLogDiv.scrollTop = chatLogDiv.scrollHeight;
-            }, 100);
+    // Controls whether the chat log should auto-scroll to the newest entry when it's added
+    let autoScroll: boolean = true;
+
+    function setAutoScroll(event: Event) {
+        const target = event.target as HTMLDivElement;
+        const scrollTop = target.scrollTop;
+        const scrollHeight = target.scrollHeight;
+        const clientHeight = target.clientHeight;
+
+        // If the user has scrolled up, disable auto-scroll
+        if (scrollTop + clientHeight < scrollHeight) {
+            autoScroll = false;
+        } else {
+            autoScroll = true;
+        }
+    }
+
+    function scroll(node: HTMLDivElement) {
+        // If it's a new message from the user, force the scroll
+        // to happen.
+        if (node.classList.contains("human")) {
+            autoScroll = true;
+        }
+        if (autoScroll) {
+            node.scrollIntoView(true);
         }
     }
 </script>
 
-<div class="chatlog" bind:this={chatLogDiv}>
+<div class="chatlog" onscroll={setAutoScroll}>
     {#each history as entry}
-        <div class={entry.role}>
+        <div class={entry.role} use:scroll>
             {@html entry.content}
         </div>
     {/each}
