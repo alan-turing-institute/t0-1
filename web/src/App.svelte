@@ -2,11 +2,23 @@
     import Messages from "./lib/Messages.svelte";
     import Form from "./lib/Form.svelte";
     import Header from "./lib/Header.svelte";
+    import Error from "./lib/Error.svelte";
     import { type ChatEntry, makeHumanEntry, makeAIEntry } from "./lib/types";
 
     let history: Array<ChatEntry> = $state([]);
     let disableForm: boolean = $state(false);
     let loading: boolean = $state(false);
+    let error: string | null = $state(null);
+
+    function handleError(err: string) {
+        console.error("Error:", err);
+        error = err;
+        loading = false;
+        disableForm = false;
+        setTimeout(() => {
+            error = null;
+        }, 10000);
+    }
 
     function queryLLM(query: string) {
         disableForm = true;
@@ -27,7 +39,9 @@
             .then((response) => {
                 if (!response.ok) {
                     // TODO Handle nicely -- 404s and stuff go here
-                    throw new Error(`HTTP error, status: ${response.status}`);
+                    handleError(
+                        `HTTP ${response.status} error: ${response.statusText}`,
+                    );
                 }
                 response.json().then((data) => {
                     // TODO convert Markdown into HTML
@@ -37,10 +51,9 @@
                             data.response.messages.length - 1
                         ];
                     if (last_message.type !== "ai") {
-                        console.error(
-                            "Last message was not AI, something went wrong"
+                        handleError(
+                            "Last message was not AI, something went wrong",
                         );
-                        disableForm = false;
                         return;
                     }
                     loading = false;
@@ -49,13 +62,13 @@
                 });
             })
             .catch((error) => {
-                console.error("Error:", error);
-                disableForm = false;
+                handleError(error.message);
             });
     }
 </script>
 
 <div id="wrapper">
+    <Error {error} />
     <main>
         <Header></Header>
         <Messages {history} {loading} />
