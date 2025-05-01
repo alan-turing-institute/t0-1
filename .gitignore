@@ -217,3 +217,4 @@ web/pnpm-lock.yaml
 web/package-lock.json
 web/node_modules/
 !web/src/lib
+web/.vite

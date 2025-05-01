@@ -20,7 +20,7 @@
 <div class="chatlog" bind:this={chatLogDiv}>
     {#each history as entry}
         <div class={entry.role}>
-            {entry.content}
+            {@html entry.content}
         </div>
     {/each}
 </div>
