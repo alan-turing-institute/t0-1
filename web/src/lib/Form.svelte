@@ -22,14 +22,24 @@
         queryLLM(message);
         message = "";
     }
+
+    let wrapDiv: HTMLDivElement | null = null;
+    function handleInput(_event: Event) {
+        if (wrapDiv) {
+            wrapDiv.dataset.replicatedValue = message;
+        }
+    }
 </script>
 
 <form id="chat" onsubmit={handleSubmit}>
-    <textarea
-        bind:value={message}
-        placeholder="Your message here..."
-        onkeydown={handleKeyDown}
-    ></textarea>
+    <div class="grow-wrap" bind:this={wrapDiv}>
+        <textarea
+            bind:value={message}
+            placeholder="Your message here..."
+            onkeydown={handleKeyDown}
+            oninput={handleInput}
+        ></textarea>
+    </div>
     <button type="submit" disabled={disableForm}>Send</button>
 </form>
 
@@ -41,14 +51,33 @@
         gap: 10px;
     }
 
+    div.grow-wrap {
+        width: 100%;
+        display: grid;
+    }
+    div.grow-wrap::after {
+        content: attr(data-replicated-value) " ";
+        white-space: pre-wrap;
+        visibility: hidden;
+    }
+
     textarea,
     button {
         font-size: inherit;
     }
 
-    textarea {
+    .grow-wrap > textarea {
+        resize: none;
+    }
+
+    .grow-wrap > textarea,
+    .grow-wrap::after {
         width: 100%;
-        font-family: "Fira Mono", monospace;
+        max-height: 300px;
+        border: 1px solid black;
+        padding: 0.5rem;
+        font-family: "Fira Code", monospace;
+        grid-area: 1 / 1 / 2 / 2;
     }
 
     button {
