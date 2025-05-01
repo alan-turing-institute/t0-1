@@ -16,7 +16,7 @@ t0-001 serve-rag \
   --conversational-agent-llm-provider azure_openai \
   --conversational-agent-llm-model-name gpt-4o \
   --prompt-template-path ../templates/rag_prompt_conversational.txt \
-  --system-prompt-path ../templates/rag_system_prompt_vconversational.txt \
+  --system-prompt-path ../templates/rag_system_prompt_conversational.txt \
   --rerank \
   --rerank-prompt-template-path ../templates/reranking_prompt.txt  \
   --rerank-llm-provider azure_openai  \
