@@ -1,5 +1,5 @@
 t0-001 serve-rag \
-  --k 30 \
+  --k 10 \
   --db-choice chroma \
   --llm-provider azure_openai \
   --llm-model-name gpt-4o \
@@ -11,4 +11,14 @@ t0-001 serve-rag \
   --extra-body '{"max_tokens":4056}' \
   --env-file ../.env \
   --host 0.0.0.0 \
-  --port 8000
+  --port 8000 \
+  --conversational \
+  --conversational-agent-llm-provider azure_openai \
+  --conversational-agent-llm-model-name gpt-4o \
+  --prompt-template-path ../templates/rag_prompt_conversational.txt \
+  --system-prompt-path ../templates/rag_system_prompt_vconversational.txt \
+  --rerank \
+  --rerank-prompt-template-path ../templates/reranking_prompt.txt  \
+  --rerank-llm-provider azure_openai  \
+  --rerank-llm-model-name gpt-4o \
+  --rerank-k 5

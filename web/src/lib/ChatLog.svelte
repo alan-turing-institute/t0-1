@@ -36,8 +36,8 @@
         scroll-behavior: smooth;
     }
 
-    div.user,
-    div.response {
+    div.human,
+    div.ai {
         width: max-content;
         max-width: 60%;
         padding: 5px 10px;
@@ -45,12 +45,12 @@
         border: 1px solid black;
     }
 
-    div.user {
+    div.human {
         text-align: right;
         margin-left: auto;
     }
 
-    div.response {
+    div.ai {
         text-align: left;
         margin-right: auto;
     }
