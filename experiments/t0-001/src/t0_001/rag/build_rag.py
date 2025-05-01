@@ -1118,9 +1118,9 @@ def build_rag(
         | process_arg_to_dict(budget_forcing_kwargs),
         budget_forcing_tokenizer=budget_forcing_tokenizer,
         rerank=rerank,
-        rerank_prompt=rerank_prompt_template,
-        rerank_llm=rerank_llm,
-        rerank_k=rerank_k,
+        rerank_prompt=rerank_prompt_template if rerank else None,
+        rerank_llm=rerank_llm if rerank else None,
+        rerank_k=rerank_k if rerank else None,
     )
 
     return rag
