@@ -1,5 +1,6 @@
 <script lang="ts">
     import { type ChatEntry } from "./types";
+    import Typewriter from "svelte-typewriter";
 
     interface Props {
         history: Array<ChatEntry>;
@@ -10,6 +11,7 @@
 
     // Controls whether the chat log should auto-scroll to the newest entry when it's added
     let autoScroll: boolean = true;
+    let chatLogDiv: HTMLDivElement | null = null;
 
     function setAutoScroll(event: Event) {
         const target = event.target as HTMLDivElement;
@@ -39,50 +41,99 @@
     }
 </script>
 
-<div class="chatlog" onscroll={setAutoScroll}>
+<div class="chatlog" onscroll={setAutoScroll} bind:this={chatLogDiv}>
     {#each history as entry}
         <div class={entry.role} use:scroll>
-            {@html entry.content}
+            {#if entry.role === "ai"}
+                {@html entry.content}
+                <!-- Disabling typewriter for now as it messes with scroll -->
+                <!-- <Typewriter cursor={false} mode="cascade" interval="8" -->
+                <!--     >{@html entry.content}</Typewriter -->
+                <!-- > -->
+            {:else}
+                {@html entry.content}
+            {/if}
         </div>
     {/each}
     {#if loading}
-        <div class="loading" use:scroll></div>
+        <div id="loading"></div>
     {/if}
 </div>
 
 <style>
     div.chatlog {
         width: 100%;
+        overflow-x: hidden;
         overflow-y: auto;
         display: flex;
         flex-direction: column;
-        gap: 5px;
-        padding-bottom: 20px;
+        gap: 30px;
+        padding: 0px 10px 20px 10px;
         scroll-behavior: smooth;
+    }
+
+    div.human :global,
+    div.ai :global,
+    div.loading :global {
+        p {
+            margin: 0;
+            padding: 0;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+            margin: 10px 0 5px 0;
+        }
+
+        ul,
+        ol {
+            margin: 0;
+            padding-left: 1.5em;
+        }
+
+        ul ul,
+        ul ol,
+        ol ul,
+        ol ol {
+            /* Nested lists */
+            margin-top: 5px;
+        }
+
+        li + li {
+            margin-top: 5px;
+        }
     }
 
     div.human,
     div.ai,
-    div.loading {
+    div#loading {
         width: max-content;
-        max-width: 60%;
-        padding: 5px 10px;
-        border-radius: 5px;
-        border: 1px solid black;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
     }
 
     div.human {
+        max-width: 60%;
+        background-color: #ededed;
+        border-radius: 15px;
+        padding: 10px 15px;
         text-align: right;
         margin-left: auto;
     }
 
     div.ai,
-    div.loading {
+    div#loading {
+        width: 100%;
         text-align: left;
         margin-right: auto;
     }
 
-    div.loading::after {
+    div#loading::after {
         content: "";
         display: inline-block;
         animation: dots 1.5s steps(4, start) infinite;
@@ -90,7 +141,7 @@
     }
     @keyframes dots {
         0% {
-            content: "";
+            content: " ";
         }
         5% {
             content: ".";
@@ -102,7 +153,7 @@
             content: "...";
         }
         100% {
-            content: "";
+            content: " ";
         }
     }
 </style>

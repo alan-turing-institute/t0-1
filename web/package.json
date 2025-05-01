@@ -17,6 +17,7 @@
     "@types/showdown": "^2.0.6",
     "svelte": "^5.23.1",
     "svelte-check": "^4.1.5",
+    "svelte-typewriter": "^3.2.3",
     "typescript": "~5.7.2",
     "vite": "^6.3.1"
   },

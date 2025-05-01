@@ -80,6 +80,5 @@
         flex-direction: column;
         align-items: center;
         justify-content: flex-end;
-        border: 1px solid black;
     }
 </style>

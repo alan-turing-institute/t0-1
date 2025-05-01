@@ -24,20 +24,19 @@
     }
 
     let wrapDiv: HTMLDivElement | null = null;
-    function handleInput(_event: Event) {
+    $effect(() => {
         if (wrapDiv) {
             wrapDiv.dataset.replicatedValue = message;
         }
-    }
+    });
 </script>
 
 <form id="chat" onsubmit={handleSubmit}>
     <div class="grow-wrap" bind:this={wrapDiv}>
         <textarea
             bind:value={message}
-            placeholder="Your message here..."
+            placeholder="Ask me anything..."
             onkeydown={handleKeyDown}
-            oninput={handleInput}
         ></textarea>
     </div>
     <button type="submit" disabled={disableForm}>Send</button>
@@ -45,25 +44,21 @@
 
 <style>
     form {
-        border: 1px solid blue;
         width: 100%;
         display: flex;
+        align-items: center;
         gap: 10px;
     }
 
     div.grow-wrap {
         width: 100%;
+        max-width: 100%;
         display: grid;
     }
     div.grow-wrap::after {
         content: attr(data-replicated-value) " ";
         white-space: pre-wrap;
         visibility: hidden;
-    }
-
-    textarea,
-    button {
-        font-size: inherit;
     }
 
     .grow-wrap > textarea {
@@ -73,15 +68,21 @@
     .grow-wrap > textarea,
     .grow-wrap::after {
         width: 100%;
+        max-width: 100%;
         max-height: 300px;
         border: 1px solid black;
-        padding: 0.5rem;
+        border-radius: 20px;
+        padding: 0.5rem 1rem;
         font-family: "Fira Code", monospace;
+        font-size: inherit;
         grid-area: 1 / 1 / 2 / 2;
+        word-break: break-word;
     }
 
     button {
         font-family: inherit;
+        font-size: inherit;
+        height: min-content;
     }
 
     button:disabled {
