@@ -28,6 +28,9 @@ DEFAULTS = {
     "with_score": False,
     "llm_provider": LLMProvider.huggingface,
     "llm_model_name": "Qwen/Qwen2.5-1.5B-Instruct",
+    "conversational": False,
+    "conversational_agent_llm_provider": LLMProvider.huggingface,
+    "conversational_agent_llm_model_name": "Qwen/Qwen2.5-1.5B-Instruct",
     "prompt_template_path": None,
     "system_prompt_path": None,
     "force_create": False,
@@ -42,4 +45,5 @@ DEFAULTS = {
     "rerank_llm_provider": LLMProvider.huggingface,
     "rerank_llm_model_name": "Qwen/Qwen2.5-1.5B-Instruct",
     "max_queries_per_minute": 60,
+    "logging_level": 20,
 }
