@@ -1019,14 +1019,15 @@ def build_rag(
     trust_source: bool = False,
     llm_provider: str = "huggingface",
     llm_model_name: str = "Qwen/Qwen2.5-1.5B-Instruct",
+    extra_body: dict | str | None = None,
     conversational: bool = False,
     conversational_agent_llm_provider: str | None = None,
     conversational_agent_llm_model_name: str | None = None,
+    conversational_agent_extra_body: dict | str | None = None,
     tools: list | None = None,
     tools_kwargs: dict = {},
     prompt_template_path: str | Path | None = None,
     system_prompt_path: str | Path | None = None,
-    extra_body: dict | str | None = None,
     budget_forcing: bool = False,
     budget_forcing_kwargs: dict | str | None = None,
     budget_forcing_tokenizer: str | None = None,
@@ -1073,7 +1074,7 @@ def build_rag(
         conversational_agent_llm = load_llm(
             llm_provider=conversational_agent_llm_provider,
             llm_model_name=conversational_agent_llm_model_name,
-            extra_body=extra_body,
+            extra_body=conversational_agent_extra_body,
         )
     else:
         conversational_agent_llm = None
@@ -1099,9 +1100,6 @@ def build_rag(
         )
     else:
         rerank_llm = None
-        rerank_prompt_template = None
-        rerank_extra_body = None
-        rerank_k = 0
 
     rag = RAG(
         retriever=retriever,

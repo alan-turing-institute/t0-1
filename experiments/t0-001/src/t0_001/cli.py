@@ -24,9 +24,11 @@ HELP_TEXT = {
     "with_score": "If True, return the score of the similarity search.",
     "llm_provider": "Service provider for the LLM.",
     "llm_model_name": "Name of the LLM model.",
+    "extra_body": "Extra body to pass to the LLM if using OpenAI as service provider.",
     "conversational": "If True, use the LLM in conversational mode.",
     "conversational_agent_llm_provider": "Service provider for the conversational retriever agent LLM.",
     "conversational_agent_llm_model_name": "Name of the conversational retriever agent LLM model.",
+    "conversational_agent_extra_body": "Extra body to pass to the conversational retriever agent LLM if using OpenAI as service provider.",
     "prompt_template_path": "Path to the prompt template file.",
     "system_prompt_path": "Path to the system prompt file.",
     "generate_only": "If True, only generate the responses from the queries without evaluating.",
@@ -36,7 +38,6 @@ HELP_TEXT = {
     "host_query": "Host to query.",
     "port_query": "Port to query.",
     "env_file": "Path to the .env file.",
-    "extra_body:": "Extra body to pass to the LLM if using OpenAI as service provider.",
     "budget_forcing": "If True, uses budget forcing for LLM as in s1 paper and s1 parser for parsing response.",
     "budget_forcing_kwargs": "Keyword arguments for budget forcing in JSON format.",
     "budget_forcing_tokenizer": "Tokenizer to use for budget forcing if different to the model name.",
@@ -372,6 +373,10 @@ def serve_rag(
     llm_model_name: Annotated[
         str, typer.Option(help=HELP_TEXT["llm_model_name"])
     ] = DEFAULTS["llm_model_name"],
+    extra_body: Annotated[
+        str | None,
+        typer.Option(help=HELP_TEXT["extra_body"]),
+    ] = None,  # TODO: Decide whhether to add this to defaults
     conversational: Annotated[
         bool,
         typer.Option(help=HELP_TEXT["conversational"]),
@@ -384,6 +389,10 @@ def serve_rag(
         str | None,
         typer.Option(help=HELP_TEXT["conversational_agent_llm_model_name"]),
     ] = DEFAULTS["conversational_agent_llm_model_name"],
+    conversational_agent_extra_body: Annotated[
+        str | None,
+        typer.Option(help=HELP_TEXT["conversational_agent_extra_body"]),
+    ] = None,
     prompt_template_path: Annotated[
         str | None,
         typer.Option(help=HELP_TEXT["prompt_template_path"]),
@@ -396,10 +405,6 @@ def serve_rag(
         str | None,
         typer.Option(help=HELP_TEXT["env_file"]),
     ] = DEFAULTS["env_file"],
-    extra_body: Annotated[
-        str | None,
-        typer.Option(help=HELP_TEXT["extra_body:"]),
-    ] = None,  # TODO: Decide whhether to add this to defaults
     budget_forcing: Annotated[
         bool,
         typer.Option(help=HELP_TEXT["budget_forcing"]),
@@ -468,14 +473,13 @@ def serve_rag(
         trust_source=trust_source,
         llm_provider=llm_provider,
         llm_model_name=llm_model_name,
+        extra_body=extra_body,
         conversational=conversational,
         conversational_agent_llm_provider=conversational_agent_llm_provider,
         conversational_agent_llm_model_name=conversational_agent_llm_model_name,
+        conversational_agent_extra_body=conversational_agent_extra_body,
         prompt_template_path=prompt_template_path,
         system_prompt_path=system_prompt_path,
-        host=host,
-        port=port,
-        extra_body=extra_body,
         budget_forcing=budget_forcing,
         budget_forcing_kwargs=budget_forcing_kwargs,
         budget_forcing_tokenizer=budget_forcing_tokenizer,
@@ -485,6 +489,8 @@ def serve_rag(
         rerank_llm_model_name=rerank_llm_model_name,
         rerank_extra_body=rerank_extra_body,
         rerank_k=rerank_k,
+        host=host,
+        port=port,
     )
 
 
@@ -570,6 +576,10 @@ def evaluate_rag(
     llm_model_name: Annotated[
         str, typer.Option(help=HELP_TEXT["llm_model_name"])
     ] = DEFAULTS["llm_model_name"],
+    extra_body: Annotated[
+        str | None,
+        typer.Option(help=HELP_TEXT["extra_body"]),
+    ] = None,  # TODO: Decide whether to add this to defaults
     conversational: Annotated[
         bool,
         typer.Option(help=HELP_TEXT["conversational"]),
@@ -582,6 +592,10 @@ def evaluate_rag(
         str | None,
         typer.Option(help=HELP_TEXT["conversational_agent_llm_model_name"]),
     ] = DEFAULTS["conversational_agent_llm_model_name"],
+    conversational_agent_extra_body: Annotated[
+        str | None,
+        typer.Option(help=HELP_TEXT["conversational_agent_extra_body"]),
+    ] = None,
     prompt_template_path: Annotated[
         str | None,
         typer.Option(help=HELP_TEXT["prompt_template_path"]),
@@ -600,10 +614,6 @@ def evaluate_rag(
         str | None,
         typer.Option(help=HELP_TEXT["env_file"]),
     ] = DEFAULTS["env_file"],
-    extra_body: Annotated[
-        str | None,
-        typer.Option(help=HELP_TEXT["extra_body:"]),
-    ] = None,  # TODO: Decide whether to add this to defaults
     budget_forcing: Annotated[
         bool,
         typer.Option(help=HELP_TEXT["budget_forcing"]),
@@ -681,13 +691,14 @@ def evaluate_rag(
         trust_source=trust_source,
         llm_provider=llm_provider,
         llm_model_name=llm_model_name,
+        extra_body=extra_body,
         conversational=conversational,
         conversational_agent_llm_provider=conversational_agent_llm_provider,
         conversational_agent_llm_model_name=conversational_agent_llm_model_name,
+        conversational_agent_extra_body=conversational_agent_extra_body,
         prompt_template_path=prompt_template_path,
         system_prompt_path=system_prompt_path,
         deepseek_r1=deepseek_r1,
-        extra_body=extra_body,
         budget_forcing=budget_forcing,
         budget_forcing_kwargs=budget_forcing_kwargs,
         budget_forcing_tokenizer=budget_forcing_tokenizer,
@@ -787,6 +798,10 @@ def rag_chat(
     llm_model_name: Annotated[
         str, typer.Option(help=HELP_TEXT["llm_model_name"])
     ] = DEFAULTS["llm_model_name"],
+    extra_body: Annotated[
+        str | None,
+        typer.Option(help=HELP_TEXT["extra_body"]),
+    ] = None,  # TODO: Decide whether to add this to defaults
     conversational: Annotated[
         bool,
         typer.Option(help=HELP_TEXT["conversational"]),
@@ -799,6 +814,10 @@ def rag_chat(
         str | None,
         typer.Option(help=HELP_TEXT["conversational_agent_llm_model_name"]),
     ] = DEFAULTS["conversational_agent_llm_model_name"],
+    conversational_agent_extra_body: Annotated[
+        str | None,
+        typer.Option(help=HELP_TEXT["conversational_agent_extra_body"]),
+    ] = None,
     prompt_template_path: Annotated[
         str | None,
         typer.Option(help=HELP_TEXT["prompt_template_path"]),
@@ -811,10 +830,6 @@ def rag_chat(
         str | None,
         typer.Option(help=HELP_TEXT["env_file"]),
     ] = DEFAULTS["env_file"],
-    extra_body: Annotated[
-        str | None,
-        typer.Option(help=HELP_TEXT["extra_body:"]),
-    ] = None,  # TODO: Decide whether to add this to defaults
     budget_forcing: Annotated[
         bool,
         typer.Option(help=HELP_TEXT["budget_forcing"]),
@@ -884,12 +899,13 @@ def rag_chat(
             trust_source=trust_source,
             llm_provider=llm_provider,
             llm_model_name=llm_model_name,
+            extra_body=extra_body,
             conversational=conversational,
             conversational_agent_llm_provider=conversational_agent_llm_provider,
             conversational_agent_llm_model_name=conversational_agent_llm_model_name,
+            conversational_agent_extra_body=conversational_agent_extra_body,
             prompt_template_path=prompt_template_path,
             system_prompt_path=system_prompt_path,
-            extra_body=extra_body,
             budget_forcing=budget_forcing,
             budget_forcing_kwargs=budget_forcing_kwargs,
             budget_forcing_tokenizer=budget_forcing_tokenizer,
