@@ -10,6 +10,25 @@
     let loading: boolean = $state(false);
     let error: string | null = $state(null);
 
+    function getDarkModePreference(): boolean {
+        const localStorageOption = localStorage.getItem("darkMode");
+        if (localStorageOption === "true") {
+            return true;
+        } else if (localStorageOption === "false") {
+            return false;
+        } else {
+            return window.matchMedia("(prefers-color-scheme: dark)").matches;
+        }
+    }
+    let darkMode: boolean = $state(getDarkModePreference());
+    let darkModePreference: string = $derived(darkMode ? "dark" : "light");
+    document.documentElement.setAttribute("data-theme", darkModePreference);
+    function toggleTheme() {
+        darkMode = !darkMode;
+        document.documentElement.setAttribute("data-theme", darkModePreference);
+        localStorage.setItem("darkMode", darkMode.toString());
+    }
+
     function handleError(err: string) {
         console.error("Error:", err);
         error = err;
@@ -70,19 +89,45 @@
 <div id="wrapper">
     <Error {error} />
     <main>
-        <Header></Header>
+        <Header {darkMode} {toggleTheme}></Header>
         <Messages {history} {loading} />
         <Form {disableForm} {queryLLM} />
     </main>
 </div>
 
 <style>
+    :global(html) {
+        --background: #f8f8f8;
+        --foreground: #151515;
+        --user-message-bg: #e2e2e2;
+        --secondary-fg: #646464;
+        --secondary-bg: #ffffff;
+        --highlight: #007acc;
+        --error: #ff0000;
+    }
+    :global(html[data-theme="dark"]) {
+        --background: #1e1e1e;
+        --foreground: #d8d8d8;
+        --user-message-bg: #484848;
+        --secondary-fg: #939393;
+        --secondary-bg: #000000;
+        --highlight: #007acc;
+        --error: #ff0000;
+    }
+    :global(*) {
+        transition:
+            background-color 0.5s ease-out,
+            color 0.5s ease-out;
+    }
+
     div#wrapper {
         display: flex;
         justify-content: center;
         align-items: center;
         width: 100vw;
         height: 100vh;
+        background-color: var(--background);
+        color: var(--foreground);
     }
 
     main {
@@ -95,5 +140,6 @@
         flex-direction: column;
         align-items: left;
         justify-content: end;
+        gap: 20px;
     }
 </style>

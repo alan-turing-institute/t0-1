@@ -5,7 +5,7 @@
         width: 100%;
         text-align: left;
         margin-right: auto;
-        color: #646464;
+        color: var(--secondary-fg);
         font-size: 0.9em;
     }
 
