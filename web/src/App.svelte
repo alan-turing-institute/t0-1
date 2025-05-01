@@ -5,12 +5,10 @@
 
     let history: Array<ChatEntry> = $state([]);
     let disableForm: boolean = $state(false);
-    let log;
 
     function queryLLM(query: string) {
         disableForm = true;
         history.push(makeHumanEntry(query));
-        log.scrollToBottom();
 
         const host = "http://0.0.0.0";
         const port = 8000;
@@ -43,7 +41,6 @@
                         return;
                     }
                     history.push(makeAIEntry(last_message.content));
-                    log.scrollToBottom();
                     disableForm = false;
                 });
             })
@@ -56,7 +53,7 @@
 
 <div id="wrapper">
     <main>
-        <ChatLog {history} bind:this={log} />
+        <ChatLog {history} />
         <Form {disableForm} {queryLLM} />
     </main>
 </div>
