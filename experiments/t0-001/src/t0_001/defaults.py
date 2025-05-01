@@ -45,4 +45,5 @@ DEFAULTS = {
     "rerank_llm_provider": LLMProvider.huggingface,
     "rerank_llm_model_name": "Qwen/Qwen2.5-1.5B-Instruct",
     "max_queries_per_minute": 60,
+    "logging_level": 20,
 }

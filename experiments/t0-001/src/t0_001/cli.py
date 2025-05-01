@@ -47,6 +47,7 @@ HELP_TEXT = {
     "rerank_extra_body": "Extra body to pass to the reranking LLM if using OpenAI as service provider.",
     "rerank_k": "Number of results to return from the reranking LLM.",
     "max_queries_per_minute": "Number of queries per minute to send to the model. Used to help avoid rate limits.",
+    "logging_level": "Logging level. 10 = DEBUG, 20 = INFO, 30 = WARNING, 40 = ERROR, 50 = CRITICAL.",
 }
 
 
@@ -92,11 +93,15 @@ def serve_vector_store(
     ] = DEFAULTS["serve"],
     host: Annotated[str, typer.Option(help=HELP_TEXT["host_serve"])] = DEFAULTS["host"],
     port: Annotated[int, typer.Option(help=HELP_TEXT["port_serve"])] = DEFAULTS["port"],
+    logging_level: Annotated[
+        int,
+        typer.Option(help=HELP_TEXT["logging_level"]),
+    ] = DEFAULTS["logging_level"],
 ):
     """
     Run the query vector store server.
     """
-    set_up_logging_config()
+    set_up_logging_config(level=logging_level)
     if serve:
         logging.info("Starting query vector store server...")
 
@@ -128,11 +133,15 @@ def query_vector_store(
     ] = DEFAULTS["with_score"],
     host: Annotated[str, typer.Option(help=HELP_TEXT["host_query"])] = DEFAULTS["host"],
     port: Annotated[int, typer.Option(help=HELP_TEXT["port_query"])] = DEFAULTS["port"],
+    logging_level: Annotated[
+        int,
+        typer.Option(help=HELP_TEXT["logging_level"]),
+    ] = DEFAULTS["logging_level"],
 ):
     """
     Query the vector store.
     """
-    set_up_logging_config()
+    set_up_logging_config(level=logging_level)
     logging.info("Querying vector store...")
     logging.info(f"Query: {query}")
 
@@ -187,11 +196,15 @@ def evaluate_vector_store(
         typer.Option(help=HELP_TEXT["trust_source"]),
     ] = DEFAULTS["trust_source"],
     k: Annotated[int, typer.Option(help=HELP_TEXT["k"])] = DEFAULTS["k"],
+    logging_level: Annotated[
+        int,
+        typer.Option(help=HELP_TEXT["logging_level"]),
+    ] = DEFAULTS["logging_level"],
 ):
     """
     Evaluate the vector store.
     """
-    set_up_logging_config()
+    set_up_logging_config(level=logging_level)
     if not os.path.exists(input_file):
         raise FileNotFoundError(f"Input file {input_file} does not exist.")
 
@@ -258,11 +271,15 @@ def serve_retriever(
     ] = DEFAULTS["serve"],
     host: Annotated[str, typer.Option(help=HELP_TEXT["host_serve"])] = DEFAULTS["host"],
     port: Annotated[int, typer.Option(help=HELP_TEXT["port_serve"])] = DEFAULTS["port"],
+    logging_level: Annotated[
+        int,
+        typer.Option(help=HELP_TEXT["logging_level"]),
+    ] = DEFAULTS["logging_level"],
 ):
     """
     Run the retriever server.
     """
-    set_up_logging_config()
+    set_up_logging_config(level=logging_level)
     logging.info("Starting retriever server...")
 
     from t0_001.query_vector_store.build_retriever import RetrieverConfig
@@ -293,11 +310,15 @@ def query_retriever(
     query: Annotated[str, typer.Argument(help=HELP_TEXT["query"])],
     host: Annotated[str, typer.Option(help=HELP_TEXT["host_query"])] = DEFAULTS["host"],
     port: Annotated[int, typer.Option(help=HELP_TEXT["port_query"])] = DEFAULTS["port"],
+    logging_level: Annotated[
+        int,
+        typer.Option(help=HELP_TEXT["logging_level"]),
+    ] = DEFAULTS["logging_level"],
 ):
     """
     Query the retriever.
     """
-    set_up_logging_config()
+    set_up_logging_config(level=logging_level)
     logging.info("Querying retriever...")
     logging.info(f"Query: {query}")
 
@@ -375,8 +396,6 @@ def serve_rag(
         str | None,
         typer.Option(help=HELP_TEXT["env_file"]),
     ] = DEFAULTS["env_file"],
-    host: Annotated[str, typer.Option(help=HELP_TEXT["host_serve"])] = DEFAULTS["host"],
-    port: Annotated[int, typer.Option(help=HELP_TEXT["port_serve"])] = DEFAULTS["port"],
     extra_body: Annotated[
         str | None,
         typer.Option(help=HELP_TEXT["extra_body:"]),
@@ -416,11 +435,17 @@ def serve_rag(
         int,
         typer.Option(help=HELP_TEXT["rerank_k"]),
     ] = 5,
+    host: Annotated[str, typer.Option(help=HELP_TEXT["host_serve"])] = DEFAULTS["host"],
+    port: Annotated[int, typer.Option(help=HELP_TEXT["port_serve"])] = DEFAULTS["port"],
+    logging_level: Annotated[
+        int,
+        typer.Option(help=HELP_TEXT["logging_level"]),
+    ] = DEFAULTS["logging_level"],
 ):
     """
     Run the RAG server.
     """
-    set_up_logging_config()
+    set_up_logging_config(level=logging_level)
     load_env_file(env_file)
     logging.info("Starting RAG server...")
 
@@ -468,11 +493,15 @@ def query_rag(
     query: Annotated[str, typer.Argument(help=HELP_TEXT["query"])],
     host: Annotated[str, typer.Option(help=HELP_TEXT["host_query"])] = DEFAULTS["host"],
     port: Annotated[int, typer.Option(help=HELP_TEXT["port_query"])] = DEFAULTS["port"],
+    logging_level: Annotated[
+        int,
+        typer.Option(help=HELP_TEXT["logging_level"]),
+    ] = DEFAULTS["logging_level"],
 ):
     """
     Query the vector store.
     """
-    set_up_logging_config()
+    set_up_logging_config(level=logging_level)
     logging.info("Querying RAG model...")
     logging.info(f"Query: {query}")
 
@@ -614,11 +643,15 @@ def evaluate_rag(
         int,
         typer.Option(help=HELP_TEXT["max_queries_per_minute"]),
     ] = DEFAULTS["max_queries_per_minute"],
+    logging_level: Annotated[
+        int,
+        typer.Option(help=HELP_TEXT["logging_level"]),
+    ] = DEFAULTS["logging_level"],
 ):
     """
     Evaluate the RAG.
     """
-    set_up_logging_config()
+    set_up_logging_config(level=logging_level)
     load_env_file(env_file)
     if not os.path.exists(input_file):
         raise FileNotFoundError(f"Input file {input_file} does not exist.")
@@ -686,11 +719,15 @@ def generate_synth_queries(
         str | None,
         typer.Option(help=HELP_TEXT["env_file"]),
     ] = DEFAULTS["env_file"],
+    logging_level: Annotated[
+        int,
+        typer.Option(help=HELP_TEXT["logging_level"]),
+    ] = DEFAULTS["logging_level"],
 ):
     """
     Generate synthetic queries for the NHS use case and save them to a file.
     """
-    set_up_logging_config()
+    set_up_logging_config(level=logging_level)
     load_env_file(env_file)
     logging.info("Generating synthetic queries...")
 
@@ -801,11 +838,15 @@ def rag_chat(
         int,
         typer.Option(help=HELP_TEXT["rerank_k"]),
     ] = 5,
+    logging_level: Annotated[
+        int,
+        typer.Option(help=HELP_TEXT["logging_level"]),
+    ] = DEFAULTS["logging_level"],
 ):
     """
     Interact with the RAG model in a command line interface.
     """
-    set_up_logging_config()
+    set_up_logging_config(level=logging_level)
     load_env_file(env_file)
     logging.info("Starting RAG chat interaction...")
 
