@@ -3,9 +3,10 @@
 
     interface Props {
         history: Array<ChatEntry>;
+        loading: boolean;
     }
 
-    let { history }: Props = $props();
+    let { history, loading }: Props = $props();
 
     // Controls whether the chat log should auto-scroll to the newest entry when it's added
     let autoScroll: boolean = true;
@@ -22,9 +23,11 @@
         } else {
             autoScroll = true;
         }
+        console.log("Auto-scroll:", autoScroll);
     }
 
     function scroll(node: HTMLDivElement) {
+        console.log("scrolling", node.classList);
         // If it's a new message from the user, force the scroll
         // to happen.
         if (node.classList.contains("human")) {
@@ -42,6 +45,9 @@
             {@html entry.content}
         </div>
     {/each}
+    {#if loading}
+        <div class="loading" use:scroll></div>
+    {/if}
 </div>
 
 <style>
@@ -56,7 +62,8 @@
     }
 
     div.human,
-    div.ai {
+    div.ai,
+    div.loading {
         width: max-content;
         max-width: 60%;
         padding: 5px 10px;
@@ -69,8 +76,33 @@
         margin-left: auto;
     }
 
-    div.ai {
+    div.ai,
+    div.loading {
         text-align: left;
         margin-right: auto;
+    }
+
+    div.loading::after {
+        content: "";
+        display: inline-block;
+        animation: dots 1.5s steps(4, start) infinite;
+        white-space: pre;
+    }
+    @keyframes dots {
+        0% {
+            content: "";
+        }
+        5% {
+            content: ".";
+        }
+        10% {
+            content: "..";
+        }
+        15% {
+            content: "...";
+        }
+        100% {
+            content: "";
+        }
     }
 </style>

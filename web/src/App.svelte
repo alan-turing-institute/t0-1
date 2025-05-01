@@ -5,6 +5,7 @@
 
     let history: Array<ChatEntry> = $state([]);
     let disableForm: boolean = $state(false);
+    let loading: boolean = $state(false);
 
     function queryLLM(query: string) {
         disableForm = true;
@@ -15,6 +16,7 @@
         const params = new URLSearchParams([["query", query]]).toString();
         const url = `${host}:${port}/query?${params}`;
 
+        loading = true;
         fetch(url, {
             method: "GET",
             headers: {
@@ -40,6 +42,7 @@
                         disableForm = false;
                         return;
                     }
+                    loading = false;
                     history.push(makeAIEntry(last_message.content));
                     disableForm = false;
                 });
@@ -53,7 +56,7 @@
 
 <div id="wrapper">
     <main>
-        <ChatLog {history} />
+        <ChatLog {history} {loading} />
         <Form {disableForm} {queryLLM} />
     </main>
 </div>
