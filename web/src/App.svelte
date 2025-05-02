@@ -44,12 +44,15 @@
 
         const host = "http://localhost";
         const port = 8000;
-        const params = new URLSearchParams([["query", query]]).toString();
-        const url = `${host}:${port}/query?${params}`;
+        const body = {
+            query: query,
+        };
+        const url = `${host}:${port}/query`;
 
         loading = true;
         fetch(url, {
-            method: "GET",
+            method: "POST",
+            body: JSON.stringify(body),
             headers: {
                 "Content-Type": "application/json",
             },
