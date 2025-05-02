@@ -35,14 +35,12 @@
                             onchange={() => changeId(id)}
                             hidden
                         />
-                        {#if allIds.length > 1}
-                            <button
-                                class="delete-conversation"
-                                onclick={() => deleteConversation(id)}
-                            >
-                                x
-                            </button>
-                        {/if}
+                        <button
+                            class="delete-conversation"
+                            onclick={() => deleteConversation(id)}
+                        >
+                            x
+                        </button>
                     </div>
                 {/each}
             </div>
