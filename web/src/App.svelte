@@ -58,14 +58,29 @@
         messages = [];
     }
     function deleteConversation(id: string) {
-        const idx = allIds.indexOf(id);
-        allIds = allIds.filter((x) => x !== id);
-        if (allIds.length === 0) {
-            newConversation();
-        }
-        if (id == currentId) {
-            currentId = allIds[idx === 0 ? 0 : idx - 1];
-        }
+        fetch(`${HOST}:${PORT}/clear_history`, {
+            method: "POST",
+            body: JSON.stringify({ thread_id: id }),
+            headers: {
+                "Content-Type": "application/json",
+            },
+        })
+            .then((response) => {
+                if (!response.ok) {
+                    handleError(
+                        `HTTP ${response.status} error: ${response.statusText}`,
+                    );
+                }
+                allIds = allIds.filter((thread_id) => thread_id !== id);
+                if (allIds.length > 0) {
+                    changeId(allIds[0]);
+                } else {
+                    newConversation();
+                }
+            })
+            .catch((error) => {
+                handleError(error.message);
+            });
     }
 
     // Dark mode management
