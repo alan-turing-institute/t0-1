@@ -127,7 +127,7 @@ async def process_query(
         thread_id = str(uuid.uuid4()) if conversational else "-"
         if conversational:
             # just clear ahead of querying just in case
-            await rag.aclear_history(thread_id=thread_id)
+            rag.clear_history(thread_id=thread_id)
 
         response = await rag._aquery(
             question=query,
@@ -139,7 +139,7 @@ async def process_query(
             logging.info(f"Used thread_id {thread_id} for query {query}")
 
             # delete the thread_id after the query
-            await rag.aclear_history(thread_id=thread_id)
+            rag.clear_history(thread_id=thread_id)
 
             logging.info(f"Deleted thread_id {thread_id} after query")
 
@@ -237,7 +237,11 @@ async def process_query(
             )[-1],
             "reranker_success": response.get("reranker_success", [[]])[-1],
             "system_prompt": response["system_messages"][0].content,
-            "rag_message": response["messages"][0].content,
+            "rag_message": (
+                response["rag_input_messages"][0].content
+                if conversational
+                else response["messages"][0].content
+            ),
             "rag_answer": response["messages"][-1].content,
             "rag_tool_calls": response["messages"][-1].additional_kwargs.get(
                 "tool_calls"
