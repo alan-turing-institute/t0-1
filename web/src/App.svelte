@@ -48,7 +48,8 @@
         allIds = allIds.filter((x) => x !== id);
         if (allIds.length === 0) {
             newConversation();
-        } else if (id == currentId) {
+        }
+        if (id == currentId) {
             currentId = allIds[idx === 0 ? 0 : idx - 1];
         }
     }
@@ -199,18 +200,17 @@
     div#wrapper {
         display: flex;
         justify-content: center;
-        gap: 30px;
         align-items: stretch;
         height: 100vh;
         min-width: 300px;
-        width: calc(100vw - 40px);
+        width: 100vw;
         background-color: var(--background);
         color: var(--foreground);
     }
 
     main {
         height: calc(100vh - 60px);
-        margin: 30px 0;
+        margin: 30px;
         width: 100%;
         display: flex;
         flex-direction: column;
