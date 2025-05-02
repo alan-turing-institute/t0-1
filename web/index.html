@@ -1,10 +1,30 @@
 <!doctype html>
 <html lang="en">
   <head>
+    <link rel="stylesheet" href="src/app.css" />
+    <script>
+        // Some code duplication here :(
+        // Unfortunately, we have to make sure to set this first in the <head>
+        // element so that the page doesn't flicker on loading
+        function getDarkModePreference() {
+            const localStorageOption = localStorage.getItem("darkMode");
+            if (localStorageOption === "true") {
+                return true;
+            } else if (localStorageOption === "false") {
+                return false;
+            } else {
+                return window.matchMedia("(prefers-color-scheme: dark)").matches;
+            }
+        }
+        document.documentElement.setAttribute("data-theme", getDarkModePreference() ? "dark" : "light");
+    </script>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>t0 / web</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&family=IBM+Plex+Sans:ital,wght@0,100..700;1,100..700&display=swap" rel="stylesheet">
   </head>
   <body>
     <div id="app"></div>
