@@ -4,7 +4,9 @@ from pathlib import Path
 from langchain import hub
 from langchain_core.documents import Document
 from langchain_core.language_models.llms import LLM
+from langchain_core.messages import trim_messages
 from langchain_core.messages.ai import AIMessage
+from langchain_core.messages.utils import count_tokens_approximately
 from langchain_core.prompts import PromptTemplate
 from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.graph import END, START, MessagesState
@@ -139,6 +141,14 @@ class RAG:
             self.graph: CompiledStateGraph = self.build_conversation_graph()
         else:
             self.graph: CompiledStateGraph = self.build_graph()
+        self.trimmer = trim_messages(
+            max_tokens=65,
+            strategy="last",
+            token_counter=count_tokens_approximately,
+            include_system=True,
+            allow_partial=False,
+            start_on="human",
+        )
 
     async def aretrieve(self, state: State) -> dict[str, list[Document]]:
         """
@@ -673,10 +683,13 @@ class RAG:
         else:
             messages = messages_from_prompt
 
+        # trim the messages to the max length
+        trimmed_messages = self.trimmer.invoke(messages)
+
         if self.budget_forcing:
-            response = self._budget_forcing_invoke(messages)
+            response = self._budget_forcing_invoke(trimmed_messages)
         else:
-            response = self.llm.invoke(messages)
+            response = self.llm.invoke(trimmed_messages)
 
         if self.conversational:
             return {
@@ -689,7 +702,7 @@ class RAG:
                 "messages": [response],
             }
         else:
-            return {"messages": messages, "answer": response}
+            return {"messages": trimmed_messages, "answer": response}
 
     async def agenerate(self, state: State | CustomMessagesState) -> dict[str, str]:
         """
