@@ -6,7 +6,7 @@ from langchain_core.documents import Document
 from langchain_core.language_models.llms import LLM
 from langchain_core.messages.ai import AIMessage
 from langchain_core.prompts import PromptTemplate
-from langgraph.checkpoint.memory import MemorySaver
+from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.graph import END, START, MessagesState
 from langgraph.graph.state import CompiledStateGraph, StateGraph
 from langgraph.prebuilt import ToolNode, tools_condition
@@ -134,7 +134,7 @@ class RAG:
         self.rerank_prompt: PromptTemplate | None = rerank_prompt
         self.rerank_llm: LLM | None = rerank_llm
         self.rerank_k: int = rerank_k
-        self.memory: MemorySaver = MemorySaver()
+        self.memory: InMemorySaver = InMemorySaver()
         if self.conversational:
             self.graph: CompiledStateGraph = self.build_conversation_graph()
         else:
@@ -161,14 +161,19 @@ class RAG:
 
         return {"context": retrieved_docs}
 
-    def clear_history(self):
+    def clear_history(self, thread_id: str):
         """
         Reset the history of the RAG query by rebuilding the graph.
         """
-        if self.conversational:
-            self.graph: CompiledStateGraph = self.build_conversation_graph()
-        else:
-            self.graph: CompiledStateGraph = self.build_graph()
+        self.memory.delete_thread(thread_id=thread_id)
+        return "History cleared."
+
+    async def aclear_history(self, thread_id: str):
+        """
+        Reset the history of the RAG query by rebuilding the graph.
+        """
+        await self.memory.adelete_thread(thread_id=thread_id)
+        return "History cleared."
 
     def retrieve(self, state: State) -> dict[str, list[Document]]:
         """
