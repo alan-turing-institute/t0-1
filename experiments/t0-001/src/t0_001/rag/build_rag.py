@@ -175,6 +175,24 @@ class RAG:
         await self.memory.adelete_thread(thread_id=thread_id)
         return "History cleared."
 
+    def get_message_history(self, thread_id: str):
+        """
+        Get a list of messages from the stored memory for a given thread ID.
+        """
+        config = {"configurable": {"thread_id": thread_id}}
+        messages = self.memory.get_tuple(config).checkpoint["channel_values"][
+            "messages"
+        ]
+        if self.conversational:
+            return [
+                message
+                for message in messages
+                if message.type in ("human", "system")
+                or (message.type == "ai" and not message.tool_calls)
+            ]
+        else:
+            return messages.to_messages()
+
     def retrieve(self, state: State) -> dict[str, list[Document]]:
         """
         Retrieve documents from the vector store based on the question in the state.
