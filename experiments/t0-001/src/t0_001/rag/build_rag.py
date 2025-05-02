@@ -215,15 +215,12 @@ class RAG:
         messages = self.memory.get_tuple(config).checkpoint["channel_values"][
             "messages"
         ]
-        if self.conversational:
-            return [
-                message
-                for message in messages
-                if message.type in ("human", "system")
-                or (message.type == "ai" and not message.tool_calls)
-            ]
-        else:
-            return messages.to_messages()
+        return [
+            message
+            for message in messages
+            if message.type in ("human", "system")
+            or (message.type == "ai" and not message.tool_calls)
+        ]
 
     def retrieve(self, state: State) -> dict[str, list[Document]]:
         """
