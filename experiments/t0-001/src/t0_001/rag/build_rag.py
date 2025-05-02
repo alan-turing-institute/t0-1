@@ -26,8 +26,19 @@ from typing_extensions import TypedDict
 class State(TypedDict):
     """
     State is a TypedDict that represents the state of a RAG query.
-    It contains the question, context, reranked context (if applicable),
-    demographics, messages (which could also include the answer).
+
+    It contains:
+
+    - question: The question being asked (human messages)
+    - system_messages: The system message
+    - messages: All messages in the conversation (system, human, AI, tool)
+    - context: The retrieved context (list of documents)
+    - reranked_context: The reranked context (list of documents)
+    - reranker_response: The response from the reranker
+    - reranker_response_processed: The processed response from the reranker
+    - reranker_success: Whether the reranker was successful
+    - demographics: The demographics of the user
+
     These attributes are list of lists to conform to a similar
     structure to the CustomMessagesState class.
     """
@@ -47,6 +58,19 @@ class State(TypedDict):
 class CustomMessagesState(MessagesState):
     """
     Messages state for the RAG class.
+
+    It contains:
+
+    - system_messages: The system messages, including the context and demographics
+    - retriever_queries: The queries sent to the retriever (this is ~ equivalent to question in State)
+    - rag_input_messages: The human messages that are passed to the RAG LLM
+    - context: The retrieved context (list of documents)
+    - reranked_context: The reranked context (list of documents)
+    - reranker_response: The response from the reranker
+    - reranker_response_processed: The processed response from the reranker
+    - reranker_success: Whether the reranker was successful
+    - demographics: The demographics of the user
+    - messages: All messages in the conversation (system, human, AI, tool)
     """
 
     # note there is also a messages key from the MessagesState class
