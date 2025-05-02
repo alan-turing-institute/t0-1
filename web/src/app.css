@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,600;1,400;1,600&family=Fira+Mono:wght@400;700&display=swap');
-
 /* https://css-tricks.com/box-sizing/ */
 html {
     font-family: "IBM Plex Sans", sans-serif;
@@ -19,4 +17,25 @@ body {
     width: 100vw;
     height: 100vh;
     overflow: hidden;
+}
+
+html {
+    --background: #f8f8f8;
+    --foreground: #151515;
+    --user-message-bg: #e2e2e2;
+    --secondary-fg: #646464;
+    --secondary-bg: #ffffff;
+    --highlight: #007acc;
+    --error: #ff0000;
+    background-color: var(--background);
+}
+html[data-theme="dark"] {
+    --background: #1e1e1e;
+    --foreground: #d8d8d8;
+    --user-message-bg: #484848;
+    --secondary-fg: #939393;
+    --secondary-bg: #000000;
+    --highlight: #007acc;
+    --error: #ff0000;
+    background-color: var(--background);
 }

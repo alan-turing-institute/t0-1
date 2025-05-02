@@ -22,7 +22,6 @@
     }
     let darkMode: boolean = $state(getDarkModePreference());
     let darkModePreference: string = $derived(darkMode ? "dark" : "light");
-    document.documentElement.setAttribute("data-theme", darkModePreference);
     function toggleTheme() {
         darkMode = !darkMode;
         document.documentElement.setAttribute("data-theme", darkModePreference);
@@ -96,24 +95,6 @@
 </div>
 
 <style>
-    :global(html) {
-        --background: #f8f8f8;
-        --foreground: #151515;
-        --user-message-bg: #e2e2e2;
-        --secondary-fg: #646464;
-        --secondary-bg: #ffffff;
-        --highlight: #007acc;
-        --error: #ff0000;
-    }
-    :global(html[data-theme="dark"]) {
-        --background: #1e1e1e;
-        --foreground: #d8d8d8;
-        --user-message-bg: #484848;
-        --secondary-fg: #939393;
-        --secondary-bg: #000000;
-        --highlight: #007acc;
-        --error: #ff0000;
-    }
     :global(*) {
         transition:
             background-color 0.5s ease-out,
