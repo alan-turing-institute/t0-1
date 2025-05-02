@@ -49,10 +49,6 @@
             <button class="new-conversation" onclick={newConversation}
                 >New conversation</button
             >
-
-            <button onclick={(_e) => deleteCurrentConversation()}
-                >Delete current conversation</button
-            >
         </div>
     </div>
     <button onclick={(_e) => toggleTheme()}
