@@ -6,7 +6,7 @@ from langchain_core.documents import Document
 from langchain_core.language_models.llms import LLM
 from langchain_core.messages.ai import AIMessage
 from langchain_core.prompts import PromptTemplate
-from langgraph.checkpoint.memory import MemorySaver
+from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.graph import END, START, MessagesState
 from langgraph.graph.state import CompiledStateGraph, StateGraph
 from langgraph.prebuilt import ToolNode, tools_condition
@@ -134,7 +134,7 @@ class RAG:
         self.rerank_prompt: PromptTemplate | None = rerank_prompt
         self.rerank_llm: LLM | None = rerank_llm
         self.rerank_k: int = rerank_k
-        self.memory: MemorySaver = MemorySaver()
+        self.memory: InMemorySaver = InMemorySaver()
         if self.conversational:
             self.graph: CompiledStateGraph = self.build_conversation_graph()
         else:
@@ -160,6 +160,20 @@ class RAG:
         )
 
         return {"context": retrieved_docs}
+
+    def clear_history(self, thread_id: str):
+        """
+        Reset the history of the RAG query by rebuilding the graph.
+        """
+        self.memory.delete_thread(thread_id=thread_id)
+        return "History cleared."
+
+    async def aclear_history(self, thread_id: str):
+        """
+        Reset the history of the RAG query by rebuilding the graph.
+        """
+        await self.memory.adelete_thread(thread_id=thread_id)
+        return "History cleared."
 
     def retrieve(self, state: State) -> dict[str, list[Document]]:
         """
@@ -260,31 +274,41 @@ class RAG:
             },
         )
 
-        reranker_response = self.rerank_llm.invoke(messages)
+        try:
+            reranker_response = self.rerank_llm.invoke(messages)
 
-        reranked_docs_titles = [
-            title.strip()
-            .lower()
-            .replace(" ", "-")
-            .replace("'", "")
-            .replace('"', "")
-            .replace("(", "")
-            .replace(")", "")
-            for title in reranker_response.content.split(",")
-        ]
-        reranked_docs = [
-            doc for doc in context if doc.metadata["source"] in reranked_docs_titles
-        ]
+            reranked_docs_titles = [
+                title.strip()
+                .lower()
+                .replace(" ", "-")
+                .replace("'", "")
+                .replace('"', "")
+                .replace("(", "")
+                .replace(")", "")
+                for title in reranker_response.content.split(",")
+            ]
+            reranked_docs = [
+                doc for doc in context if doc.metadata["source"] in reranked_docs_titles
+            ]
 
-        if len(reranked_docs) == self.rerank_k:
-            # reranker able to select rerank_k number of documents
-            logging.info("Reranker successfully selected the top k documents")
-            reranker_success = True
-        else:
-            # fall back to the top rerank_k retrieved documents
-            logging.info(
-                "Reranker failed to select the top k documents - falling back to the top retrieved documents"
-            )
+            if len(reranked_docs) == self.rerank_k:
+                # reranker able to select rerank_k number of documents
+                logging.info("Reranker successfully selected the top k documents")
+                reranker_success = True
+            else:
+                # fall back to the top rerank_k retrieved documents
+                logging.info(
+                    "Reranker failed to select the top k documents - falling back to the top retrieved documents"
+                )
+                reranker_success = False
+                reranked_docs = context[: self.rerank_k]
+
+        except Exception as e:
+            logging.error(f"Reranking failure: {e}")
+            logging.info(f"Falling back to the top {self.rerank_k} retrieved documents")
+
+            reranker_response = AIMessage("")
+            reranked_docs_titles = []
             reranker_success = False
             reranked_docs = context[: self.rerank_k]
 
@@ -1100,6 +1124,8 @@ def build_rag(
         )
     else:
         rerank_llm = None
+        rerank_prompt_template = None
+        rerank_k = None
 
     rag = RAG(
         retriever=retriever,

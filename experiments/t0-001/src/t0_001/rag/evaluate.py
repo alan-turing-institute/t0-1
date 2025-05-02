@@ -251,6 +251,8 @@ async def process_query(
 
         conditions_match = False
         severity_match = False
+        parsed_condition = ""
+        parsed_severity_level = ""
 
     if not generate_only:
         res["conditions_match"] = conditions_match
