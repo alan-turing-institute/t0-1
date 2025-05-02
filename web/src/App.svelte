@@ -11,36 +11,54 @@
     } from "./lib/types";
     import { onMount } from "svelte";
 
+    const HOST = "http://localhost";
+    const PORT = 8000;
+
     // UI state
     let disableForm: boolean = $state(false);
     let loading: boolean = $state(false);
     let error: string | null = $state(null);
 
     // Chat persistence and conversation management
-    let currentId: string = $state(
-        localStorage.getItem("t0web___currentId") ?? "",
-    );
+    let currentId: string = $state("");
     let allIds: Array<string> = $state([]);
     let messages: Array<ChatEntry> = $state([]);
-    const LS_ALLIDS_KEY = "t0web___allIds";
-    const LS_CURRENTID_KEY = "t0web___currentId";
 
-    onMount(() => {
-        const localStorageIds = localStorage.getItem(LS_ALLIDS_KEY);
-        if (localStorageIds) {
-            allIds = JSON.parse(localStorageIds);
-        }
-        if (allIds.length === 0) {
-            newConversation();
-        }
-    });
+    fetch(`${HOST}:${PORT}/get_thread_ids`, {
+        method: "GET",
+    })
+        .then((response) => {
+            if (!response.ok) {
+                // TODO: This probably means the backend isn't running. We
+                // should have a more in-your-face-error.
+                handleError(
+                    `HTTP ${response.status} error: ${response.statusText}`,
+                );
+            }
+            response.json().then((data) => {
+                allIds = data.thread_ids;
+                if (allIds.length === 0) {
+                    newConversation();
+                } else {
+                    changeId(allIds[0]);
+                }
+                console.log("loaded thread ids", $state.snapshot(allIds));
+            });
+        })
+        .catch((error) => {
+            // TODO: This probably means the backend isn't running. We
+            // should have a more in-your-face-error.
+            handleError(error.message);
+        });
+
     function changeId(id: string) {
         currentId = id;
         loadMessages(id);
     }
     function newConversation() {
         currentId = crypto.randomUUID();
-        allIds.push(currentId);
+        // push to the front as it will be the most recent
+        allIds.unshift(currentId);
         messages = [];
     }
     function deleteConversation(id: string) {
@@ -53,13 +71,6 @@
             currentId = allIds[idx === 0 ? 0 : idx - 1];
         }
     }
-    $effect(() => {
-        localStorage.setItem(LS_CURRENTID_KEY, currentId);
-        loadMessages(currentId);
-    });
-    $effect(() => {
-        localStorage.setItem(LS_ALLIDS_KEY, JSON.stringify(allIds));
-    });
 
     // Dark mode management
     const LS_DARKMODE_KEY = "t0web___darkMode";
@@ -82,9 +93,6 @@
     }
 
     // API queries
-    const HOST = "http://localhost";
-    const PORT = 8000;
-
     function handleError(err: string) {
         console.error("Error:", err);
         error = err;
