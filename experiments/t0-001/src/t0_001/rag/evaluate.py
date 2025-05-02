@@ -125,6 +125,10 @@ async def process_query(
     try:
         # obtain the top k documents from the vector store
         thread_id = str(uuid.uuid4()) if conversational else "-"
+        if conversational:
+            # just clear ahead of querying just in case
+            await rag.aclear_history(thread_id=thread_id)
+
         response = await rag._aquery(
             question=query,
             demographics=str(item["general_demographics"]),
@@ -132,8 +136,12 @@ async def process_query(
         )
 
         if conversational:
+            logging.info(f"Used thread_id {thread_id} for query {query}")
+
             # delete the thread_id after the query
             await rag.aclear_history(thread_id=thread_id)
+
+            logging.info(f"Deleted thread_id {thread_id} after query")
 
         if not generate_only:
             if deepseek_r1:
