@@ -4,6 +4,7 @@
         currentId: string;
         changeId: (id: string) => void;
         newConversation: () => void;
+        deleteCurrentConversation: () => void;
         darkMode: boolean;
         toggleTheme: () => void;
     }
@@ -13,6 +14,7 @@
         currentId,
         changeId,
         newConversation,
+        deleteCurrentConversation,
         darkMode,
         toggleTheme,
     }: Props = $props();
@@ -39,6 +41,9 @@
                 <option value="new">(new)</option>
             </select>
         </div>
+        <button onclick={(_e) => deleteCurrentConversation()}
+            >delete conversation</button
+        >
         <button onclick={(_e) => toggleTheme()}
             >switch to {darkMode ? "light" : "dark"} mode</button
         >
@@ -50,7 +55,7 @@
         display: flex;
         gap: 20px;
         justify-content: space-between;
-        align-items: center;
+        align-items: flex-end;
         margin-bottom: auto;
     }
 
