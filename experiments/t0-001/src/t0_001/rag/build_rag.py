@@ -828,6 +828,20 @@ class RAG:
 
         return graph
 
+    def clear_history(self, thread_id: str) -> str:
+        """
+        Reset the history of the RAG query by rebuilding the graph.
+        """
+        self.memory.delete_thread(thread_id=thread_id)
+        return "History cleared."
+
+    async def aclear_history(self, thread_id: str) -> str:
+        """
+        Reset the history of the RAG query by rebuilding the graph.
+        """
+        await self.memory.adelete_thread(thread_id=thread_id)
+        return "History cleared."
+
     def _query(
         self,
         question: str,
@@ -845,7 +859,7 @@ class RAG:
             input = {"question": question, "demographics": demographics}
 
         if clear_thread_before:
-            self.memory.delete_thread(user_id)
+            self.clear_history(user_id)
 
         response = self.graph.invoke(
             input=input,
@@ -853,7 +867,7 @@ class RAG:
         )
 
         if clear_thread_after:
-            self.memory.delete_thread(user_id)
+            self.clear_history(user_id)
 
         return response
 
@@ -874,7 +888,7 @@ class RAG:
             input = {"question": question, "demographics": demographics}
 
         if clear_thread_before:
-            self.memory.delete_thread(user_id)
+            self.clear_history(user_id)
 
         response = await self.graph.ainvoke(
             input=input,
@@ -882,7 +896,7 @@ class RAG:
         )
 
         if clear_thread_after:
-            self.memory.delete_thread(user_id)
+            self.clear_history(user_id)
 
         return response
 
