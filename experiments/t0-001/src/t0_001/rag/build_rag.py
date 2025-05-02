@@ -624,11 +624,23 @@ class RAG:
         logging.info("Generating answer...")
 
         retriever_response = self.obtain_context_and_sources(state)
+
+        if self.conversational:
+            # get last human message
+            human_message = None
+            for message in reversed(state["messages"]):
+                if message.type == "human":
+                    human_message = message.content
+                    break
+
+            if human_message is None:
+                raise ValueError("No human message found in the state")
+        else:
+            human_message = state["question"]
+
         messages_from_prompt = self.prompt.invoke(
             {
-                "question": (
-                    state["messages"] if self.conversational else state["question"]
-                ),
+                "question": human_message,
                 "context": retriever_response["serialised_docs"],
                 "demographics": state["demographics"],
                 "sources": retriever_response["sources"],
@@ -700,11 +712,23 @@ class RAG:
         logging.info("Generating answer...")
 
         retriever_response = self.obtain_context_and_sources(state)
+
+        if self.conversational:
+            # get last human message
+            human_message = None
+            for message in reversed(state["messages"]):
+                if message.type == "human":
+                    human_message = message
+                    break
+
+            if human_message is None:
+                raise ValueError("No human message found in the state")
+        else:
+            human_message = state["question"]
+
         messages_from_prompt = self.prompt.invoke(
             {
-                "question": (
-                    state["messages"] if self.conversational else state["question"]
-                ),
+                "question": human_message,
                 "context": retriever_response["serialised_docs"],
                 "demographics": state["demographics"],
                 "sources": retriever_response["sources"],
