@@ -29,15 +29,20 @@
 
 <div class="header">
     <h1>t0 online (but really gpt-4o)</h1>
-    <select bind:value={currentId} onchange={handleSelectChange}>
-        {#each allIds as id}
-            <option value={id}>{id}</option>
-        {/each}
-        <option value="new">new conversation</option>
-    </select>
-    <button onclick={(_e) => toggleTheme()}
-        >switch to {darkMode ? "light" : "dark"} mode</button
-    >
+    <div class="header-buttons">
+        <div>
+            current conversation
+            <select bind:value={currentId} onchange={handleSelectChange}>
+                {#each allIds as id}
+                    <option value={id}>{id.slice(0, 5)}</option>
+                {/each}
+                <option value="new">(new)</option>
+            </select>
+        </div>
+        <button onclick={(_e) => toggleTheme()}
+            >switch to {darkMode ? "light" : "dark"} mode</button
+        >
+    </div>
 </div>
 
 <style>
@@ -45,7 +50,7 @@
         display: flex;
         gap: 20px;
         justify-content: space-between;
-        align-items: baseline;
+        align-items: center;
         margin-bottom: auto;
     }
 
@@ -54,12 +59,29 @@
         padding-left: 10px;
     }
 
+    div.header-buttons {
+        font-size: 0.8em;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        align-items: flex-end;
+    }
+
+    select {
+        font: inherit;
+        color: var(--foreground);
+        background-color: transparent;
+        border-radius: 5px;
+        border: 1px solid var(--foreground);
+    }
+
     button {
+        font: inherit;
         height: min-content;
         background-color: transparent;
         border: none;
-        font: 0.8em;
         text-decoration: underline;
         color: var(--foreground);
+        cursor: pointer;
     }
 </style>
