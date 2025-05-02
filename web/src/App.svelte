@@ -20,7 +20,7 @@
     let error: string | null = $state(null);
 
     // Chat persistence and conversation management
-    let currentId: string = $state("");
+    let currentId: string = $state("new");
     let allIds: Array<string> = $state([]);
     let messages: Array<ChatEntry> = $state([]);
 
@@ -37,9 +37,7 @@
             }
             response.json().then((data) => {
                 allIds = data.thread_ids;
-                if (allIds.length === 0) {
-                    newConversation();
-                } else {
+                if (allIds.length > 0) {
                     changeId(allIds[0]);
                 }
                 console.log("loaded thread ids", $state.snapshot(allIds));
@@ -56,9 +54,7 @@
         loadMessages(id);
     }
     function newConversation() {
-        currentId = crypto.randomUUID();
-        // push to the front as it will be the most recent
-        allIds.unshift(currentId);
+        currentId = "new";
         messages = [];
     }
     function deleteConversation(id: string) {
@@ -135,6 +131,12 @@
 
     function queryLLM(query: string) {
         disableForm = true;
+
+        if (currentId === "new") {
+            currentId = crypto.randomUUID();
+            // push to the front as it will be the most recent
+            allIds.unshift(currentId);
+        }
         messages.push(makeHumanEntry(query));
 
         const body = {
