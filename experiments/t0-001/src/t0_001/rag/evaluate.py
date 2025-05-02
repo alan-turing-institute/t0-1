@@ -129,11 +129,13 @@ async def process_query(
             # just clear ahead of querying just in case
             rag.clear_history(thread_id=thread_id)
 
-        response = await rag._aquery(
-            question=query,
-            demographics=str(item["general_demographics"]),
-            thread_id=thread_id,
-        )
+        timeout_seconds = 300
+        async with asyncio.timeout(timeout_seconds):
+            response = await rag._aquery(
+                question=query,
+                demographics=str(item["general_demographics"]),
+                thread_id=thread_id,
+            )
 
         if conversational:
             logging.info(f"Used thread_id {thread_id} for query {query}")
@@ -247,7 +249,7 @@ async def process_query(
                 "tool_calls"
             ),
         }
-    except Exception as e:
+    except (Exception, asyncio.CancelledError, asyncio.TimeoutError) as e:
         logging.error(f"Error querying RAG: {e}")
 
         retrieved_docs = await rag.retriever.ainvoke(input=query)
