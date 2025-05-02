@@ -6,7 +6,7 @@ from langchain_core.documents import Document
 from langchain_core.language_models.llms import LLM
 from langchain_core.messages.ai import AIMessage
 from langchain_core.prompts import PromptTemplate
-from langgraph.checkpoint.memory import MemorySaver
+from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.graph import END, START, MessagesState
 from langgraph.graph.state import CompiledStateGraph, StateGraph
 from langgraph.prebuilt import ToolNode, tools_condition
@@ -140,11 +140,19 @@ class RAG:
         self.rerank_prompt: PromptTemplate | None = rerank_prompt
         self.rerank_llm: LLM | None = rerank_llm
         self.rerank_k: int = rerank_k
-        self.memory: MemorySaver = MemorySaver()
+        self.memory: InMemorySaver = InMemorySaver()
+        self.reset_graph()
+
+    def reset_graph(self):
+        """
+        Reset the graph to a new instance of the compiled state graph.
+        This is useful for when the graph needs to be rebuilt
+        or to clear the memory entirely.
+        """
         if self.conversational:
-            self.graph: CompiledStateGraph = self.build_conversation_graph()
+            self.graph: CompiledStateGraph = self.build_conversation_graph(reset=True)
         else:
-            self.graph: CompiledStateGraph = self.build_graph()
+            self.graph: CompiledStateGraph = self.build_graph(reset=True)
 
     async def aretrieve(self, state: State) -> dict[str, list[Document]]:
         """
@@ -749,7 +757,7 @@ class RAG:
                 "messages": state.get("messages", []) + [messages[-1], response],
             }
 
-    def build_graph(self) -> CompiledStateGraph:
+    def build_graph(self, reset: bool = False) -> CompiledStateGraph:
         """
         Build a Langchain compiled state graph with the retrieve and generate functions
         as nodes.
@@ -768,10 +776,17 @@ class RAG:
                 [self.retrieve, self.generate]
             )
         graph_builder.add_edge(START, "retrieve")
+
+        if reset:
+            logging.info("Resetting memory...")
+            self.memory = InMemorySaver()
+
+        logging.info("Compiling graph...")
         graph = graph_builder.compile(checkpointer=self.memory)
+
         return graph
 
-    def build_conversation_graph(self) -> CompiledStateGraph:
+    def build_conversation_graph(self, reset: bool = False) -> CompiledStateGraph:
         """
         Build a Langchain compiled state graph for conversational RAG.
 
@@ -804,12 +819,22 @@ class RAG:
             graph_builder.add_edge("process_tool_response", "generate")
         graph_builder.add_edge("generate", END)
 
+        if reset:
+            logging.info("Resetting memory...")
+            self.memory = InMemorySaver()
+
+        logging.info("Compiling conversational graph...")
         graph = graph_builder.compile(checkpointer=self.memory)
 
         return graph
 
     def _query(
-        self, question: str, user_id: str = "0", demographics: str | None = None
+        self,
+        question: str,
+        user_id: str = "0",
+        demographics: str | None = None,
+        clear_thread_before: bool = False,
+        clear_thread_after: bool = False,
     ) -> State | CustomMessagesState:
         if self.conversational:
             input = {
@@ -818,15 +843,27 @@ class RAG:
             }
         else:
             input = {"question": question, "demographics": demographics}
+
+        if clear_thread_before:
+            self.memory.delete_thread(user_id)
 
         response = self.graph.invoke(
             input=input,
             config={"configurable": {"thread_id": user_id}},
         )
+
+        if clear_thread_after:
+            self.memory.delete_thread(user_id)
+
         return response
 
     async def _aquery(
-        self, question: str, user_id: str = "0", demographics: str | None = None
+        self,
+        question: str,
+        user_id: str = "0",
+        demographics: str | None = None,
+        clear_thread_before: bool = False,
+        clear_thread_after: bool = False,
     ) -> State | CustomMessagesState:
         if self.conversational:
             input = {
@@ -836,10 +873,17 @@ class RAG:
         else:
             input = {"question": question, "demographics": demographics}
 
+        if clear_thread_before:
+            self.memory.delete_thread(user_id)
+
         response = await self.graph.ainvoke(
             input=input,
             config={"configurable": {"thread_id": user_id}},
         )
+
+        if clear_thread_after:
+            self.memory.delete_thread(user_id)
+
         return response
 
     def query(self, question: str, user_id: str = "0") -> str:
