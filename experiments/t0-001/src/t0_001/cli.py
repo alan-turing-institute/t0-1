@@ -497,6 +497,10 @@ def serve_rag(
 @cli.command()
 def query_rag(
     query: Annotated[str, typer.Argument(help=HELP_TEXT["query"])],
+    extra_body: Annotated[
+        str | None,
+        typer.Option(help="Extra body to pass to RAG request."),
+    ] = None,
     host: Annotated[str, typer.Option(help=HELP_TEXT["host_query"])] = DEFAULTS["host"],
     port: Annotated[int, typer.Option(help=HELP_TEXT["port_query"])] = DEFAULTS["port"],
     logging_level: Annotated[
@@ -511,7 +515,16 @@ def query_rag(
     logging.info("Querying RAG model...")
     logging.info(f"Query: {query}")
 
-    req = requests.get(f"http://{host}:{port}/query", params={"query": query})
+    if extra_body:
+        from t0_001.utils import process_arg_to_dict
+
+        extra_body = process_arg_to_dict(extra_body)
+    else:
+        extra_body = {}
+
+    req = requests.post(
+        f"http://{host}:{port}/query", json={"query": query} | extra_body
+    )
 
     if req.status_code != 200:
         logging.error(f"Error RAG model: {req.text}")
