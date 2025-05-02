@@ -1,7 +1,7 @@
 from pathlib import Path
 
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from t0_001.rag.build_rag import (
     DEFAULT_RETRIEVER_CONFIG,
@@ -44,6 +44,15 @@ def create_rag_app(rag: RAG) -> FastAPI:
     async def clear_history_endpoint(req: ClearHistoryRequest):
         rag.clear_history(thread_id=req.thread_id)
         return {"status": "success", "thread_id": req.thread_id}
+
+    @app.get("/get_history")
+    async def get_history(thread_id: str = "0"):
+        try:
+            conversation_messages = rag.get_message_history(thread_id=thread_id)
+        except AttributeError as e:
+            raise HTTPException(status_code=404, detail="Thread ID not found") from e
+        else:
+            return {"messages": conversation_messages, "thread_id": thread_id}
 
     return app
 
