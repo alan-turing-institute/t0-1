@@ -207,6 +207,24 @@ class RAG:
             + [state["question"]],
         }
 
+    def get_thread_ids(self):
+        """
+        Get a list of active thread IDs from the stored memory. The thread IDs
+        are sorted by the last message timestamp such that the most recent
+        thread ID is first in the list.
+        """
+        cptuples = self.memory.list({})
+        thread_ids_and_times = [
+            (i.config["configurable"]["thread_id"], i.checkpoint["ts"])
+            for i in cptuples
+        ]
+
+        def get_latest_time(thread_id):
+            return max(time for tid, time in thread_ids_and_times if tid == thread_id)
+
+        unique_thread_ids = set(thread_id for thread_id, _ in thread_ids_and_times)
+        return sorted(unique_thread_ids, key=get_latest_time, reverse=True)
+
     def get_message_history(self, thread_id: str):
         """
         Get a list of messages from the stored memory for a given thread ID.
