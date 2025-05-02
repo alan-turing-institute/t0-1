@@ -18,8 +18,40 @@
     // https://github.com/sveltejs/svelte/issues/14386
     import { SvelteMap } from "svelte/reactivity";
 
-    let currentId: string = $state("");
-    let history: SvelteMap<string, Array<ChatEntry>> = new SvelteMap();
+    let currentId: string = $state(
+        localStorage.getItem("t0web___currentId") ?? "",
+    );
+
+    function loadHistoryFromLocalStorage(): SvelteMap<
+        string,
+        Array<ChatEntry>
+    > {
+        const histString = localStorage.getItem("t0web___history");
+        if (histString === null) {
+            return new SvelteMap<string, Array<ChatEntry>>();
+        } else {
+            const parsed = JSON.parse(histString);
+            let hist = new SvelteMap<string, Array<ChatEntry>>();
+            for (const { id, messages } of parsed) {
+                hist.set(id, messages);
+            }
+            return hist;
+        }
+    }
+    let history: SvelteMap<string, Array<ChatEntry>> = $state(
+        loadHistoryFromLocalStorage(),
+    );
+    function stringifyHistory(
+        hist: SvelteMap<string, Array<ChatEntry>>,
+    ): string {
+        return JSON.stringify(
+            [...hist].map(([id, messages]) => ({ id, messages })),
+        );
+    }
+    let historyString: string = $derived(stringifyHistory(history));
+    $effect(() => {
+        localStorage.setItem("t0web___history", historyString);
+    });
     let allIds: Array<string> = $derived([...history.keys()]);
     function changeId(id: string) {
         currentId = id;
@@ -31,13 +63,29 @@
         currentId = crypto.randomUUID();
         history.set(currentId, []);
     }
-    onMount(newConversation);
+    onMount(() => {
+        if (history.size === 0) {
+            newConversation();
+        }
+    });
     function addMessage(entry: ChatEntry) {
         // This method used to reactivity on the map. See comments above the
         // SvelteMap import.
         const messages = history.get(currentId);
         history.set(currentId, [...messages, entry]);
     }
+    function deleteCurrentConversation() {
+        const idx = allIds.indexOf(currentId);
+        history.delete(currentId);
+        if (history.size === 0) {
+            newConversation();
+        } else {
+            currentId = allIds[idx === 0 ? 0 : idx - 1];
+        }
+    }
+    $effect(() => {
+        localStorage.setItem("t0web___currentId", currentId);
+    });
 
     const darkModeKey = "t0web___darkMode";
     function getDarkModePreference(): boolean {
@@ -122,7 +170,15 @@
 <div id="wrapper">
     <Error {error} />
     <main>
-        <Header {allIds} {currentId} {changeId} {newConversation} {darkMode} {toggleTheme}></Header>
+        <Header
+            {allIds}
+            {currentId}
+            {changeId}
+            {newConversation}
+            {deleteCurrentConversation}
+            {darkMode}
+            {toggleTheme}
+        ></Header>
         <Messages history={history.get(currentId)} {loading} />
         <Form {disableForm} {queryLLM} />
     </main>
