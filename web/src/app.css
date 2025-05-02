@@ -19,7 +19,7 @@ body {
     overflow: hidden;
 }
 
-html {
+html[data-theme="light"] {
     --background: #f8f8f8;
     --foreground: #151515;
     --user-message-bg: #e2e2e2;
