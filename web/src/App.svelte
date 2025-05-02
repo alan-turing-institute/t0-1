@@ -1,7 +1,7 @@
 <script lang="ts">
+    import Sidebar from "./lib/Sidebar.svelte";
     import Messages from "./lib/Messages.svelte";
     import Form from "./lib/Form.svelte";
-    import Header from "./lib/Header.svelte";
     import Error from "./lib/Error.svelte";
     import {
         type ChatEntry,
@@ -43,12 +43,12 @@
         allIds.push(currentId);
         messages = [];
     }
-    function deleteCurrentConversation() {
-        const idx = allIds.indexOf(currentId);
-        allIds = allIds.filter((id) => id !== currentId);
+    function deleteConversation(id: string) {
+        const idx = allIds.indexOf(id);
+        allIds = allIds.filter((x) => x !== id);
         if (allIds.length === 0) {
             newConversation();
-        } else {
+        } else if (id == currentId) {
             currentId = allIds[idx === 0 ? 0 : idx - 1];
         }
     }
@@ -174,17 +174,16 @@
 </script>
 
 <div id="wrapper">
-    <Error {error} />
+    <Sidebar
+        {allIds}
+        {changeId}
+        {newConversation}
+        {deleteConversation}
+        {darkMode}
+        {toggleTheme}
+    />
     <main>
-        <Header
-            {allIds}
-            {currentId}
-            {changeId}
-            {newConversation}
-            {deleteCurrentConversation}
-            {darkMode}
-            {toggleTheme}
-        ></Header>
+        <Error {error} />
         <Messages history={messages} {loading} />
         <Form {disableForm} {queryLLM} />
     </main>
@@ -200,19 +199,19 @@
     div#wrapper {
         display: flex;
         justify-content: center;
-        align-items: center;
-        width: 100vw;
+        gap: 30px;
+        align-items: stretch;
         height: 100vh;
+        min-width: 300px;
+        width: calc(100vw - 40px);
         background-color: var(--background);
         color: var(--foreground);
     }
 
     main {
-        min-width: 300px;
-        width: 700px;
-        max-width: calc(100% - 80px);
-        height: calc(100% - 80px);
-        margin: 40px 0;
+        height: calc(100vh - 60px);
+        margin: 30px 0;
+        width: 100%;
         display: flex;
         flex-direction: column;
         align-items: left;

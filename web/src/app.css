@@ -27,6 +27,7 @@ html[data-theme="light"] {
     --secondary-bg: #ffffff;
     --highlight: #007acc;
     --error: #ff0000;
+    --sidebar-bg: #d9d7ea;
     background-color: var(--background);
 }
 html[data-theme="dark"] {
@@ -37,5 +38,6 @@ html[data-theme="dark"] {
     --secondary-bg: #000000;
     --highlight: #007acc;
     --error: #ff0000;
+    --sidebar-bg: #69659b;
     background-color: var(--background);
 }

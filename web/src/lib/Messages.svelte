@@ -79,8 +79,8 @@
         display: flex;
         flex-direction: column;
         gap: 30px;
-        margin: 10px 0;
-        padding: 0px 10px 20px 10px;
+        margin: auto 0 10px 0;
+        padding: 0px 10px;
         scroll-behavior: smooth;
     }
 
