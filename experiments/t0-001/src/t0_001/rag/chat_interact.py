@@ -77,7 +77,7 @@ async def run_chat_interact(
             continue
 
         if message == "\\clear-history":
-            rag.clear_history(user_id=user_id)
+            response = await rag.aclear_history(thread_id=user_id)
             print("Chat history cleared.")
             continue
 
