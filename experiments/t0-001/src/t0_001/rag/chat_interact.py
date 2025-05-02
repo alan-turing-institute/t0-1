@@ -76,6 +76,11 @@ async def run_chat_interact(
         elif message == "":
             continue
 
+        if message == "\\clear-history":
+            response = await rag.aclear_history(thread_id=user_id)
+            print("Chat history cleared.")
+            continue
+
         if mode == "query":
             response = await rag.aquery(question=message, user_id=user_id)
         elif mode == "query-with-sources":
