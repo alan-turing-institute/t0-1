@@ -1,6 +1,7 @@
 import asyncio
 import json
 import logging
+import uuid
 from pathlib import Path
 
 from langchain_core.tools import tool
@@ -112,6 +113,7 @@ async def process_query(
     query_field: str,
     target_document_field: str,
     rag: RAG,
+    conversational: bool,
     generate_only: bool,
     deepseek_r1: bool,
     s1: bool,
@@ -122,9 +124,16 @@ async def process_query(
 
     try:
         # obtain the top k documents from the vector store
+        thread_id = str(uuid.uuid4()) if conversational else "-"
         response = await rag._aquery(
-            question=query, demographics=str(item["general_demographics"])
+            question=query,
+            demographics=str(item["general_demographics"]),
+            thread_id=thread_id,
         )
+
+        if conversational:
+            # delete the thread_id after the query
+            await rag.aclear_history(thread_id=thread_id)
 
         if not generate_only:
             if deepseek_r1:
@@ -292,6 +301,7 @@ async def evaluate_rag(
     query_field: str,
     target_document_field: str,
     rag: RAG,
+    conversational: bool,
     generate_only: bool = False,
     deepseek_r1: bool = False,
     s1: bool = False,
@@ -312,6 +322,10 @@ async def evaluate_rag(
         The field name in the JSONL file that contains the target document.
     rag : RAG
         The RAG model to use for querying.
+    conversational : bool
+        Whether the RAG model is in conversational mode. If True, we use a unique ID for each
+        query and we delete that thread after the query. If False, we just use the same ID
+        as chat history is not used in that pipeline.
     generate_only : bool, optional
         If True, only generate the RAG responses without evaluating the queries.
         By default False.
@@ -360,6 +374,7 @@ async def evaluate_rag(
                 query_field=query_field,
                 target_document_field=target_document_field,
                 rag=rag,
+                conversational=conversational,
                 generate_only=generate_only,
                 deepseek_r1=deepseek_r1,
                 s1=s1,
@@ -464,6 +479,7 @@ def main(
             query_field=query_field,
             target_document_field=target_document_field,
             rag=rag,
+            conversational=conversational,
             generate_only=generate_only,
             deepseek_r1=deepseek_r1,
             s1=budget_forcing,
