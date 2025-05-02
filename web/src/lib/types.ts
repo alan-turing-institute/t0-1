@@ -30,3 +30,21 @@ export function makeAIEntry(message: string): ChatEntry {
     // reasoning + content.
     return { role: "ai", content: mdToHtml(message), reasoning: mdToHtml("Some kind of reasoning") };
 }
+
+export function parseChatEntries(json: object): ChatEntry[] {
+    if (json.messages === undefined) {
+        return [];
+    } else {
+        return json.messages.map((entry: any) => {
+            if (entry.type === "human") {
+                return makeHumanEntry(entry.content);
+            }
+            else if (entry.type === "ai") {
+                return makeAIEntry(entry.content);
+            }
+            else {
+                throw new Error(`Unknown entry type ${entry.type}`);
+            }
+        });
+    }
+}
