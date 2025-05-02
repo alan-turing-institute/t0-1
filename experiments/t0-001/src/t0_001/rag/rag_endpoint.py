@@ -2,12 +2,18 @@ from pathlib import Path
 
 import uvicorn
 from fastapi import FastAPI
+from pydantic import BaseModel
 from t0_001.rag.build_rag import (
     DEFAULT_RETRIEVER_CONFIG,
     RAG,
     RetrieverConfig,
     build_rag,
 )
+
+
+class QueryRequest(BaseModel):
+    query: str
+    thread_id: str | None = "0"
 
 
 def create_rag_app(rag: RAG) -> FastAPI:
@@ -17,12 +23,10 @@ def create_rag_app(rag: RAG) -> FastAPI:
     async def root():
         return {"message": "Hello World"}
 
-    @app.get("/query")
-    async def query_endpoint(
-        query: str,
-    ):
-        response = rag._query(query)
-        return {"response": response}
+    @app.post("/query")
+    async def query_endpoint(req: QueryRequest):
+        response = rag._query(req.query, user_id=req.thread_id)
+        return {"response": response, "thread_id": req.thread_id}
 
     return app
 
