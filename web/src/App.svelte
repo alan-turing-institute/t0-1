@@ -30,7 +30,6 @@
     function newConversation() {
         currentId = crypto.randomUUID();
         history.set(currentId, []);
-        console.log(history);
     }
     onMount(newConversation);
     function addMessage(entry: ChatEntry) {
