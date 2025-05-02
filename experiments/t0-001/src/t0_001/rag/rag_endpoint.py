@@ -29,7 +29,7 @@ def create_rag_app(rag: RAG) -> FastAPI:
 
     @app.post("/query")
     async def query_endpoint(req: QueryRequest):
-        response = rag._query(req.query, user_id=req.thread_id)
+        response = rag._query(req.query, thread_id=req.thread_id)
         return {"response": response, "thread_id": req.thread_id}
 
     # Delete history

@@ -54,7 +54,7 @@ async def run_chat_interact(
         rerank_extra_body=rerank_extra_body,
         rerank_k=rerank_k,
     )
-    user_id = "command_line_chat"
+    thread_id = "command_line_chat"
     mode = "query-with-sources"
 
     while True:
@@ -77,15 +77,19 @@ async def run_chat_interact(
             continue
 
         if message == "\\clear-history":
-            response = await rag.aclear_history(thread_id=user_id)
+            response = await rag.aclear_history(thread_id=thread_id)
             print("Chat history cleared.")
             continue
 
         if mode == "query":
-            response = await rag.aquery(question=message, user_id=user_id)
+            response = await rag.aquery(question=message, thread_id=thread_id)
         elif mode == "query-with-sources":
-            response = await rag.aquery_with_sources(question=message, user_id=user_id)
+            response = await rag.aquery_with_sources(
+                question=message, thread_id=thread_id
+            )
         elif mode == "query-with-context":
-            response = await rag.aquery_with_context(question=message, user_id=user_id)
+            response = await rag.aquery_with_context(
+                question=message, thread_id=thread_id
+            )
 
         print(f"\nModel: {response}")
