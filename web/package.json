@@ -8,7 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "check": "svelte-check --tsconfig ./tsconfig.app.json && tsc -p tsconfig.node.json",
-    "serve-rag": "cd ../experiments/t0-001/scripts && source ../.venv/bin/activate && bash serve_rag.sh"
+    "serve-rag": "cd ../experiments/t0-001/scripts && source ../.venv/bin/activate && bash serve_rag_conversational.sh"
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^5.0.3",
