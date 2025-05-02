@@ -4,14 +4,43 @@
     import Header from "./lib/Header.svelte";
     import Error from "./lib/Error.svelte";
     import { type ChatEntry, makeHumanEntry, makeAIEntry } from "./lib/types";
+    import { onMount } from "svelte";
+    // NOTE about SvelteMap:
+    // 1. It doesn't need to be wrapped in $state. Odd.
+    // 2. It is not deeply reactive, in that if m.get("a") is an array and you
+    //    push to that array, it won't trigger a reactivity update. You need to
+    //    use the Map methods, i.e. set, to trigger reactivity.
+    // 3. Another way of triggering reactivity is to use the $state function --
+    //    but not on the top-level map -- rather on the values themselves.
+    //    We don't do this here, but it is an option.
+    // See:
+    // https://svelte.dev/docs/svelte/svelte-reactivity#SvelteMap
+    // https://github.com/sveltejs/svelte/issues/14386
+    import { SvelteMap } from "svelte/reactivity";
 
-    let history: Array<ChatEntry> = $state([]);
+    let currentId: string = $state("");
+    let history: SvelteMap<string, Array<ChatEntry>> = new SvelteMap();
+    let allIds: Array<string> = $derived([...history.keys()]);
+    function changeId(id: string) {
+        currentId = id;
+    }
     let disableForm: boolean = $state(false);
     let loading: boolean = $state(false);
     let error: string | null = $state(null);
+    function newConversation() {
+        currentId = crypto.randomUUID();
+        history.set(currentId, []);
+        console.log(history);
+    }
+    onMount(newConversation);
+    function addMessage(entry: ChatEntry) {
+        // This method used to reactivity on the map. See comments above the
+        // SvelteMap import.
+        const messages = history.get(currentId);
+        history.set(currentId, [...messages, entry]);
+    }
 
     const darkModeKey = "t0web___darkMode";
-
     function getDarkModePreference(): boolean {
         const localStorageOption = localStorage.getItem(darkModeKey);
         if (localStorageOption === "true") {
@@ -42,12 +71,13 @@
 
     function queryLLM(query: string) {
         disableForm = true;
-        history.push(makeHumanEntry(query));
+        addMessage(makeHumanEntry(query));
 
         const host = "http://localhost";
         const port = 8000;
         const body = {
             query: query,
+            thread_id: currentId,
         };
         const url = `${host}:${port}/query`;
 
@@ -80,7 +110,7 @@
                         return;
                     }
                     loading = false;
-                    history.push(makeAIEntry(last_message.content));
+                    addMessage(makeAIEntry(last_message.content));
                     disableForm = false;
                 });
             })
@@ -93,8 +123,8 @@
 <div id="wrapper">
     <Error {error} />
     <main>
-        <Header {darkMode} {toggleTheme}></Header>
-        <Messages {history} {loading} />
+        <Header {allIds} {currentId} {changeId} {newConversation} {darkMode} {toggleTheme}></Header>
+        <Messages history={history.get(currentId)} {loading} />
         <Form {disableForm} {queryLLM} />
     </main>
 </div>
