@@ -16,6 +16,10 @@ class QueryRequest(BaseModel):
     thread_id: str | None = "0"
 
 
+class ClearHistoryRequest(BaseModel):
+    thread_id: str | None = "0"
+
+
 def create_rag_app(rag: RAG) -> FastAPI:
     app = FastAPI()
 
@@ -27,6 +31,12 @@ def create_rag_app(rag: RAG) -> FastAPI:
     async def query_endpoint(req: QueryRequest):
         response = rag._query(req.query, user_id=req.thread_id)
         return {"response": response, "thread_id": req.thread_id}
+
+    # Delete history
+    @app.post("/clear_history")
+    async def clear_history_endpoint(req: ClearHistoryRequest):
+        rag.clear_history(thread_id=req.thread_id)
+        return {"status": "success", "thread_id": req.thread_id}
 
     return app
 
