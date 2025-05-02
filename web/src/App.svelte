@@ -3,93 +3,67 @@
     import Form from "./lib/Form.svelte";
     import Header from "./lib/Header.svelte";
     import Error from "./lib/Error.svelte";
-    import { type ChatEntry, makeHumanEntry, makeAIEntry } from "./lib/types";
+    import {
+        type ChatEntry,
+        makeHumanEntry,
+        makeAIEntry,
+        parseChatEntries,
+    } from "./lib/types";
     import { onMount } from "svelte";
-    // NOTE about SvelteMap:
-    // 1. It doesn't need to be wrapped in $state. Odd.
-    // 2. It is not deeply reactive, in that if m.get("a") is an array and you
-    //    push to that array, it won't trigger a reactivity update. You need to
-    //    use the Map methods, i.e. set, to trigger reactivity.
-    // 3. Another way of triggering reactivity is to use the $state function --
-    //    but not on the top-level map -- rather on the values themselves.
-    //    We don't do this here, but it is an option.
-    // See:
-    // https://svelte.dev/docs/svelte/svelte-reactivity#SvelteMap
-    // https://github.com/sveltejs/svelte/issues/14386
-    import { SvelteMap } from "svelte/reactivity";
 
-    let currentId: string = $state(
-        localStorage.getItem("t0web___currentId") ?? "",
-    );
-
-    function loadHistoryFromLocalStorage(): SvelteMap<
-        string,
-        Array<ChatEntry>
-    > {
-        const histString = localStorage.getItem("t0web___history");
-        if (histString === null) {
-            return new SvelteMap<string, Array<ChatEntry>>();
-        } else {
-            const parsed = JSON.parse(histString);
-            let hist = new SvelteMap<string, Array<ChatEntry>>();
-            for (const { id, messages } of parsed) {
-                hist.set(id, messages);
-            }
-            return hist;
-        }
-    }
-    let history: SvelteMap<string, Array<ChatEntry>> = $state(
-        loadHistoryFromLocalStorage(),
-    );
-    function stringifyHistory(
-        hist: SvelteMap<string, Array<ChatEntry>>,
-    ): string {
-        return JSON.stringify(
-            [...hist].map(([id, messages]) => ({ id, messages })),
-        );
-    }
-    let historyString: string = $derived(stringifyHistory(history));
-    $effect(() => {
-        localStorage.setItem("t0web___history", historyString);
-    });
-    let allIds: Array<string> = $derived([...history.keys()]);
-    function changeId(id: string) {
-        currentId = id;
-    }
+    // UI state
     let disableForm: boolean = $state(false);
     let loading: boolean = $state(false);
     let error: string | null = $state(null);
-    function newConversation() {
-        currentId = crypto.randomUUID();
-        history.set(currentId, []);
-    }
+
+    // Chat persistence and conversation management
+    let currentId: string = $state(
+        localStorage.getItem("t0web___currentId") ?? "",
+    );
+    let allIds: Array<string> = $state([]);
+    let messages: Array<ChatEntry> = $state([]);
+    const LS_ALLIDS_KEY = "t0web___allIds";
+    const LS_CURRENTID_KEY = "t0web___currentId";
+
     onMount(() => {
-        if (history.size === 0) {
+        const localStorageIds = localStorage.getItem(LS_ALLIDS_KEY);
+        if (localStorageIds) {
+            allIds = JSON.parse(localStorageIds);
+        }
+        if (allIds.length === 0) {
             newConversation();
         }
     });
-    function addMessage(entry: ChatEntry) {
-        // This method used to reactivity on the map. See comments above the
-        // SvelteMap import.
-        const messages = history.get(currentId);
-        history.set(currentId, [...messages, entry]);
+    function changeId(id: string) {
+        currentId = id;
+        loadMessages(id);
+    }
+    function newConversation() {
+        currentId = crypto.randomUUID();
+        allIds.push(currentId);
+        messages = [];
     }
     function deleteCurrentConversation() {
         const idx = allIds.indexOf(currentId);
-        history.delete(currentId);
-        if (history.size === 0) {
+        allIds = allIds.filter((id) => id !== currentId);
+        if (allIds.length === 0) {
             newConversation();
         } else {
             currentId = allIds[idx === 0 ? 0 : idx - 1];
         }
     }
     $effect(() => {
-        localStorage.setItem("t0web___currentId", currentId);
+        localStorage.setItem(LS_CURRENTID_KEY, currentId);
+        loadMessages(currentId);
+    });
+    $effect(() => {
+        localStorage.setItem(LS_ALLIDS_KEY, JSON.stringify(allIds));
     });
 
-    const darkModeKey = "t0web___darkMode";
+    // Dark mode management
+    const LS_DARKMODE_KEY = "t0web___darkMode";
     function getDarkModePreference(): boolean {
-        const localStorageOption = localStorage.getItem(darkModeKey);
+        const localStorageOption = localStorage.getItem(LS_DARKMODE_KEY);
         if (localStorageOption === "true") {
             return true;
         } else if (localStorageOption === "false") {
@@ -103,8 +77,12 @@
     function toggleTheme() {
         darkMode = !darkMode;
         document.documentElement.setAttribute("data-theme", darkModePreference);
-        localStorage.setItem(darkModeKey, darkMode.toString());
+        localStorage.setItem(LS_DARKMODE_KEY, darkMode.toString());
     }
+
+    // API queries
+    const HOST = "http://localhost";
+    const PORT = 8000;
 
     function handleError(err: string) {
         console.error("Error:", err);
@@ -116,17 +94,45 @@
         }, 10000);
     }
 
+    function loadMessages(thread_id: string) {
+        const url = `${HOST}:${PORT}/get_history?thread_id=${thread_id}`;
+        fetch(url, {
+            method: "GET",
+        })
+            .then((response) => {
+                if (!response.ok) {
+                    // If 404, no thread found
+                    if (response.status === 404) {
+                        messages = [];
+                        console.log(
+                            "No thread found, messages set to empty array",
+                        );
+                        return;
+                    } else {
+                        handleError(
+                            `HTTP ${response.status} error: ${response.statusText}`,
+                        );
+                    }
+                }
+                response.json().then((data) => {
+                    messages = parseChatEntries(data);
+                    console.log("loaded messages", $state.snapshot(messages));
+                });
+            })
+            .catch((error) => {
+                handleError(error.message);
+            });
+    }
+
     function queryLLM(query: string) {
         disableForm = true;
-        addMessage(makeHumanEntry(query));
+        messages.push(makeHumanEntry(query));
 
-        const host = "http://localhost";
-        const port = 8000;
         const body = {
             query: query,
             thread_id: currentId,
         };
-        const url = `${host}:${port}/query`;
+        const url = `${HOST}:${PORT}/query`;
 
         loading = true;
         fetch(url, {
@@ -157,7 +163,7 @@
                         return;
                     }
                     loading = false;
-                    addMessage(makeAIEntry(last_message.content));
+                    messages.push(makeAIEntry(last_message.content));
                     disableForm = false;
                 });
             })
@@ -179,7 +185,7 @@
             {darkMode}
             {toggleTheme}
         ></Header>
-        <Messages history={history.get(currentId)} {loading} />
+        <Messages history={messages} {loading} />
         <Form {disableForm} {queryLLM} />
     </main>
 </div>
