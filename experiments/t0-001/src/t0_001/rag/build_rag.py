@@ -52,6 +52,10 @@ class CustomMessagesState(MessagesState):
     # note there is also a messages key from the MessagesState class
     # messages are appended to the state
     system_messages: list[str | None]
+    # rag_input_messages are the human messages that are passed to the LLM
+    # this might differ from the messages in the state as the template
+    # could be different
+    rag_input_messages: list[str]
     retriever_queries: list[str]
     context: list[list[Document]]
     reranked_context: list[list[Document] | None]
@@ -686,6 +690,8 @@ class RAG:
             return {
                 "system_messages": state.get("system_messages", []) + [system_message],
                 "messages": [response],
+                "rag_input_messages": state.get("rag_input_messages", [])
+                + [messages[-1]],
             }
         else:
             return {
@@ -774,6 +780,8 @@ class RAG:
             return {
                 "system_messages": state.get("system_messages", []) + [system_message],
                 "messages": [response],
+                "rag_input_messages": state.get("rag_input_messages", [])
+                + [messages[-1]],
             }
         else:
             return {
