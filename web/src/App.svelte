@@ -10,8 +10,10 @@
     let loading: boolean = $state(false);
     let error: string | null = $state(null);
 
+    const darkModeKey = "t0web___darkMode";
+
     function getDarkModePreference(): boolean {
-        const localStorageOption = localStorage.getItem("darkMode");
+        const localStorageOption = localStorage.getItem(darkModeKey);
         if (localStorageOption === "true") {
             return true;
         } else if (localStorageOption === "false") {
@@ -25,7 +27,7 @@
     function toggleTheme() {
         darkMode = !darkMode;
         document.documentElement.setAttribute("data-theme", darkModePreference);
-        localStorage.setItem("darkMode", darkMode.toString());
+        localStorage.setItem(darkModeKey, darkMode.toString());
     }
 
     function handleError(err: string) {
