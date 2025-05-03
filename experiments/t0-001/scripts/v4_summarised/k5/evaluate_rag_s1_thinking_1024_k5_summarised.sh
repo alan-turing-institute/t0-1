@@ -8,7 +8,7 @@ uv run t0-001 evaluate-rag ./data/synthetic_queries/5147cd8_gpt-4o_1000_syntheti
 --extra-body '{"max_tokens": 256}' \
 --prompt-template-path ./templates/rag_evaluation_prompt_deepseek_r1.txt \
 --system-prompt-path ./templates/rag_evaluation_system_prompt_deepseek_r1.txt \
---output-file ./evaluate-rag-t0-k5-32b-thinking1024-k5-chroma.jsonl \
+--output-file ./evaluate-rag-s1-thinking1024-k5-chroma.jsonl \
 --conditions-file ./data/nhs-conditions/v4/qwen_summarised_conditions.jsonl \
 --persist-directory ./v4-summarised-db \
 --local-file-store ./v4-summarised-lfs
