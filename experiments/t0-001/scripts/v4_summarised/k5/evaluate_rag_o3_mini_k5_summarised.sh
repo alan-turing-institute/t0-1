@@ -1,0 +1,11 @@
+uv run t0-001 evaluate-rag ./data/synthetic_queries/5147cd8_gpt-4o_1000_synthetic_queries.jsonl \
+--k 5 \
+--db-choice chroma \
+--llm-provider azure_openai \
+--llm-model-name o3-mini \
+--prompt-template-path ./templates/rag_evaluation_prompt.txt \
+--system-prompt-path ./templates/rag_evaluation_system_prompt.txt \
+--output-file ./evaluate-rag-o3-mini-k5-chroma.jsonl \
+--conditions-file ./data/nhs-conditions/v4/qwen_summarised_conditions.jsonl \
+--persist-directory ./v4-summarised-db \
+--local-file-store ./v4-summarised-lfs
