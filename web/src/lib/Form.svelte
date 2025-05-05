@@ -1,4 +1,6 @@
 <script lang="ts">
+    import Demographics from "./Demographics.svelte";
+
     interface Props {
         loading: boolean;
         queryLLM: (message: string) => void;
@@ -32,6 +34,7 @@
 </script>
 
 <form id="chat" onsubmit={handleSubmit}>
+    <Demographics />
     <div class="grow-wrap" bind:this={wrapDiv}>
         <textarea
             bind:value={message}
@@ -45,9 +48,10 @@
 <style>
     form {
         width: 100%;
-        display: flex;
+        display: grid;
+        grid-template-columns: 1fr max-content;
+        gap: 0 10px;
         align-items: center;
-        gap: 10px;
     }
 
     div.grow-wrap {
