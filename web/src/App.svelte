@@ -9,6 +9,7 @@
         makeAIEntry,
         parseChatEntries,
         type Demographics,
+        emptyDemographics,
     } from "./lib/types";
 
     const HOST = "http://localhost";
@@ -105,10 +106,10 @@
     }
 
     // Handle demographics
-    let demographicsString: string = $state("");
-    function changeDemographics(demographics: Demographics) {
-        demographicsString = JSON.stringify(demographics);
-        console.log("updating demographics to ", demographicsString);
+    let demographics: Demographics = $state(emptyDemographics);
+    function changeDemographics(newDemographics: Demographics) {
+        demographics = newDemographics;
+        console.log("updating demographics to ", $state.snapshot(demographics));
     }
 
     // API queries
@@ -154,7 +155,7 @@
     function queryLLM(query: string) {
         loading = true;
 
-        console.log($state.snapshot(demographicsString));
+        console.log($state.snapshot(demographics));
 
         if (currentId === "new") {
             currentId = crypto.randomUUID();
@@ -166,7 +167,7 @@
         const body = {
             query: query,
             thread_id: currentId,
-            demographics: demographicsString,
+            demographics: JSON.stringify(demographics),
         };
         const url = `${HOST}:${PORT}/query`;
 
