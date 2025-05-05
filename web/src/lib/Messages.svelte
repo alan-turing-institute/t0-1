@@ -27,7 +27,6 @@
         } else {
             autoScroll = true;
         }
-        console.log("Auto-scroll:", autoScroll);
     }
 
     function scroll(node: HTMLDivElement) {
