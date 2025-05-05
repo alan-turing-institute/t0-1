@@ -406,7 +406,7 @@ class RAG:
 
         # convert the messages to dicts and apply the chat template
         messages_as_dicts = [
-            _convert_message_to_dict(message) for message in messages.to_messages()
+            _convert_message_to_dict(message) for message in messages
         ]
         prompt = tokenizer.apply_chat_template(
             messages_as_dicts,
@@ -425,7 +425,7 @@ class RAG:
         output = "<|im_start|>think\n"
         prompt += output
 
-        # stop if reach end of thinking ("<|im_stard|>") or end ("|<im_end|>"),
+        # stop if reach end of thinking ("<|im_start|>") or end ("<|im_end|>"),
         # or reached the max thinking tokens
         stop_token_ids = tokenizer("<|im_start|><|im_end|>")["input_ids"]
         ignore_str = "Wait"
@@ -522,7 +522,7 @@ class RAG:
         output = "<|im_start|>think\n"
         prompt += output
 
-        # stop if reach end of thinking ("<|im_stard|>") or end ("|<im_end|>"),
+        # stop if reach end of thinking ("<|im_start|>") or end ("<|im_end|>"),
         # or reached the max thinking tokens
         stop_token_ids = tokenizer("<|im_start|><|im_end|>")["input_ids"]
         ignore_str = "Wait"
