@@ -76,6 +76,7 @@
 <style>
     div.sidebar {
         height: 100%;
+        min-width: 200px;
         width: max-content;
         display: flex;
         flex-direction: column;

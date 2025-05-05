@@ -94,12 +94,16 @@
         font-size: 1.5em;
         height: 40px;
         width: 40px;
-        background-color: var(--secondary-bg);
+        background-color: transparent;
         color: var(--foreground);
         border-radius: 50%;
         padding-right: 6px;
         border: 1px solid var(--foreground);
         cursor: pointer;
+    }
+
+    button:hover {
+        background-color: var(--button-disabled-bg);
     }
 
     button:active {
