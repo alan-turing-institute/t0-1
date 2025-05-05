@@ -53,3 +53,8 @@ export type Demographics = {
     name: string;
     age: number;
 }
+
+export let emptyDemographics = {
+    name: "",
+    age: 0
+}
