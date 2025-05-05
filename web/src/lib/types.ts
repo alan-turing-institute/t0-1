@@ -48,3 +48,8 @@ export function parseChatEntries(json: object): ChatEntry[] {
         });
     }
 }
+
+export type Demographics = {
+    name: string;
+    age: number;
+}

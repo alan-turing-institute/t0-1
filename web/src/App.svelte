@@ -8,6 +8,7 @@
         makeHumanEntry,
         makeAIEntry,
         parseChatEntries,
+        type Demographics,
     } from "./lib/types";
 
     const HOST = "http://localhost";
@@ -103,6 +104,13 @@
         localStorage.setItem(LS_DARKMODE_KEY, darkMode.toString());
     }
 
+    // Handle demographics
+    let demographicsString: string = $state("");
+    function changeDemographics(demographics: Demographics) {
+        demographicsString = JSON.stringify(demographics);
+        console.log("updating demographics to ", demographicsString);
+    }
+
     // API queries
     function handleError(err: string) {
         console.error("Error:", err);
@@ -146,6 +154,8 @@
     function queryLLM(query: string) {
         loading = true;
 
+        console.log($state.snapshot(demographicsString));
+
         if (currentId === "new") {
             currentId = crypto.randomUUID();
             // push to the front as it will be the most recent
@@ -156,6 +166,7 @@
         const body = {
             query: query,
             thread_id: currentId,
+            demographics: demographicsString,
         };
         const url = `${HOST}:${PORT}/query`;
 
@@ -210,7 +221,7 @@
     <main>
         <Error {error} />
         <Messages history={messages} {loading} />
-        <Form {loading} {queryLLM} />
+        <Form {loading} {queryLLM} {changeDemographics} />
     </main>
 </div>
 

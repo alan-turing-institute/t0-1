@@ -1,15 +1,42 @@
 <script lang="ts">
     import { slide } from "svelte/transition";
+    import { type Demographics } from "./types";
 
-    let demographics_string: string = $state("");
+    interface Props {
+        changeDemographics: (demographics: Demographics) => void;
+    }
+    let { changeDemographics }: Props = $props();
+
+    function onkeydown(event: KeyboardEvent) {
+        if (event.key === "Enter") {
+            event.preventDefault();
+        }
+    }
 
     let showForm = $state(false);
+    let demographics: Demographics = $state({
+        name: "",
+        age: 0,
+    });
 </script>
 
 <div id="demographics-wrapper">
     {#if showForm}
         <div id="demographics" transition:slide>
-            <input type="text" bind:value={demographics_string} />
+            name:
+            <input
+                type="text"
+                bind:value={demographics.name}
+                oninput={() => changeDemographics(demographics)}
+                {onkeydown}
+            />
+            age:
+            <input
+                type="number"
+                bind:value={demographics.age}
+                oninput={() => changeDemographics(demographics)}
+                {onkeydown}
+            />
         </div>
     {/if}
     <div id="toggle">
@@ -23,7 +50,6 @@
 <style>
     div#demographics-wrapper {
         margin: 0 10px;
-        padding: 10px;
         border-radius: 10px;
         border: 1px solid var(--foreground);
     }
@@ -34,7 +60,7 @@
         cursor: pointer;
         font: inherit;
         color: var(--secondary-fg);
-        width: max-content;
+        width: 100%;
         padding: 0;
         margin: 0;
         font-size: 0.8em;
