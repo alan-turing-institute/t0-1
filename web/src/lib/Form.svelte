@@ -1,12 +1,14 @@
 <script lang="ts">
     import Demographics from "./Demographics.svelte";
+    import { type Demographics as DemographicsType } from "./types";
 
     interface Props {
         loading: boolean;
         queryLLM: (message: string) => void;
+        changeDemographics: (demographics: DemographicsType) => void;
     }
 
-    let { loading, queryLLM }: Props = $props();
+    let { loading, queryLLM, changeDemographics }: Props = $props();
     let message: string = $state("");
 
     function handleKeyDown(event: KeyboardEvent) {
@@ -34,7 +36,7 @@
 </script>
 
 <form id="chat" onsubmit={handleSubmit}>
-    <Demographics />
+    <Demographics {changeDemographics} />
     <div class="grow-wrap" bind:this={wrapDiv}>
         <textarea
             bind:value={message}

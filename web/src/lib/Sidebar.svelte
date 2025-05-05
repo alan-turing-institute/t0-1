@@ -112,7 +112,7 @@
         justify-content: space-between;
         align-items: center;
 
-        label {
+        label, input:disabled + label {
             font-family: "Fira Code", monospace;
             margin: 0 0 0 10px;
             padding: 0;
@@ -136,6 +136,9 @@
                 100% 100%,
                 0 100%;
             background-repeat: no-repeat;
+        }
+        input:disabled + label {
+            cursor: normal;
         }
         label:hover,
         label:active {
