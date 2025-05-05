@@ -39,7 +39,7 @@ html[data-theme="dark"] {
     --secondary-bg: #000000;
     --highlight: #007acc;
     --error: #ff0000;
-    --sidebar-bg: #69659b;
+    --sidebar-bg: #534f89;
     --linear-gradient-start: rgba(197, 132, 216, 1);
     --linear-gradient-end: rgba(207, 135, 229, 1);
     background-color: var(--background);
