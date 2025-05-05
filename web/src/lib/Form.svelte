@@ -44,7 +44,7 @@
             onkeydown={handleKeyDown}
         ></textarea>
     </div>
-    <button type="submit" disabled={loading}>
+    <button type="submit" disabled={loading} aria-label="Send">
         <i class="fa-solid fa-paper-plane"></i>
     </button>
 </form>
