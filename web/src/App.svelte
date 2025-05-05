@@ -50,10 +50,12 @@
         });
 
     function changeId(id: string) {
+        console.log("changing id to", id);
         currentId = id;
         loadMessages(id);
     }
     function newConversation() {
+        console.log("creating new conversation");
         currentId = "new";
         messages = [];
     }
@@ -201,6 +203,7 @@
 
 <div id="wrapper">
     <Sidebar
+        {currentId}
         {allIds}
         {changeId}
         {newConversation}
@@ -224,7 +227,6 @@
 
     div#wrapper {
         display: flex;
-        justify-content: center;
         align-items: stretch;
         height: 100vh;
         min-width: 300px;
@@ -236,10 +238,11 @@
     main {
         height: calc(100vh - 60px);
         margin: 30px;
+        min-width: 300px;
         width: 100%;
         display: flex;
         flex-direction: column;
-        align-items: left;
+        align-items: stretch;
         justify-content: end;
         gap: 20px;
     }

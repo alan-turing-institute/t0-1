@@ -31,7 +31,6 @@
     }
 
     function scroll(node: HTMLDivElement) {
-        console.log("scrolling", node.classList);
         // If it's a new message from the user, force the scroll
         // to happen.
         if (node.classList.contains("human")) {
