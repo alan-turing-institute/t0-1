@@ -27,7 +27,7 @@
         <h1>t0 online</h1>
         <div class="sidebar-buttons">
             <div class="conversations">
-                <span>Select conversation:</span>
+                <span><i>Select conversation:</i></span>
                 {#each allIds as id}
                     <div class="conversation-manager" transition:slide>
                         <input
@@ -44,7 +44,7 @@
                             class="delete-conversation"
                             onclick={() => deleteConversation(id)}
                         >
-                            x
+                            (×)
                         </button>
                     </div>
                 {/each}
@@ -63,7 +63,7 @@
             </div>
         </div>
     </div>
-    <button onclick={(_e) => toggleTheme()}
+    <button id="darkmode" onclick={(_e) => toggleTheme()}
         >switch to {darkMode ? "light" : "dark"} mode</button
     >
 </div>
@@ -109,27 +109,55 @@
 
         label {
             font-family: "Fira Code", monospace;
-            margin: 0;
+            margin: 0 0 0 10px;
             padding: 0;
-            background-color: var(--secondary-bg);
             cursor: pointer;
             flex: 1 1 auto;
+            transition: background-size 0.3s;
+            background: linear-gradient(
+                    to right,
+                    rgba(0, 0, 0, 0),
+                    rgba(0, 0, 0, 0)
+                ),
+                linear-gradient(
+                    to right,
+                    var(--linear-gradient-start),
+                    var(--linear-gradient-end)
+                );
+            background-size:
+                100% 2px,
+                0 2px;
+            background-position:
+                100% 100%,
+                0 100%;
+            background-repeat: no-repeat;
         }
-        label:hover {
-            background-color: var(--hover-bg);
+        label:hover,
+        label:active {
+            background-size:
+                0 2px,
+                100% 2px;
         }
 
         input:checked + label {
             font-weight: bold;
-            transition: font-weight 0.5s ease-out;
+            transition: font-weight 0.3s, background-size 0.3s;
         }
 
         button.delete-conversation {
             flex: 0 0 auto;
+            background-color: transparent;
+            color: var(--foreground);
+            text-decoration: none;
+            border: none;
+        }
+        button.delete-conversation:hover {
+            font-weight: bold;
+            cursor: pointer;
         }
     }
 
-    button {
+    button#darkmode {
         font: inherit;
         height: min-content;
         background-color: transparent;
@@ -138,5 +166,6 @@
         color: var(--foreground);
         cursor: pointer;
         text-align: left;
+
     }
 </style>
