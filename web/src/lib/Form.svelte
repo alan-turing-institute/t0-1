@@ -1,10 +1,10 @@
 <script lang="ts">
     interface Props {
-        disableForm: boolean;
+        loading: boolean;
         queryLLM: (message: string) => void;
     }
 
-    let { disableForm, queryLLM }: Props = $props();
+    let { loading, queryLLM }: Props = $props();
     let message: string = $state("");
 
     function handleKeyDown(event: KeyboardEvent) {
@@ -16,7 +16,7 @@
 
     function handleSubmit(event: Event) {
         event.preventDefault();
-        if (message.trim() === "" || disableForm) {
+        if (message.trim() === "" || loading) {
             return;
         }
         queryLLM(message);
@@ -39,7 +39,7 @@
             onkeydown={handleKeyDown}
         ></textarea>
     </div>
-    <button type="submit" disabled={disableForm}>Send</button>
+    <button type="submit" disabled={loading}>Send</button>
 </form>
 
 <style>
