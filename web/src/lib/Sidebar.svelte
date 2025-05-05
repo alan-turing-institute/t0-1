@@ -3,6 +3,7 @@
 
     interface Props {
         currentId: string;
+        loading: boolean;
         allIds: Array<string>;
         changeId: (id: string) => void;
         newConversation: () => void;
@@ -13,6 +14,7 @@
 
     let {
         currentId,
+        loading,
         allIds,
         changeId,
         newConversation,
@@ -37,12 +39,14 @@
                             name="conversation"
                             onchange={() => changeId(id)}
                             bind:group={currentId}
+                            disabled={loading}
                             hidden
                         />
                         <label for={id}>{id.slice(0, 8)}</label>
                         <button
                             class="delete-conversation"
                             onclick={() => deleteConversation(id)}
+                            disabled={loading}
                         >
                             (×)
                         </button>
@@ -56,6 +60,7 @@
                         name="conversation"
                         onchange={() => newConversation()}
                         bind:group={currentId}
+                        disabled={loading}
                         hidden
                     />
                     <label for={"new"}>(new)</label>
@@ -141,7 +146,9 @@
 
         input:checked + label {
             font-weight: bold;
-            transition: font-weight 0.3s, background-size 0.3s;
+            transition:
+                font-weight 0.3s,
+                background-size 0.3s;
         }
 
         button.delete-conversation {
@@ -166,6 +173,5 @@
         color: var(--foreground);
         cursor: pointer;
         text-align: left;
-
     }
 </style>

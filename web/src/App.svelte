@@ -15,7 +15,6 @@
     const PORT = 8000;
 
     // UI state
-    let disableForm: boolean = $state(false);
     let loading: boolean = $state(false);
     let error: string | null = $state(null);
 
@@ -110,7 +109,6 @@
         console.error("Error:", err);
         error = err;
         loading = false;
-        disableForm = false;
         setTimeout(() => {
             error = null;
         }, 10000);
@@ -147,7 +145,7 @@
     }
 
     function queryLLM(query: string) {
-        disableForm = true;
+        loading = true;
 
         if (currentId === "new") {
             currentId = crypto.randomUUID();
@@ -162,7 +160,6 @@
         };
         const url = `${HOST}:${PORT}/query`;
 
-        loading = true;
         fetch(url, {
             method: "POST",
             body: JSON.stringify(body),
@@ -192,7 +189,6 @@
                     }
                     loading = false;
                     messages.push(makeAIEntry(last_message.content));
-                    disableForm = false;
                 });
             })
             .catch((error) => {
@@ -204,6 +200,7 @@
 <div id="wrapper">
     <Sidebar
         {currentId}
+        {loading}
         {allIds}
         {changeId}
         {newConversation}
@@ -214,7 +211,7 @@
     <main>
         <Error {error} />
         <Messages history={messages} {loading} />
-        <Form {disableForm} {queryLLM} />
+        <Form {loading} {queryLLM} />
     </main>
 </div>
 
