@@ -117,7 +117,7 @@
             margin: 0 0 0 10px;
             padding: 0;
             cursor: pointer;
-            flex: 1 1 auto;
+            flex: 0 0 auto;
             transition: background-size 0.3s;
             background: linear-gradient(
                     to right,
@@ -160,6 +160,8 @@
             color: var(--foreground);
             text-decoration: none;
             border: none;
+            margin-bottom: 2px;
+            transition: font-weight 0.2s;
         }
         button.delete-conversation:hover {
             font-weight: bold;
