@@ -44,7 +44,9 @@
             onkeydown={handleKeyDown}
         ></textarea>
     </div>
-    <button type="submit" disabled={loading}>Send</button>
+    <button type="submit" disabled={loading}>
+        <i class="fa-solid fa-paper-plane"></i>
+    </button>
 </form>
 
 <style>
@@ -89,17 +91,25 @@
 
     button {
         font-family: inherit;
-        font-size: inherit;
-        height: min-content;
+        font-size: 1.5em;
+        height: 40px;
+        width: 40px;
         background-color: var(--secondary-bg);
         color: var(--foreground);
-        border-radius: 5px;
-        padding: 2px 5px;
+        border-radius: 50%;
+        padding-right: 6px;
         border: 1px solid var(--foreground);
+        cursor: pointer;
+    }
+
+    button:active {
+        background-color: var(--button-disabled-bg);
+        color: var(--button-disabled-fg);
     }
 
     button:disabled {
-        background-color: #ccc;
+        background-color: var(--button-disabled-bg);
+        color: var(--button-disabled-fg);
         cursor: not-allowed;
     }
 </style>

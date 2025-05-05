@@ -27,6 +27,8 @@ html[data-theme="light"] {
     --highlight: #007acc;
     --error: #ff0000;
     --sidebar-bg: #d9d7ea;
+    --button-disabled-bg: #cccccc;
+    --button-disabled-fg: #888888;
     --linear-gradient-start: rgba(186, 50, 227, 1);
     --linear-gradient-end: rgba(124, 11, 158, 1);
     background-color: var(--background);
@@ -40,6 +42,8 @@ html[data-theme="dark"] {
     --highlight: #007acc;
     --error: #ff0000;
     --sidebar-bg: #534f89;
+    --button-disabled-bg: #888888;
+    --button-disabled-fg: #cccccc;
     --linear-gradient-start: rgba(197, 132, 216, 1);
     --linear-gradient-end: rgba(207, 135, 229, 1);
     background-color: var(--background);
