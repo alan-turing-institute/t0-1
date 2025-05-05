@@ -77,7 +77,7 @@
         display: flex;
         flex-direction: column;
         gap: 30px;
-        margin: auto 0 10px 0;
+        margin: auto 0 20px 0;
         padding: 0px 10px;
         scroll-behavior: smooth;
     }

@@ -9,7 +9,6 @@
         makeAIEntry,
         parseChatEntries,
     } from "./lib/types";
-    import { onMount } from "svelte";
 
     const HOST = "http://localhost";
     const PORT = 8000;
@@ -241,6 +240,5 @@
         flex-direction: column;
         align-items: stretch;
         justify-content: end;
-        gap: 20px;
     }
 </style>
