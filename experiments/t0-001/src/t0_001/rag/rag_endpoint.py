@@ -1,13 +1,24 @@
 from pathlib import Path
 
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
 from t0_001.rag.build_rag import (
     DEFAULT_RETRIEVER_CONFIG,
     RAG,
     RetrieverConfig,
     build_rag,
 )
+
+
+class QueryRequest(BaseModel):
+    query: str
+    thread_id: str | None = "0"
+    demographics: str | None = None
+
+
+class ClearHistoryRequest(BaseModel):
+    thread_id: str | None = "0"
 
 
 def create_rag_app(rag: RAG) -> FastAPI:
@@ -17,12 +28,31 @@ def create_rag_app(rag: RAG) -> FastAPI:
     async def root():
         return {"message": "Hello World"}
 
-    @app.get("/query")
-    async def query_endpoint(
-        query: str,
-    ):
-        response = rag._query(query)
-        return {"response": response}
+    @app.post("/query")
+    async def query_endpoint(req: QueryRequest):
+        response = rag._query(
+            req.query, thread_id=req.thread_id, demographics=req.demographics
+        )
+        return {
+            "response": response,
+            "thread_id": req.thread_id,
+            "demographics": req.demographics,
+        }
+
+    # Delete history
+    @app.post("/clear_history")
+    async def clear_history_endpoint(req: ClearHistoryRequest):
+        rag.clear_history(thread_id=req.thread_id)
+        return {"status": "success", "thread_id": req.thread_id}
+
+    @app.get("/get_history")
+    async def get_history(thread_id: str = "0"):
+        try:
+            conversation_messages = rag.get_message_history(thread_id=thread_id)
+        except AttributeError as e:
+            raise HTTPException(status_code=404, detail="Thread ID not found") from e
+        else:
+            return {"messages": conversation_messages, "thread_id": thread_id}
 
     return app
 

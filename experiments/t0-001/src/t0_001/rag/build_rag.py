@@ -28,26 +28,60 @@ from typing_extensions import TypedDict
 class State(TypedDict):
     """
     State is a TypedDict that represents the state of a RAG query.
-    It contains the question, context, reranked context (if applicable), demographics, messages, and answer.
+
+    It contains:
+
+    - question: The question being asked (human messages)
+    - system_messages: The system message
+    - messages: All messages in the conversation (system, human, AI, tool)
+    - context: The retrieved context (list of documents)
+    - reranked_context: The reranked context (list of documents)
+    - reranker_response: The response from the reranker
+    - reranker_response_processed: The processed response from the reranker
+    - reranker_success: Whether the reranker was successful
+    - demographics: The demographics of the user
+
+    These attributes are list of lists to conform to a similar
+    structure to the CustomMessagesState class.
     """
 
     question: str
-    context: list[Document]
-    reranked_context: list[Document] | None
-    reranker_response: str | None
-    reranker_response_processed: list[str] | None
-    reranker_success: bool | None
-    demographics: str | None
+    system_messages: list[str | None]
     messages: list[str]
-    answer: str
+    retriever_queries: list[str]
+    context: list[list[Document]]
+    reranked_context: list[list[Document] | None]
+    reranker_response: list[str | None]
+    reranker_response_processed: list[list[str] | None]
+    reranker_success: list[bool | None]
+    demographics: str | None
 
 
 class CustomMessagesState(MessagesState):
     """
     Messages state for the RAG class.
+
+    It contains:
+
+    - system_messages: The system messages, including the context and demographics
+    - retriever_queries: The queries sent to the retriever (this is ~ equivalent to question in State)
+    - rag_input_messages: The human messages that are passed to the RAG LLM
+    - context: The retrieved context (list of documents)
+    - reranked_context: The reranked context (list of documents)
+    - reranker_response: The response from the reranker
+    - reranker_response_processed: The processed response from the reranker
+    - reranker_success: Whether the reranker was successful
+    - demographics: The demographics of the user
+    - messages: All messages in the conversation (system, human, AI, tool)
     """
 
+    # note there is also a messages key from the MessagesState class
+    # messages are appended to the state
     system_messages: list[str | None]
+    # rag_input_messages are the human messages that are passed to the LLM
+    # this might differ from the messages in the state as the template
+    # could be different
+    rag_input_messages: list[str]
     retriever_queries: list[str]
     context: list[list[Document]]
     reranked_context: list[list[Document] | None]
@@ -137,10 +171,18 @@ class RAG:
         self.rerank_llm: LLM | None = rerank_llm
         self.rerank_k: int = rerank_k
         self.memory: InMemorySaver = InMemorySaver()
+        self.reset_graph()
+
+    def reset_graph(self):
+        """
+        Reset the graph to a new instance of the compiled state graph.
+        This is useful for when the graph needs to be rebuilt
+        or to clear the memory entirely.
+        """
         if self.conversational:
-            self.graph: CompiledStateGraph = self.build_conversation_graph()
+            self.graph: CompiledStateGraph = self.build_conversation_graph(reset=True)
         else:
-            self.graph: CompiledStateGraph = self.build_graph()
+            self.graph: CompiledStateGraph = self.build_graph(reset=True)
         self.trimmer = trim_messages(
             max_tokens=65,
             strategy="last",
@@ -169,21 +211,26 @@ class RAG:
             input=state["question"]
         )
 
-        return {"context": retrieved_docs}
+        return {
+            "context": state.get("context", []) + [retrieved_docs],
+            "retriever_queries": state.get("retriever_queries", [])
+            + [state["question"]],
+        }
 
-    def clear_history(self, thread_id: str):
+    def get_message_history(self, thread_id: str):
         """
-        Reset the history of the RAG query by rebuilding the graph.
+        Get a list of messages from the stored memory for a given thread ID.
         """
-        self.memory.delete_thread(thread_id=thread_id)
-        return "History cleared."
-
-    async def aclear_history(self, thread_id: str):
-        """
-        Reset the history of the RAG query by rebuilding the graph.
-        """
-        await self.memory.adelete_thread(thread_id=thread_id)
-        return "History cleared."
+        config = {"configurable": {"thread_id": thread_id}}
+        messages = self.memory.get_tuple(config).checkpoint["channel_values"][
+            "messages"
+        ]
+        return [
+            message
+            for message in messages
+            if message.type in ("human", "system")
+            or (message.type == "ai" and not message.tool_calls)
+        ]
 
     def retrieve(self, state: State) -> dict[str, list[Document]]:
         """
@@ -202,7 +249,11 @@ class RAG:
         logging.info(f"Retrieving documents for question: {state['question']}")
         retrieved_docs: list[Document] = self.retriever.invoke(input=state["question"])
 
-        return {"context": retrieved_docs}
+        return {
+            "context": state.get("context", []) + [retrieved_docs],
+            "retriever_queries": state.get("retriever_queries", [])
+            + [state["question"]],
+        }
 
     def retrieve_as_tool(
         self,
@@ -237,10 +288,8 @@ class RAG:
         # rerank the documents using an LLM to select the top rerank_k documents
         logging.info(f"Reranking documents to {self.rerank_k} documents...")
 
-        if self.conversational:
-            context = state["context"][-1]
-        else:
-            context = state["context"]
+        # extract the latest retrieved documents from the state
+        context = state["context"][-1]
 
         # obtain the sources and the context from the retrieved documents
         sources = [doc.metadata["source"] for doc in context]
@@ -255,29 +304,19 @@ class RAG:
             )
 
             # no need to rerank if we have less than k documents
-            if self.conversational:
-                return {
-                    "reranked_context": state.get("reranked_context", []) + [context],
-                    "reranker_response": state.get("reranker_response", []) + [None],
-                    "reranker_response_processed": state.get(
-                        "reranker_response_processed", []
-                    )
-                    + [None],
-                    "reranker_success": state.get("reranker_success", []) + [None],
-                }
-            else:
-                return {
-                    "reranked_context": context,
-                    "reranker_response": None,
-                    "reranker_response_processed": None,
-                    "reranker_success": None,
-                }
+            return {
+                "reranked_context": state.get("reranked_context", []) + [context],
+                "reranker_response": state.get("reranker_response", []) + [None],
+                "reranker_response_processed": state.get(
+                    "reranker_response_processed", []
+                )
+                + [None],
+                "reranker_success": state.get("reranker_success", []) + [None],
+            }
 
         messages = self.rerank_prompt.invoke(
             {
-                "symptoms_description": (
-                    state["messages"] if self.conversational else state["question"]
-                ),
+                "symptoms_description": state["retriever_queries"][-1],
                 "document_titles": zip(sources, source_scores),
                 "document_text": context,
                 "k": self.rerank_k,
@@ -322,25 +361,14 @@ class RAG:
             reranker_success = False
             reranked_docs = context[: self.rerank_k]
 
-        if self.conversational:
-            return {
-                "reranked_context": state.get("reranked_context", []) + [reranked_docs],
-                "reranker_response": state.get("reranker_response", [])
-                + [reranker_response.content],
-                "reranker_response_processed": state.get(
-                    "reranker_response_processed", []
-                )
-                + [reranked_docs_titles],
-                "reranker_success": state.get("reranker_success", [])
-                + [reranker_success],
-            }
-        else:
-            return {
-                "reranked_context": reranked_docs,
-                "reranker_response": reranker_response.content,
-                "reranker_response_processed": reranked_docs_titles,
-                "reranker_success": reranker_success,
-            }
+        return {
+            "reranked_context": state.get("reranked_context", []) + [reranked_docs],
+            "reranker_response": state.get("reranker_response", [])
+            + [reranker_response.content],
+            "reranker_response_processed": state.get("reranker_response_processed", [])
+            + [reranked_docs_titles],
+            "reranker_success": state.get("reranker_success", []) + [reranker_success],
+        }
 
     def set_up_tokenizer(self):
         from transformers import AutoTokenizer
@@ -369,9 +397,7 @@ class RAG:
         from langchain_openai.chat_models.base import _convert_message_to_dict
 
         # convert the messages to dicts and apply the chat template
-        messages_as_dicts = [
-            _convert_message_to_dict(message) for message in messages.to_messages()
-        ]
+        messages_as_dicts = [_convert_message_to_dict(message) for message in messages]
         prompt = tokenizer.apply_chat_template(
             messages_as_dicts,
             tokenize=False,
@@ -389,7 +415,7 @@ class RAG:
         output = "<|im_start|>think\n"
         prompt += output
 
-        # stop if reach end of thinking ("<|im_stard|>") or end ("|<im_end|>"),
+        # stop if reach end of thinking ("<|im_start|>") or end ("<|im_end|>"),
         # or reached the max thinking tokens
         stop_token_ids = tokenizer("<|im_start|><|im_end|>")["input_ids"]
         ignore_str = "Wait"
@@ -486,7 +512,7 @@ class RAG:
         output = "<|im_start|>think\n"
         prompt += output
 
-        # stop if reach end of thinking ("<|im_stard|>") or end ("|<im_end|>"),
+        # stop if reach end of thinking ("<|im_start|>") or end ("<|im_end|>"),
         # or reached the max thinking tokens
         stop_token_ids = tokenizer("<|im_start|><|im_end|>")["input_ids"]
         ignore_str = "Wait"
@@ -598,11 +624,9 @@ class RAG:
 
         # obtain the sources and the context from the retrieved documents
         if self.rerank:
-            context = state["reranked_context"]
-            context = context[-1] if self.conversational else context
+            context = state["reranked_context"][-1]
         else:
-            context = state["context"]
-            context = context[-1] if self.conversational else context
+            context = state["context"][-1]
 
         # obtain the sources and the context from the retrieved documents
         sources = [doc.metadata["source"] for doc in context]
@@ -651,11 +675,23 @@ class RAG:
         logging.info("Generating answer...")
 
         retriever_response = self.obtain_context_and_sources(state)
+
+        if self.conversational:
+            # get last human message
+            human_message = None
+            for message in reversed(state["messages"]):
+                if message.type == "human":
+                    human_message = message.content
+                    break
+
+            if human_message is None:
+                raise ValueError("No human message found in the state")
+        else:
+            human_message = state["question"]
+
         messages_from_prompt = self.prompt.invoke(
             {
-                "question": (
-                    state["messages"] if self.conversational else state["question"]
-                ),
+                "question": human_message,
                 "context": retriever_response["serialised_docs"],
                 "demographics": state["demographics"],
                 "sources": retriever_response["sources"],
@@ -670,8 +706,10 @@ class RAG:
                 or (message.type == "ai" and not message.tool_calls)
             ]
             if messages_from_prompt.messages[0].type == "system":
-                messages = [messages_from_prompt.messages[0]] + conversation_messages
+                system_message = messages_from_prompt.messages[0]
+                messages = [system_message] + conversation_messages
             else:
+                system_message = None
                 messages = conversation_messages
 
             if (
@@ -681,7 +719,14 @@ class RAG:
             ):
                 messages[-1] = messages_from_prompt.messages[-1]
         else:
-            messages = messages_from_prompt
+            if messages_from_prompt.messages[-1].type == "human":
+                messages = [messages_from_prompt.messages[-1]]
+
+            if messages_from_prompt.messages[0].type == "system":
+                system_message = messages_from_prompt.messages[0]
+                messages = [system_message] + messages
+            else:
+                system_message = None
 
         # trim the messages to the max length
         trimmed_messages = self.trimmer.invoke(messages)
@@ -693,16 +738,17 @@ class RAG:
 
         if self.conversational:
             return {
-                "system_messages": (
-                    state.get("system_messages", [])
-                    + [messages_from_prompt.messages[0]]
-                    if messages_from_prompt.messages[0].type == "system"
-                    else state.get("system_messages", []) + [None]
-                ),
+                "system_messages": state.get("system_messages", []) + [system_message],
                 "messages": [response],
+                "rag_input_messages": state.get("rag_input_messages", [])
+                + [trimmed_messages[-1]],
             }
         else:
-            return {"messages": trimmed_messages, "answer": response}
+            return {
+                "system_messages": state.get("system_messages", []) + [system_message],
+                "messages": state.get("messages", [])
+                + [trimmed_messages[-1], response],
+            }
 
     async def agenerate(self, state: State | CustomMessagesState) -> dict[str, str]:
         """
@@ -723,11 +769,23 @@ class RAG:
         logging.info("Generating answer...")
 
         retriever_response = self.obtain_context_and_sources(state)
+
+        if self.conversational:
+            # get last human message
+            human_message = None
+            for message in reversed(state["messages"]):
+                if message.type == "human":
+                    human_message = message
+                    break
+
+            if human_message is None:
+                raise ValueError("No human message found in the state")
+        else:
+            human_message = state["question"]
+
         messages_from_prompt = self.prompt.invoke(
             {
-                "question": (
-                    state["messages"] if self.conversational else state["question"]
-                ),
+                "question": human_message,
                 "context": retriever_response["serialised_docs"],
                 "demographics": state["demographics"],
                 "sources": retriever_response["sources"],
@@ -742,8 +800,10 @@ class RAG:
                 or (message.type == "ai" and not message.tool_calls)
             ]
             if messages_from_prompt.messages[0].type == "system":
-                messages = [messages_from_prompt.messages[0]] + conversation_messages
+                system_message = messages_from_prompt.messages[0]
+                messages = [system_message] + conversation_messages
             else:
+                system_message = None
                 messages = conversation_messages
 
             if (
@@ -753,7 +813,14 @@ class RAG:
             ):
                 messages[-1] = messages_from_prompt.messages[-1]
         else:
-            messages = messages_from_prompt
+            if messages_from_prompt.messages[-1].type == "human":
+                messages = messages_from_prompt.messages[-1]
+
+            if messages_from_prompt.messages[0].type == "system":
+                system_message = messages_from_prompt.messages[0]
+                messages = [system_message] + messages
+            else:
+                system_message = None
 
         if self.budget_forcing:
             response = await self._budget_forcing_ainvoke(messages)
@@ -762,18 +829,18 @@ class RAG:
 
         if self.conversational:
             return {
-                "system_messages": (
-                    state.get("system_messages", [])
-                    + [messages_from_prompt.messages[0]]
-                    if messages_from_prompt.messages[0].type == "system"
-                    else state.get("system_messages", []) + [None]
-                ),
+                "system_messages": state.get("system_messages", []) + [system_message],
                 "messages": [response],
+                "rag_input_messages": state.get("rag_input_messages", [])
+                + [messages[-1]],
             }
         else:
-            return {"messages": messages, "answer": response}
+            return {
+                "system_messages": state.get("system_messages", []) + [system_message],
+                "messages": state.get("messages", []) + [messages[-1], response],
+            }
 
-    def build_graph(self) -> CompiledStateGraph:
+    def build_graph(self, reset: bool = False) -> CompiledStateGraph:
         """
         Build a Langchain compiled state graph with the retrieve and generate functions
         as nodes.
@@ -792,10 +859,17 @@ class RAG:
                 [self.retrieve, self.generate]
             )
         graph_builder.add_edge(START, "retrieve")
+
+        if reset:
+            logging.info("Resetting memory...")
+            self.memory = InMemorySaver()
+
+        logging.info("Compiling graph...")
         graph = graph_builder.compile(checkpointer=self.memory)
+
         return graph
 
-    def build_conversation_graph(self) -> CompiledStateGraph:
+    def build_conversation_graph(self, reset: bool = False) -> CompiledStateGraph:
         """
         Build a Langchain compiled state graph for conversational RAG.
 
@@ -828,12 +902,34 @@ class RAG:
             graph_builder.add_edge("process_tool_response", "generate")
         graph_builder.add_edge("generate", END)
 
+        if reset:
+            logging.info("Resetting memory...")
+            self.memory = InMemorySaver()
+
+        logging.info("Compiling conversational graph...")
         graph = graph_builder.compile(checkpointer=self.memory)
 
         return graph
 
+    def clear_history(self, thread_id: str) -> str:
+        """
+        Reset the history of the RAG query by rebuilding the graph.
+        """
+        self.memory.delete_thread(thread_id=thread_id)
+        return "History cleared."
+
+    async def aclear_history(self, thread_id: str) -> str:
+        """
+        Reset the history of the RAG query by rebuilding the graph.
+        """
+        await self.memory.adelete_thread(thread_id=thread_id)
+        return "History cleared."
+
     def _query(
-        self, question: str, user_id: str = "0", demographics: str | None = None
+        self,
+        question: str,
+        thread_id: str = "0",
+        demographics: str | None = None,
     ) -> State | CustomMessagesState:
         if self.conversational:
             input = {
@@ -845,12 +941,16 @@ class RAG:
 
         response = self.graph.invoke(
             input=input,
-            config={"configurable": {"thread_id": user_id}},
+            config={"configurable": {"thread_id": thread_id}},
         )
+
         return response
 
     async def _aquery(
-        self, question: str, user_id: str = "0", demographics: str | None = None
+        self,
+        question: str,
+        thread_id: str = "0",
+        demographics: str | None = None,
     ) -> State | CustomMessagesState:
         if self.conversational:
             input = {
@@ -862,11 +962,14 @@ class RAG:
 
         response = await self.graph.ainvoke(
             input=input,
-            config={"configurable": {"thread_id": user_id}},
+            config={"configurable": {"thread_id": thread_id}},
         )
+
         return response
 
-    def query(self, question: str, user_id: str = "0") -> str:
+    def query(
+        self, question: str, thread_id: str = "0", demographics: str | None = None
+    ) -> str:
         """
         Query the RAG with a question and return response.
 
@@ -874,7 +977,7 @@ class RAG:
         ----------
         question : str
             The question to ask the RAG.
-        user_id : str, optional
+        thread_id : str, optional
             The user ID for the query, by default "0".
 
         Returns
@@ -882,13 +985,15 @@ class RAG:
         str
             The answer generated by the RAG.
         """
-        response = self._query(question=question, user_id=user_id)
-        if self.conversational:
-            return response["messages"][-1].content
-        else:
-            return response["answer"].content
+        response = self._query(
+            question=question, thread_id=thread_id, demographics=demographics
+        )
 
-    async def aquery(self, question: str, user_id: str = "0") -> str:
+        return response["messages"][-1].content
+
+    async def aquery(
+        self, question: str, thread_id: str = "0", demographics: str | None = None
+    ) -> str:
         """
         Async query the RAG with a question and return response.
 
@@ -896,7 +1001,7 @@ class RAG:
         ----------
         question : str
             The question to ask the RAG.
-        user_id : str, optional
+        thread_id : str, optional
             The user ID for the query, by default "0".
 
         Returns
@@ -904,13 +1009,15 @@ class RAG:
         str
             The answer generated by the RAG.
         """
-        response = await self._aquery(question=question, user_id=user_id)
-        if self.conversational:
-            return response["messages"][-1].content
-        else:
-            return response["answer"].content
+        response = await self._aquery(
+            question=question, thread_id=thread_id, demographics=demographics
+        )
 
-    async def aquery_with_sources(self, question: str, user_id: str = "0") -> str:
+        return response["messages"][-1].content
+
+    async def aquery_with_sources(
+        self, question: str, thread_id: str = "0", demographics: str | None = None
+    ) -> str:
         """
         Asynchronously query the RAG with a question and return response with sources used
         in the context.
@@ -919,7 +1026,7 @@ class RAG:
         ----------
         question : str
             The question to ask the RAG.
-        user_id : str, optional
+        thread_id : str, optional
             The user ID for the query, by default "0".
 
         Returns
@@ -928,18 +1035,17 @@ class RAG:
             The answer generated by the RAG along with the sources used
             in the context.
         """
-        response = await self._aquery(question=question, user_id=user_id)
+        response = await self._aquery(
+            question=question, thread_id=thread_id, demographics=demographics
+        )
 
-        if self.conversational:
-            answer = response["messages"][-1].content
-        else:
-            answer = response["answer"].content
+        answer = response["messages"][-1].content
 
         if "context" in response:
             context = (
                 response["reranked_context"] if self.rerank else response["context"]
             )
-            context = context[-1] if self.conversational else context
+            context = context[-1]
 
             # extract the sources of the documents used in the context
             sources = [doc.metadata["source"] for doc in context]
@@ -957,7 +1063,9 @@ class RAG:
 
         return response_with_context
 
-    async def aquery_with_context(self, question: str, user_id: str = "0") -> str:
+    async def aquery_with_context(
+        self, question: str, thread_id: str = "0", demographics: str | None = None
+    ) -> str:
         """
         Asynchronously query the RAG with a question and return response with context
         used in the context.
@@ -966,7 +1074,7 @@ class RAG:
         ----------
         question : str
             The question to ask the RAG.
-        user_id : str, optional
+        thread_id : str, optional
             The user ID for the query, by default "0".
 
         Returns
@@ -975,18 +1083,17 @@ class RAG:
             The answer generated by the RAG along with the context used
             in the context.
         """
-        response = await self._aquery(question=question, user_id=user_id)
+        response = await self._aquery(
+            question=question, thread_id=thread_id, demographics=demographics
+        )
 
-        if self.conversational:
-            answer = response["messages"][-1].content
-        else:
-            answer = response["answer"].content
+        answer = response["messages"][-1].content
 
         if "context" in response:
             context = (
                 response["reranked_context"] if self.rerank else response["context"]
             )
-            context = context[-1] if self.conversational else context
+            context = context[-1]
 
             # extract the sources and contents of the documents used in the context
             pulled_context = [
@@ -1107,6 +1214,8 @@ def build_rag(
     )
 
     if conversational:
+        logging.info("Building conversational RAG...")
+
         # obtain the LLM for conversational retriever agent
         conversational_agent_llm = load_llm(
             llm_provider=conversational_agent_llm_provider,
@@ -1117,6 +1226,8 @@ def build_rag(
         conversational_agent_llm = None
 
     if rerank:
+        logging.info("Building RAG with reranking...")
+
         # obtain the prompt template for reranking
         if rerank_prompt_template_path is None:
             raise ValueError(
