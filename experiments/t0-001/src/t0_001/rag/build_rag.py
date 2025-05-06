@@ -230,15 +230,7 @@ class RAG:
         Get a list of messages from the stored memory for a given thread ID.
         """
         config = {"configurable": {"thread_id": thread_id}}
-        messages = self.memory.get_tuple(config).checkpoint["channel_values"][
-            "messages"
-        ]
-        return [
-            message
-            for message in messages
-            if message.type in ("human", "system")
-            or (message.type == "ai" and not message.tool_calls)
-        ]
+        return self.memory.get_tuple(config).checkpoint["channel_values"]["messages"]
 
     def retrieve(self, state: State) -> dict[str, list[Document]]:
         """
@@ -405,9 +397,7 @@ class RAG:
         from langchain_openai.chat_models.base import _convert_message_to_dict
 
         # convert the messages to dicts and apply the chat template
-        messages_as_dicts = [
-            _convert_message_to_dict(message) for message in messages
-        ]
+        messages_as_dicts = [_convert_message_to_dict(message) for message in messages]
         prompt = tokenizer.apply_chat_template(
             messages_as_dicts,
             tokenize=False,

@@ -30,9 +30,14 @@ export function makeHumanEntry(message: string): ChatEntry {
     return { role: "human", content: mdToHtml(message) };
 }
 export function makeAIEntry(message: string): ChatEntry {
-    // TODO: Some chat messages may require parsing to separate it into
-    // reasoning + content.
-    return { role: "ai", content: mdToHtml(message), reasoning: mdToHtml("Some kind of reasoning") };
+    const components = message.split("<|im_start|>answer");
+    if (components.length == 2) {
+        const [reasoning2, answer] = components;
+        const [_, reasoning] = reasoning2.split("<|im_start|>think");
+        return { role: "ai", content: mdToHtml(answer.trim()), reasoning: mdToHtml(reasoning.trim()) };
+    } else {
+        return { role: "ai", content: mdToHtml(message), reasoning: null };
+    }
 }
 export function makeToolEntry(sources: string[]): ChatEntry {
     return { role: "tool", sources: sources };
