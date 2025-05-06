@@ -1,0 +1,14 @@
+uv run t0-001 evaluate-rag ./data/synthetic_queries/5147cd8_gpt-4o_1000_synthetic_queries.jsonl \
+--k 5 \
+--db-choice chroma \
+--llm-provider openai_completion \
+--llm-model-name TomasLaz/t0-k5-32B \
+--budget-forcing \
+--budget-forcing-kwargs '{"max_tokens_thinking": 512, "num_stop_skips": 3}' \
+--extra-body '{"max_tokens": 256}' \
+--prompt-template-path ./templates/rag_evaluation_prompt_deepseek_r1.txt \
+--system-prompt-path ./templates/rag_evaluation_system_prompt_deepseek_r1.txt \
+--output-file ./evaluate-rag-t0-k5-32b-thinking512-k5-chroma.jsonl \
+--conditions-file ./data/nhs-conditions/v4/qwen_summarised_conditions.jsonl \
+--persist-directory ./v4-summarised-db \
+--local-file-store ./v4-summarised-lfs
