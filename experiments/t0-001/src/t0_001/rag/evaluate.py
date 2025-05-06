@@ -304,7 +304,9 @@ async def process_query(
             # is not in the retrieved documents
             if res["reranked_documents_sources"]:
                 # we used reranking so need to check the reranked documents
-                res["conditions_match"] = not res["reranked_retriever_match"]
+                res["conditions_match"] = not res[
+                    "reranked_retriever_match"
+                ]  # i.e. False if res["reranked_retreiver_match"] else True
             else:
                 res["conditions_match"] = not res["retriever_match"]
 
