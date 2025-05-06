@@ -824,22 +824,26 @@ class RAG:
             else:
                 system_message = None
 
+        # trim the messages to the max length
+        trimmed_messages = self.trimmer.invoke(messages)
+
         if self.budget_forcing:
-            response = await self._budget_forcing_ainvoke(messages)
+            response = await self._budget_forcing_ainvoke(trimmed_messages)
         else:
-            response = await self.llm.ainvoke(messages)
+            response = await self.llm.ainvoke(trimmed_messages)
 
         if self.conversational:
             return {
                 "system_messages": state.get("system_messages", []) + [system_message],
                 "messages": [response],
                 "rag_input_messages": state.get("rag_input_messages", [])
-                + [messages[-1]],
+                + [trimmed_messages[-1]],
             }
         else:
             return {
                 "system_messages": state.get("system_messages", []) + [system_message],
-                "messages": state.get("messages", []) + [messages[-1], response],
+                "messages": state.get("messages", [])
+                + [trimmed_messages[-1], response],
             }
 
     def build_graph(self, reset: bool = False) -> CompiledStateGraph:
