@@ -15,6 +15,22 @@ source .venv/bin/activate
 uv pip install -e ".[rag,dev]"
 ```
 
+## Serving the RAG model
+
+We can serve an endpoint for the model using three scripts:
+- [scripts/serve_rag_conversational.sh](scripts/serve_rag_conversational.sh): This sets up an endpoint for the RAG model and serves it using FastAPI
+- [scripts/serve_t0.sh](scripts/serve_t0.sh): This sets up a vLLM endpoint for **t0-k5-32B**
+- [scripts/serve_qwen_with_tools.sh](scripts/serve_qwen_with_tools.sh): This sets up a vLLM endpoint for **Qwen2.5-32B-Instruct** with tool calling
+
+Note that for serving the RAG model, you need to set up the environment variables for the Azure endpoints. You can do this by creating a `.env` file in the current directory with the following content:
+```bash
+OPENAI_BASE_URL_TomasLaz/t0-k5-32B="http://localhost:8010/v1/"
+OPENAI_BASE_URL_Qwen/Qwen2.5-32B-Instruct="http://localhost:8020/v1/"
+```
+assuming you are running the vLLM server on `localhost` and the ports are `8010` and `8020` respectively as set in the above scripts.
+
+Note the above aren't proper environment variables with illegal characters, but they can be read with `dotenv` and used in the scripts.
+
 ## Data
 
 The data used in this project is scraped from the NHS website using [this script](scripts/Makefile) and running `make download`. Once you have downloaded the data, we can either process the html directly, or we can use [pandoc](https://pandoc.org/) to convert them into plain txt files - you can do this by running `make all`. We recommend using the txt files as they are easier to process and work with.
