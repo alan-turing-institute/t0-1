@@ -59,8 +59,12 @@
                 <!--     >{@html entry.content}</Typewriter -->
                 <!-- > -->
                 <Reasoning reasoning={entry.reasoning} />
-            {:else}
+            {:else if entry.role === "human"}
                 {@html entry.content}
+            {:else if entry.role === "tool"}
+                {#each entry.sources as source}
+                    <p>{source}</p>
+                {/each}
             {/if}
         </div>
     {/each}
@@ -80,6 +84,12 @@
         margin: auto 0 20px 0;
         padding: 0px 10px;
         scroll-behavior: smooth;
+    }
+
+    div.tool {
+        background-color: #ede861;
+        border-radius: 15px;
+        border: 1px solid #d4d700;
     }
 
     div.human :global,

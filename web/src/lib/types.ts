@@ -10,8 +10,12 @@ type AIChatEntry = {
     content: string;
     reasoning: string | null;
 }
+type ToolChatEntry = {
+    role: "tool";
+    sources: string[];
+}
 
-export type ChatEntry = HumanChatEntry | AIChatEntry;
+export type ChatEntry = HumanChatEntry | AIChatEntry | ToolChatEntry;
 
 const converter = new showdown.Converter({
     disableForced4SpacesIndentedSublists:
@@ -30,20 +34,33 @@ export function makeAIEntry(message: string): ChatEntry {
     // reasoning + content.
     return { role: "ai", content: mdToHtml(message), reasoning: mdToHtml("Some kind of reasoning") };
 }
+export function makeToolEntry(sources: string[]): ChatEntry {
+    return { role: "tool", sources: sources };
+}
 
 export function parseChatEntries(json: object): ChatEntry[] {
     if (json.messages === undefined) {
         return [];
     } else {
-        return json.messages.map((entry: any) => {
+        return json.messages.flatMap((entry: any) => {
+            console.log(entry);
             if (entry.type === "human") {
-                return makeHumanEntry(entry.content);
+                return [makeHumanEntry(entry.content)];
             }
             else if (entry.type === "ai") {
-                return makeAIEntry(entry.content);
+                if (entry.tool_calls.length > 0) {
+                    return [];
+                } else {
+                    return [makeAIEntry(entry.content)];
+                }
+            }
+            else if (entry.type === "tool") {
+                return [makeToolEntry(entry.artifact.context.map((ctx: any) =>
+                    ctx.metadata.source))];
             }
             else {
-                throw new Error(`Unknown entry type ${entry.type}`);
+                console.warn("Unknown entry type ^^^ ", entry);
+                return [];
             }
         });
     }

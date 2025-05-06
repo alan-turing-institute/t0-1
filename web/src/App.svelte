@@ -186,20 +186,32 @@
                     );
                 }
                 response.json().then((data) => {
-                    // TODO convert Markdown into HTML
                     console.log(data);
-                    const last_message =
-                        data.response.messages[
-                            data.response.messages.length - 1
-                        ];
-                    if (last_message.type !== "ai") {
-                        handleError(
-                            "Last message was not AI, something went wrong",
-                        );
-                        return;
-                    }
+                    // We don't bother parsing the response manually here --
+                    // instead we'll just load the entire conversation from the
+                    // server. This is rather wasteful in terms of bandwidth,
+                    // but it means that there's only one code path for parsing
+                    // the response (i.e. we don't perform some kind of
+                    // incremental parsing and
+                    loadMessages(currentId);
                     loading = false;
-                    messages.push(makeAIEntry(last_message.content));
+
+                    // TODO: Keeping this code here just in case it's needed
+                    // for when we implement streaming.
+                    // Maybe we could just do e.g.
+                    // parseChatMessages(data.response.mesesages)?
+                    //
+                    // const last_message =
+                    //     data.response.messages[
+                    //         data.response.messages.length - 1
+                    //     ]
+                    // if (last_message.type !== "ai") {
+                    //     handleError(
+                    //         "Last message was not AI, something went wrong",
+                    //     );
+                    //     return;
+                    // }
+                    // messages.push(makeAIEntry(last_message.content));
                 });
             })
             .catch((error) => {
