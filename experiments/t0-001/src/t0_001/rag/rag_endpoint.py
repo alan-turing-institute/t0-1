@@ -54,6 +54,10 @@ def create_rag_app(rag: RAG) -> FastAPI:
         else:
             return {"messages": conversation_messages, "thread_id": thread_id}
 
+    @app.get("/get_thread_ids")
+    async def get_thread_ids():
+        return {"thread_ids": rag.get_thread_ids()}
+
     return app
 
 
