@@ -133,9 +133,6 @@ def get_azure_endpoint_chat_model(
     return llm
 
 
-
-
-
 def get_openai_chat_model(
     model_name: str,
     extra_body: dict | str | None = None,

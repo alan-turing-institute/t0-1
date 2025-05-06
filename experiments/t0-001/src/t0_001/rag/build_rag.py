@@ -471,8 +471,8 @@ class RAG:
             "skip_special_tokens": False,
         }
 
-        output += "<|im_start|>answer\n"
-        prompt += "<|im_start|>answer\n"
+        output += "\n<|im_start|>answer\n"
+        prompt += "\n<|im_start|>answer\n"
         response = self.llm.invoke(prompt, extra_body=sampling_params)
 
         return AIMessage(output + response)
