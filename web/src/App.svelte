@@ -6,14 +6,18 @@
     import {
         type ChatEntry,
         makeHumanEntry,
-        makeAIEntry,
         parseChatEntries,
         type Demographics,
         emptyDemographics,
     } from "./lib/types";
 
-    const HOST = "http://localhost";
-    const PORT = 8000;
+    // This is for t0-2 VM
+    const HOST = "http://20.117.204.190";
+    const PORT = 8050;
+
+    // Locally running
+    // const HOST = "localhost";
+    // const PORT = 8000;
 
     // UI state
     let loading: boolean = $state(false);
@@ -143,6 +147,7 @@
                     }
                 }
                 response.json().then((data) => {
+                    console.log("loaded messages", data);
                     messages = parseChatEntries(data);
                     console.log("loaded messages", $state.snapshot(messages));
                 });

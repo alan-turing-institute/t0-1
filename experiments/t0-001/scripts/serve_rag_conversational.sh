@@ -5,7 +5,7 @@ t0-001 serve-rag \
   --llm-model-name gpt-4o \
   --prompt-template-path ../templates/rag_prompt.txt \
   --system-prompt-path ../templates/rag_system_prompt.txt \
-  --conditions-file ../data/nhs-conditions/v3/conditions.jsonl \
+  --conditions-file ../data/nhs-conditions/v4/qwen_summarised_conditions.jsonl \
   --persist-directory $HOME/test/_t0db \
   --local-file-store $HOME/test/_t0lfs \
   --extra-body '{"max_tokens":4056}' \
