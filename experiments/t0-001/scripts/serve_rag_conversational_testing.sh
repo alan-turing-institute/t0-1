@@ -1,24 +1,19 @@
 t0-001 serve-rag \
-  --k 10 \
-  --db-choice chroma \
-  --llm-provider azure_openai \
-  --llm-model-name gpt-4o \
-  --prompt-template-path ../templates/rag_prompt.txt \
-  --system-prompt-path ../templates/rag_system_prompt.txt \
-  --conditions-file ../data/nhs-conditions/v3/conditions.jsonl \
-  --persist-directory $HOME/test/_t0db \
-  --local-file-store $HOME/test/_t0lfs \
-  --extra-body '{"max_tokens":4056}' \
-  --env-file ../.env \
-  --host localhost \
-  --port 8000 \
-  --conversational \
-  --conversational-agent-llm-provider azure_openai \
-  --conversational-agent-llm-model-name gpt-4o \
-  --prompt-template-path ../templates/rag_prompt_conversational.txt \
-  --system-prompt-path ../templates/rag_system_prompt_conversational.txt \
-  --rerank \
-  --rerank-prompt-template-path ../templates/reranking_prompt.txt  \
-  --rerank-llm-provider azure_openai  \
-  --rerank-llm-model-name gpt-4o \
-  --rerank-k 5
+--k 10 \
+--db-choice chroma \
+--llm-provider azure_openai \
+--llm-model-name gpt-4o \
+--prompt-template-path ../templates/rag_prompt.txt \
+--system-prompt-path ../templates/rag_system_prompt.txt \
+--conditions-file ../data/nhs-conditions/v3/conditions.jsonl \
+--persist-directory $HOME/test/_t0db \
+--local-file-store $HOME/test/_t0lfs \
+--extra-body '{"max_tokens":4056}' \
+--env-file ../.env \
+--host localhost \
+--port 8000 \
+--conversational \
+--conversational-agent-llm-provider azure_openai \
+--conversational-agent-llm-model-name gpt-4o \
+--prompt-template-path ../templates/rag_prompt_conversational.txt \
+--system-prompt-path ../templates/rag_system_prompt_conversational.txt
