@@ -52,9 +52,10 @@ def read_prompt_template(
     message = HumanMessagePromptTemplate(prompt=prompt_template)
 
     if system_prompt_path:
-        from langchain_core.messages import SystemMessage
+        from langchain_core.prompts import SystemMessagePromptTemplate
 
-        system_message = SystemMessage(content=system_template)
+        system_prompt_template = PromptTemplate.from_template(system_template)
+        system_message = SystemMessagePromptTemplate(prompt=system_prompt_template)
         messages = [system_message, message]
     else:
         messages = [message]

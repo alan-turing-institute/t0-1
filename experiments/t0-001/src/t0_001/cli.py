@@ -24,6 +24,11 @@ HELP_TEXT = {
     "with_score": "If True, return the score of the similarity search.",
     "llm_provider": "Service provider for the LLM.",
     "llm_model_name": "Name of the LLM model.",
+    "extra_body": "Extra body to pass to the LLM if using OpenAI as service provider.",
+    "conversational": "If True, use the LLM in conversational mode.",
+    "conversational_agent_llm_provider": "Service provider for the conversational retriever agent LLM.",
+    "conversational_agent_llm_model_name": "Name of the conversational retriever agent LLM model.",
+    "conversational_agent_extra_body": "Extra body to pass to the conversational retriever agent LLM if using OpenAI as service provider.",
     "prompt_template_path": "Path to the prompt template file.",
     "system_prompt_path": "Path to the system prompt file.",
     "generate_only": "If True, only generate the responses from the queries without evaluating.",
@@ -33,10 +38,17 @@ HELP_TEXT = {
     "host_query": "Host to query.",
     "port_query": "Port to query.",
     "env_file": "Path to the .env file.",
-    "extra_body:": "Extra body to pass to the LLM if using OpenAI as service provider.",
     "budget_forcing": "If True, uses budget forcing for LLM as in s1 paper and s1 parser for parsing response.",
     "budget_forcing_kwargs": "Keyword arguments for budget forcing in JSON format.",
+    "budget_forcing_tokenizer": "Tokenizer to use for budget forcing if different to the model name.",
+    "rerank": "If True, makes a second LLM call to rerank the retrieved results.",
+    "rerank_prompt_template_path": "Path to the reranking prompt template file.",
+    "rerank_llm_provider": "Service provider for the reranking LLM.",
+    "rerank_llm_model_name": "Name of the reranking LLM model.",
+    "rerank_extra_body": "Extra body to pass to the reranking LLM if using OpenAI as service provider.",
+    "rerank_k": "Number of results to return from the reranking LLM.",
     "max_queries_per_minute": "Number of queries per minute to send to the model. Used to help avoid rate limits.",
+    "logging_level": "Logging level. 10 = DEBUG, 20 = INFO, 30 = WARNING, 40 = ERROR, 50 = CRITICAL.",
 }
 
 
@@ -82,11 +94,15 @@ def serve_vector_store(
     ] = DEFAULTS["serve"],
     host: Annotated[str, typer.Option(help=HELP_TEXT["host_serve"])] = DEFAULTS["host"],
     port: Annotated[int, typer.Option(help=HELP_TEXT["port_serve"])] = DEFAULTS["port"],
+    logging_level: Annotated[
+        int,
+        typer.Option(help=HELP_TEXT["logging_level"]),
+    ] = DEFAULTS["logging_level"],
 ):
     """
     Run the query vector store server.
     """
-    set_up_logging_config()
+    set_up_logging_config(level=logging_level)
     if serve:
         logging.info("Starting query vector store server...")
 
@@ -118,11 +134,15 @@ def query_vector_store(
     ] = DEFAULTS["with_score"],
     host: Annotated[str, typer.Option(help=HELP_TEXT["host_query"])] = DEFAULTS["host"],
     port: Annotated[int, typer.Option(help=HELP_TEXT["port_query"])] = DEFAULTS["port"],
+    logging_level: Annotated[
+        int,
+        typer.Option(help=HELP_TEXT["logging_level"]),
+    ] = DEFAULTS["logging_level"],
 ):
     """
     Query the vector store.
     """
-    set_up_logging_config()
+    set_up_logging_config(level=logging_level)
     logging.info("Querying vector store...")
     logging.info(f"Query: {query}")
 
@@ -177,11 +197,15 @@ def evaluate_vector_store(
         typer.Option(help=HELP_TEXT["trust_source"]),
     ] = DEFAULTS["trust_source"],
     k: Annotated[int, typer.Option(help=HELP_TEXT["k"])] = DEFAULTS["k"],
+    logging_level: Annotated[
+        int,
+        typer.Option(help=HELP_TEXT["logging_level"]),
+    ] = DEFAULTS["logging_level"],
 ):
     """
     Evaluate the vector store.
     """
-    set_up_logging_config()
+    set_up_logging_config(level=logging_level)
     if not os.path.exists(input_file):
         raise FileNotFoundError(f"Input file {input_file} does not exist.")
 
@@ -248,11 +272,15 @@ def serve_retriever(
     ] = DEFAULTS["serve"],
     host: Annotated[str, typer.Option(help=HELP_TEXT["host_serve"])] = DEFAULTS["host"],
     port: Annotated[int, typer.Option(help=HELP_TEXT["port_serve"])] = DEFAULTS["port"],
+    logging_level: Annotated[
+        int,
+        typer.Option(help=HELP_TEXT["logging_level"]),
+    ] = DEFAULTS["logging_level"],
 ):
     """
     Run the retriever server.
     """
-    set_up_logging_config()
+    set_up_logging_config(level=logging_level)
     logging.info("Starting retriever server...")
 
     from t0_001.query_vector_store.build_retriever import RetrieverConfig
@@ -283,11 +311,15 @@ def query_retriever(
     query: Annotated[str, typer.Argument(help=HELP_TEXT["query"])],
     host: Annotated[str, typer.Option(help=HELP_TEXT["host_query"])] = DEFAULTS["host"],
     port: Annotated[int, typer.Option(help=HELP_TEXT["port_query"])] = DEFAULTS["port"],
+    logging_level: Annotated[
+        int,
+        typer.Option(help=HELP_TEXT["logging_level"]),
+    ] = DEFAULTS["logging_level"],
 ):
     """
     Query the retriever.
     """
-    set_up_logging_config()
+    set_up_logging_config(level=logging_level)
     logging.info("Querying retriever...")
     logging.info(f"Query: {query}")
 
@@ -341,6 +373,26 @@ def serve_rag(
     llm_model_name: Annotated[
         str, typer.Option(help=HELP_TEXT["llm_model_name"])
     ] = DEFAULTS["llm_model_name"],
+    extra_body: Annotated[
+        str | None,
+        typer.Option(help=HELP_TEXT["extra_body"]),
+    ] = None,  # TODO: Decide whhether to add this to defaults
+    conversational: Annotated[
+        bool,
+        typer.Option(help=HELP_TEXT["conversational"]),
+    ] = DEFAULTS["conversational"],
+    conversational_agent_llm_provider: Annotated[
+        LLMProvider | None,
+        typer.Option(help=HELP_TEXT["conversational_agent_llm_provider"]),
+    ] = DEFAULTS["conversational_agent_llm_provider"],
+    conversational_agent_llm_model_name: Annotated[
+        str | None,
+        typer.Option(help=HELP_TEXT["conversational_agent_llm_model_name"]),
+    ] = DEFAULTS["conversational_agent_llm_model_name"],
+    conversational_agent_extra_body: Annotated[
+        str | None,
+        typer.Option(help=HELP_TEXT["conversational_agent_extra_body"]),
+    ] = None,
     prompt_template_path: Annotated[
         str | None,
         typer.Option(help=HELP_TEXT["prompt_template_path"]),
@@ -353,12 +405,6 @@ def serve_rag(
         str | None,
         typer.Option(help=HELP_TEXT["env_file"]),
     ] = DEFAULTS["env_file"],
-    host: Annotated[str, typer.Option(help=HELP_TEXT["host_serve"])] = DEFAULTS["host"],
-    port: Annotated[int, typer.Option(help=HELP_TEXT["port_serve"])] = DEFAULTS["port"],
-    extra_body: Annotated[
-        str | None,
-        typer.Option(help=HELP_TEXT["extra_body:"]),
-    ] = None,  # TODO: Decide whhether to add this to defaults
     budget_forcing: Annotated[
         bool,
         typer.Option(help=HELP_TEXT["budget_forcing"]),
@@ -367,11 +413,44 @@ def serve_rag(
         str,
         typer.Option(help=HELP_TEXT["budget_forcing_kwargs"]),
     ] = DEFAULTS["budget_forcing_kwargs"],
+    budget_forcing_tokenizer: Annotated[
+        str | None,
+        typer.Option(help=HELP_TEXT["budget_forcing_tokenizer"]),
+    ] = None,
+    rerank: Annotated[
+        bool,
+        typer.Option(help=HELP_TEXT["rerank"]),
+    ] = False,
+    rerank_prompt_template_path: Annotated[
+        str | None, typer.Option(help=HELP_TEXT["rerank_prompt_template_path"])
+    ] = DEFAULTS["rerank_prompt_template_path"],
+    rerank_llm_provider: Annotated[
+        LLMProvider | None,
+        typer.Option(help=HELP_TEXT["rerank_llm_provider"]),
+    ] = DEFAULTS["rerank_llm_provider"],
+    rerank_llm_model_name: Annotated[
+        str | None,
+        typer.Option(help=HELP_TEXT["rerank_llm_model_name"]),
+    ] = DEFAULTS["rerank_llm_model_name"],
+    rerank_extra_body: Annotated[
+        str | None,
+        typer.Option(help=HELP_TEXT["rerank_extra_body"]),
+    ] = None,
+    rerank_k: Annotated[
+        int,
+        typer.Option(help=HELP_TEXT["rerank_k"]),
+    ] = 5,
+    host: Annotated[str, typer.Option(help=HELP_TEXT["host_serve"])] = DEFAULTS["host"],
+    port: Annotated[int, typer.Option(help=HELP_TEXT["port_serve"])] = DEFAULTS["port"],
+    logging_level: Annotated[
+        int,
+        typer.Option(help=HELP_TEXT["logging_level"]),
+    ] = DEFAULTS["logging_level"],
 ):
     """
     Run the RAG server.
     """
-    set_up_logging_config()
+    set_up_logging_config(level=logging_level)
     load_env_file(env_file)
     logging.info("Starting RAG server...")
 
@@ -394,30 +473,58 @@ def serve_rag(
         trust_source=trust_source,
         llm_provider=llm_provider,
         llm_model_name=llm_model_name,
+        extra_body=extra_body,
+        conversational=conversational,
+        conversational_agent_llm_provider=conversational_agent_llm_provider,
+        conversational_agent_llm_model_name=conversational_agent_llm_model_name,
+        conversational_agent_extra_body=conversational_agent_extra_body,
         prompt_template_path=prompt_template_path,
         system_prompt_path=system_prompt_path,
-        host=host,
-        port=port,
-        extra_body=extra_body,
         budget_forcing=budget_forcing,
         budget_forcing_kwargs=budget_forcing_kwargs,
+        budget_forcing_tokenizer=budget_forcing_tokenizer,
+        rerank=rerank,
+        rerank_prompt_template_path=rerank_prompt_template_path,
+        rerank_llm_provider=rerank_llm_provider,
+        rerank_llm_model_name=rerank_llm_model_name,
+        rerank_extra_body=rerank_extra_body,
+        rerank_k=rerank_k,
+        host=host,
+        port=port,
     )
 
 
 @cli.command()
 def query_rag(
     query: Annotated[str, typer.Argument(help=HELP_TEXT["query"])],
+    extra_body: Annotated[
+        str | None,
+        typer.Option(help="Extra body to pass to RAG request."),
+    ] = None,
     host: Annotated[str, typer.Option(help=HELP_TEXT["host_query"])] = DEFAULTS["host"],
     port: Annotated[int, typer.Option(help=HELP_TEXT["port_query"])] = DEFAULTS["port"],
+    logging_level: Annotated[
+        int,
+        typer.Option(help=HELP_TEXT["logging_level"]),
+    ] = DEFAULTS["logging_level"],
 ):
     """
     Query the vector store.
     """
-    set_up_logging_config()
+    set_up_logging_config(level=logging_level)
     logging.info("Querying RAG model...")
     logging.info(f"Query: {query}")
 
-    req = requests.get(f"http://{host}:{port}/query", params={"query": query})
+    if extra_body:
+        from t0_001.utils import process_arg_to_dict
+
+        extra_body = process_arg_to_dict(extra_body)
+    else:
+        extra_body = {}
+
+    req = requests.post(
+        f"http://{host}:{port}/query", json={"query": query} | extra_body
+    )
 
     if req.status_code != 200:
         logging.error(f"Error RAG model: {req.text}")
@@ -482,6 +589,26 @@ def evaluate_rag(
     llm_model_name: Annotated[
         str, typer.Option(help=HELP_TEXT["llm_model_name"])
     ] = DEFAULTS["llm_model_name"],
+    extra_body: Annotated[
+        str | None,
+        typer.Option(help=HELP_TEXT["extra_body"]),
+    ] = None,  # TODO: Decide whether to add this to defaults
+    conversational: Annotated[
+        bool,
+        typer.Option(help=HELP_TEXT["conversational"]),
+    ] = DEFAULTS["conversational"],
+    conversational_agent_llm_provider: Annotated[
+        LLMProvider | None,
+        typer.Option(help=HELP_TEXT["conversational_agent_llm_provider"]),
+    ] = DEFAULTS["conversational_agent_llm_provider"],
+    conversational_agent_llm_model_name: Annotated[
+        str | None,
+        typer.Option(help=HELP_TEXT["conversational_agent_llm_model_name"]),
+    ] = DEFAULTS["conversational_agent_llm_model_name"],
+    conversational_agent_extra_body: Annotated[
+        str | None,
+        typer.Option(help=HELP_TEXT["conversational_agent_extra_body"]),
+    ] = None,
     prompt_template_path: Annotated[
         str | None,
         typer.Option(help=HELP_TEXT["prompt_template_path"]),
@@ -500,10 +627,6 @@ def evaluate_rag(
         str | None,
         typer.Option(help=HELP_TEXT["env_file"]),
     ] = DEFAULTS["env_file"],
-    extra_body: Annotated[
-        str | None,
-        typer.Option(help=HELP_TEXT["extra_body:"]),
-    ] = None,  # TODO: Decide whether to add this to defaults
     budget_forcing: Annotated[
         bool,
         typer.Option(help=HELP_TEXT["budget_forcing"]),
@@ -512,15 +635,46 @@ def evaluate_rag(
         str,
         typer.Option(help=HELP_TEXT["budget_forcing_kwargs"]),
     ] = DEFAULTS["budget_forcing_kwargs"],
+    budget_forcing_tokenizer: Annotated[
+        str | None,
+        typer.Option(help=HELP_TEXT["budget_forcing_tokenizer"]),
+    ] = None,
+    rerank: Annotated[
+        bool,
+        typer.Option(help=HELP_TEXT["rerank"]),
+    ] = False,
+    rerank_prompt_template_path: Annotated[
+        str | None, typer.Option(help=HELP_TEXT["rerank_prompt_template_path"])
+    ] = DEFAULTS["rerank_prompt_template_path"],
+    rerank_llm_provider: Annotated[
+        LLMProvider | None,
+        typer.Option(help=HELP_TEXT["rerank_llm_provider"]),
+    ] = DEFAULTS["rerank_llm_provider"],
+    rerank_llm_model_name: Annotated[
+        str | None,
+        typer.Option(help=HELP_TEXT["rerank_llm_model_name"]),
+    ] = DEFAULTS["rerank_llm_model_name"],
+    rerank_extra_body: Annotated[
+        str | None,
+        typer.Option(help=HELP_TEXT["rerank_extra_body"]),
+    ] = None,
+    rerank_k: Annotated[
+        int,
+        typer.Option(help=HELP_TEXT["rerank_k"]),
+    ] = 5,
     max_queries_per_minute: Annotated[
         int,
         typer.Option(help=HELP_TEXT["max_queries_per_minute"]),
     ] = DEFAULTS["max_queries_per_minute"],
+    logging_level: Annotated[
+        int,
+        typer.Option(help=HELP_TEXT["logging_level"]),
+    ] = DEFAULTS["logging_level"],
 ):
     """
     Evaluate the RAG.
     """
-    set_up_logging_config()
+    set_up_logging_config(level=logging_level)
     load_env_file(env_file)
     if not os.path.exists(input_file):
         raise FileNotFoundError(f"Input file {input_file} does not exist.")
@@ -550,13 +704,24 @@ def evaluate_rag(
         trust_source=trust_source,
         llm_provider=llm_provider,
         llm_model_name=llm_model_name,
+        extra_body=extra_body,
+        conversational=conversational,
+        conversational_agent_llm_provider=conversational_agent_llm_provider,
+        conversational_agent_llm_model_name=conversational_agent_llm_model_name,
+        conversational_agent_extra_body=conversational_agent_extra_body,
         prompt_template_path=prompt_template_path,
         system_prompt_path=system_prompt_path,
         deepseek_r1=deepseek_r1,
-        extra_body=extra_body,
         budget_forcing=budget_forcing,
         budget_forcing_kwargs=budget_forcing_kwargs,
+        budget_forcing_tokenizer=budget_forcing_tokenizer,
         max_queries_per_minute=max_queries_per_minute,
+        rerank=rerank,
+        rerank_prompt_template_path=rerank_prompt_template_path,
+        rerank_llm_provider=rerank_llm_provider,
+        rerank_llm_model_name=rerank_llm_model_name,
+        rerank_extra_body=rerank_extra_body,
+        rerank_k=rerank_k,
     )
 
 
@@ -578,11 +743,15 @@ def generate_synth_queries(
         str | None,
         typer.Option(help=HELP_TEXT["env_file"]),
     ] = DEFAULTS["env_file"],
+    logging_level: Annotated[
+        int,
+        typer.Option(help=HELP_TEXT["logging_level"]),
+    ] = DEFAULTS["logging_level"],
 ):
     """
     Generate synthetic queries for the NHS use case and save them to a file.
     """
-    set_up_logging_config()
+    set_up_logging_config(level=logging_level)
     load_env_file(env_file)
     logging.info("Generating synthetic queries...")
 
@@ -642,6 +811,26 @@ def rag_chat(
     llm_model_name: Annotated[
         str, typer.Option(help=HELP_TEXT["llm_model_name"])
     ] = DEFAULTS["llm_model_name"],
+    extra_body: Annotated[
+        str | None,
+        typer.Option(help=HELP_TEXT["extra_body"]),
+    ] = None,  # TODO: Decide whether to add this to defaults
+    conversational: Annotated[
+        bool,
+        typer.Option(help=HELP_TEXT["conversational"]),
+    ] = DEFAULTS["conversational"],
+    conversational_agent_llm_provider: Annotated[
+        LLMProvider | None,
+        typer.Option(help=HELP_TEXT["conversational_agent_llm_provider"]),
+    ] = DEFAULTS["conversational_agent_llm_provider"],
+    conversational_agent_llm_model_name: Annotated[
+        str | None,
+        typer.Option(help=HELP_TEXT["conversational_agent_llm_model_name"]),
+    ] = DEFAULTS["conversational_agent_llm_model_name"],
+    conversational_agent_extra_body: Annotated[
+        str | None,
+        typer.Option(help=HELP_TEXT["conversational_agent_extra_body"]),
+    ] = None,
     prompt_template_path: Annotated[
         str | None,
         typer.Option(help=HELP_TEXT["prompt_template_path"]),
@@ -654,10 +843,6 @@ def rag_chat(
         str | None,
         typer.Option(help=HELP_TEXT["env_file"]),
     ] = DEFAULTS["env_file"],
-    extra_body: Annotated[
-        str | None,
-        typer.Option(help=HELP_TEXT["extra_body:"]),
-    ] = None,  # TODO: Decide whether to add this to defaults
     budget_forcing: Annotated[
         bool,
         typer.Option(help=HELP_TEXT["budget_forcing"]),
@@ -666,36 +851,82 @@ def rag_chat(
         str,
         typer.Option(help=HELP_TEXT["budget_forcing_kwargs"]),
     ] = DEFAULTS["budget_forcing_kwargs"],
+    budget_forcing_tokenizer: Annotated[
+        str | None,
+        typer.Option(help=HELP_TEXT["budget_forcing_tokenizer"]),
+    ] = None,
+    rerank: Annotated[
+        bool,
+        typer.Option(help=HELP_TEXT["rerank"]),
+    ] = False,
+    rerank_prompt_template_path: Annotated[
+        str | None, typer.Option(help=HELP_TEXT["rerank_prompt_template_path"])
+    ] = DEFAULTS["rerank_prompt_template_path"],
+    rerank_llm_provider: Annotated[
+        LLMProvider | None,
+        typer.Option(help=HELP_TEXT["rerank_llm_provider"]),
+    ] = DEFAULTS["rerank_llm_provider"],
+    rerank_llm_model_name: Annotated[
+        str | None,
+        typer.Option(help=HELP_TEXT["rerank_llm_model_name"]),
+    ] = DEFAULTS["rerank_llm_model_name"],
+    rerank_extra_body: Annotated[
+        str | None,
+        typer.Option(help=HELP_TEXT["rerank_extra_body"]),
+    ] = None,
+    rerank_k: Annotated[
+        int,
+        typer.Option(help=HELP_TEXT["rerank_k"]),
+    ] = 5,
+    logging_level: Annotated[
+        int,
+        typer.Option(help=HELP_TEXT["logging_level"]),
+    ] = DEFAULTS["logging_level"],
 ):
     """
     Interact with the RAG model in a command line interface.
     """
-    set_up_logging_config()
+    set_up_logging_config(level=logging_level)
     load_env_file(env_file)
     logging.info("Starting RAG chat interaction...")
+
+    from asyncio import run
 
     from t0_001.query_vector_store.build_retriever import RetrieverConfig
     from t0_001.rag.chat_interact import run_chat_interact
 
-    run_chat_interact(
-        conditions_file=conditions_file,
-        config=RetrieverConfig(
-            embedding_model_name=embedding_model_name,
-            chunk_overlap=chunk_overlap,
-            db_choice=db_choice,
-            persist_directory=persist_directory,
-            local_file_store=local_file_store,
-            search_type=search_type,
-            k=k,
-            search_kwargs={},
-        ),
-        force_create=force_create,
-        trust_source=trust_source,
-        llm_provider=llm_provider,
-        llm_model_name=llm_model_name,
-        prompt_template_path=prompt_template_path,
-        system_prompt_path=system_prompt_path,
-        extra_body=extra_body,
-        budget_forcing=budget_forcing,
-        budget_forcing_kwargs=budget_forcing_kwargs,
+    run(
+        run_chat_interact(
+            conditions_file=conditions_file,
+            config=RetrieverConfig(
+                embedding_model_name=embedding_model_name,
+                chunk_overlap=chunk_overlap,
+                db_choice=db_choice,
+                persist_directory=persist_directory,
+                local_file_store=local_file_store,
+                search_type=search_type,
+                k=k,
+                search_kwargs={},
+            ),
+            force_create=force_create,
+            trust_source=trust_source,
+            llm_provider=llm_provider,
+            llm_model_name=llm_model_name,
+            extra_body=extra_body,
+            conversational=conversational,
+            conversational_agent_llm_provider=conversational_agent_llm_provider,
+            conversational_agent_llm_model_name=conversational_agent_llm_model_name,
+            conversational_agent_extra_body=conversational_agent_extra_body,
+            prompt_template_path=prompt_template_path,
+            system_prompt_path=system_prompt_path,
+            budget_forcing=budget_forcing,
+            budget_forcing_kwargs=budget_forcing_kwargs,
+            budget_forcing_tokenizer=budget_forcing_tokenizer,
+            rerank=rerank,
+            rerank_prompt_template_path=rerank_prompt_template_path,
+            rerank_llm_provider=rerank_llm_provider,
+            rerank_llm_model_name=rerank_llm_model_name,
+            rerank_extra_body=rerank_extra_body,
+            rerank_k=rerank_k,
+        )
     )

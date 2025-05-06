@@ -1,12 +1,17 @@
+import logging
 from pathlib import Path
 
 from langchain import hub
 from langchain_core.documents import Document
 from langchain_core.language_models.llms import LLM
+from langchain_core.messages import trim_messages
 from langchain_core.messages.ai import AIMessage
+from langchain_core.messages.utils import count_tokens_approximately
 from langchain_core.prompts import PromptTemplate
-from langgraph.checkpoint.memory import MemorySaver
-from langgraph.graph.state import START, CompiledStateGraph, StateGraph
+from langgraph.checkpoint.memory import InMemorySaver
+from langgraph.graph import END, START, MessagesState
+from langgraph.graph.state import CompiledStateGraph, StateGraph
+from langgraph.prebuilt import ToolNode, tools_condition
 from t0_001.query_vector_store.build_retriever import (
     DEFAULT_RETRIEVER_CONFIG,
     RetrieverConfig,
@@ -15,6 +20,7 @@ from t0_001.query_vector_store.build_retriever import (
 from t0_001.query_vector_store.custom_parent_document_retriever import (
     CustomParentDocumentRetriever,
 )
+from t0_001.rag.utils import NHS_RETRIEVER_TOOL_PROMPT, create_retreiver_tool
 from t0_001.utils import process_arg_to_dict
 from typing_extensions import TypedDict
 
@@ -22,14 +28,67 @@ from typing_extensions import TypedDict
 class State(TypedDict):
     """
     State is a TypedDict that represents the state of a RAG query.
-    It contains the question, context, and answer.
+
+    It contains:
+
+    - question: The question being asked (human messages)
+    - system_messages: The system message
+    - messages: All messages in the conversation (system, human, AI, tool)
+    - context: The retrieved context (list of documents)
+    - reranked_context: The reranked context (list of documents)
+    - reranker_response: The response from the reranker
+    - reranker_response_processed: The processed response from the reranker
+    - reranker_success: Whether the reranker was successful
+    - demographics: The demographics of the user
+
+    These attributes are list of lists to conform to a similar
+    structure to the CustomMessagesState class.
     """
 
     question: str
-    context: list[Document]
+    system_messages: list[str | None]
+    messages: list[str]
+    retriever_queries: list[str]
+    context: list[list[Document]]
+    reranked_context: list[list[Document] | None]
+    reranker_response: list[str | None]
+    reranker_response_processed: list[list[str] | None]
+    reranker_success: list[bool | None]
     demographics: str | None
-    messages: str
-    answer: str
+
+
+class CustomMessagesState(MessagesState):
+    """
+    Messages state for the RAG class.
+
+    It contains:
+
+    - system_messages: The system messages, including the context and demographics
+    - retriever_queries: The queries sent to the retriever (this is ~ equivalent to question in State)
+    - rag_input_messages: The human messages that are passed to the RAG LLM
+    - context: The retrieved context (list of documents)
+    - reranked_context: The reranked context (list of documents)
+    - reranker_response: The response from the reranker
+    - reranker_response_processed: The processed response from the reranker
+    - reranker_success: Whether the reranker was successful
+    - demographics: The demographics of the user
+    - messages: All messages in the conversation (system, human, AI, tool)
+    """
+
+    # note there is also a messages key from the MessagesState class
+    # messages are appended to the state
+    system_messages: list[str | None]
+    # rag_input_messages are the human messages that are passed to the LLM
+    # this might differ from the messages in the state as the template
+    # could be different
+    rag_input_messages: list[str]
+    retriever_queries: list[str]
+    context: list[list[Document]]
+    reranked_context: list[list[Document] | None]
+    reranker_response: list[str | None]
+    reranker_response_processed: list[list[str] | None]
+    reranker_success: list[bool | None]
+    demographics: str | None
 
 
 class RAG:
@@ -38,10 +97,17 @@ class RAG:
         retriever: CustomParentDocumentRetriever,
         prompt: PromptTemplate,
         llm: LLM,
+        conversational: bool = False,
+        conversational_agent_llm: LLM | None = None,
         tools: list | None = None,
         tools_kwargs: dict = {},
         budget_forcing: bool = False,
         budget_forcing_kwargs: dict | str | None = None,
+        budget_forcing_tokenizer: str | None = None,
+        rerank: bool = False,
+        rerank_prompt: str | Path | None = None,
+        rerank_llm: LLM | None = None,
+        rerank_k: int = 5,
     ):
         """
         Initialise the RAG class with the vector store, prompt, and LLM.
@@ -58,21 +124,75 @@ class RAG:
             Prompt template to use for the LLM.
         llm : LLM
             LLM to use for generation.
+        conversational : bool, optional
+            Whether to use conversational mode. By default False.
+            This uses a different state graph with a tool node for
+            retrieval to allow for the LLM to call the retriever as a tool
+            and use the conversational memory to rewrite the query
+            to the retriever.
+        conversational_agent_llm : LLM | None, optional
+            LLM to use for the conversational retriever agent.
+            This essentially is the LLM that decides whether or not to
+            query the retriever or respond directly to the user.
+            By default None. If None, the LLM used for the RAG is used.
         tools : list | None, optional
             List of tools to bind to the LLM. By default None.
         tools_kwargs : dict, optional
             Keyword arguments to pass to the tools. By default {}.
+        budget_forcing : bool, optional
+            Whether to use budget forcing. By default False.
+        budget_forcing_kwargs : dict | str | None, optional
+            Keyword arguments to pass to the budget forcing. By default None.
+        budget_forcing_tokenizer : str | None, optional
+            Tokenizer to use for the LLM if using budget forcing. By default None.
+            If None, will use the LLM model name.
+        rerank : bool, optional
+            Whether to use reranking. By default False.
+        rerank_prompt : str | Path | None, optional
+            Prompt template to use for reranking. By default None.
+        rerank_llm : LLM | None, optional
+            LLM to use for reranking. By default None.
+        rerank_k : int, optional
+            Number of documents to rerank and filter to. By default 5.
         """
         self.retriever: CustomParentDocumentRetriever = retriever
         self.prompt: PromptTemplate = prompt
         self.llm: LLM = llm
+        self.conversational: bool = conversational
+        self.conversational_agent_llm: LLM | None = conversational_agent_llm
         self.tools: list | None = tools
         if tools is not None:
             self.llm = self.llm.bind_tools(tools, **tools_kwargs)
         self.budget_forcing: bool = budget_forcing
         self.budget_forcing_kwargs: dict = budget_forcing_kwargs
-        self.memory: MemorySaver = MemorySaver()
-        self.graph: CompiledStateGraph = self.build_graph()
+        self.budget_forcing_tokenizer: str | None = budget_forcing_tokenizer
+        self.rerank: bool = rerank
+        self.rerank_prompt: PromptTemplate | None = rerank_prompt
+        self.rerank_llm: LLM | None = rerank_llm
+        self.rerank_k: int = rerank_k
+        self.memory: InMemorySaver = InMemorySaver()
+        self.reset_graph()
+
+        self.trimmer = trim_messages(
+            max_tokens=128000,  # TODO: should this be configurable?
+            strategy="last",
+            token_counter=count_tokens_approximately,
+            include_system=True,
+            allow_partial=False,
+            start_on="human",
+            end_on="human",
+        )
+
+    def reset_graph(self):
+        """
+        Reset the graph to a new instance of the compiled state graph.
+        This is useful for when the graph needs to be rebuilt
+        or to clear the memory entirely.
+        """
+        if self.conversational:
+            self.graph: CompiledStateGraph = self.build_conversation_graph(reset=True)
+        else:
+            self.graph: CompiledStateGraph = self.build_graph(reset=True)
 
     async def aretrieve(self, state: State) -> dict[str, list[Document]]:
         """
@@ -88,11 +208,41 @@ class RAG:
         dict[str, list[Document]]
             A dictionary containing the retrieved documents.
         """
+        logging.info(f"Retrieving documents for question: {state['question']}")
         retrieved_docs: list[Document] = await self.retriever.ainvoke(
             input=state["question"]
         )
 
-        return {"context": retrieved_docs}
+        return {
+            "context": state.get("context", []) + [retrieved_docs],
+            "retriever_queries": state.get("retriever_queries", [])
+            + [state["question"]],
+        }
+
+    def get_thread_ids(self):
+        """
+        Get a list of active thread IDs from the stored memory. The thread IDs
+        are sorted by the last message timestamp such that the most recent
+        thread ID is first in the list.
+        """
+        cptuples = self.memory.list({})
+        thread_ids_and_times = [
+            (i.config["configurable"]["thread_id"], i.checkpoint["ts"])
+            for i in cptuples
+        ]
+
+        def get_latest_time(thread_id):
+            return max(time for tid, time in thread_ids_and_times if tid == thread_id)
+
+        unique_thread_ids = set(thread_id for thread_id, _ in thread_ids_and_times)
+        return sorted(unique_thread_ids, key=get_latest_time, reverse=True)
+
+    def get_message_history(self, thread_id: str):
+        """
+        Get a list of messages from the stored memory for a given thread ID.
+        """
+        config = {"configurable": {"thread_id": thread_id}}
+        return self.memory.get_tuple(config).checkpoint["channel_values"]["messages"]
 
     def retrieve(self, state: State) -> dict[str, list[Document]]:
         """
@@ -108,12 +258,144 @@ class RAG:
         dict[str, list[Document]]
             A dictionary containing the retrieved documents.
         """
+        logging.info(f"Retrieving documents for question: {state['question']}")
         retrieved_docs: list[Document] = self.retriever.invoke(input=state["question"])
 
-        return {"context": retrieved_docs}
+        return {
+            "context": state.get("context", []) + [retrieved_docs],
+            "retriever_queries": state.get("retriever_queries", [])
+            + [state["question"]],
+        }
+
+    def retrieve_as_tool(
+        self,
+        query: str,
+    ) -> tuple[str, dict[str, str | list[Document]]]:
+        """
+        Retrieve documents from the vector store based on the query.
+
+        Parameters
+        ----------
+        query : str
+            The query to retrieve documents for.
+
+        Returns
+        ------
+        dict[str, str | list[Document]]
+            A dictionary containing the query and the retrieved documents.
+        """
+        logging.info(f"Retrieving documents for query: {query}")
+        retrieved_docs: list[Document] = self.retriever.invoke(input=query)
+        serialised = "\n\n".join(
+            (f"Source: {doc.metadata}\nContent: {doc.page_content}")
+            for doc in retrieved_docs
+        )
+
+        return serialised, {"query": query, "context": retrieved_docs}
+
+    def rerank_documents(
+        self,
+        state: State,
+    ) -> dict[str, list[Document]]:
+        # rerank the documents using an LLM to select the top rerank_k documents
+        logging.info(f"Reranking documents to {self.rerank_k} documents...")
+
+        # extract the latest retrieved documents from the state
+        context = state["context"][-1]
+
+        # obtain the sources and the context from the retrieved documents
+        sources = [doc.metadata["source"] for doc in context]
+        source_scores = [
+            round(float(doc.metadata["sub_docs"][0].metadata["score"]), 3)
+            for doc in context
+        ]
+
+        if len(sources) <= self.rerank_k:
+            logging.info(
+                f"No need to rerank, retrieval already has less than {self.rerank_k} documents"
+            )
+
+            # no need to rerank if we have less than k documents
+            return {
+                "reranked_context": state.get("reranked_context", []) + [context],
+                "reranker_response": state.get("reranker_response", []) + [None],
+                "reranker_response_processed": state.get(
+                    "reranker_response_processed", []
+                )
+                + [None],
+                "reranker_success": state.get("reranker_success", []) + [None],
+            }
+
+        messages = self.rerank_prompt.invoke(
+            {
+                "symptoms_description": state["retriever_queries"][-1],
+                "document_titles": zip(sources, source_scores),
+                "document_text": context,
+                "k": self.rerank_k,
+            },
+        )
+
+        try:
+            reranker_response = self.rerank_llm.invoke(messages)
+
+            reranked_docs_titles = [
+                title.strip()
+                .lower()
+                .replace(" ", "-")
+                .replace("'", "")
+                .replace('"', "")
+                .replace("(", "")
+                .replace(")", "")
+                for title in reranker_response.content.split(",")
+            ]
+            reranked_docs = [
+                doc for doc in context if doc.metadata["source"] in reranked_docs_titles
+            ]
+
+            if len(reranked_docs) == self.rerank_k:
+                # reranker able to select rerank_k number of documents
+                logging.info("Reranker successfully selected the top k documents")
+                reranker_success = True
+            else:
+                # fall back to the top rerank_k retrieved documents
+                logging.info(
+                    "Reranker failed to select the top k documents - falling back to the top retrieved documents"
+                )
+                reranker_success = False
+                reranked_docs = context[: self.rerank_k]
+
+        except Exception as e:
+            logging.error(f"Reranking failure: {e}")
+            logging.info(f"Falling back to the top {self.rerank_k} retrieved documents")
+
+            reranker_response = AIMessage("")
+            reranked_docs_titles = []
+            reranker_success = False
+            reranked_docs = context[: self.rerank_k]
+
+        return {
+            "reranked_context": state.get("reranked_context", []) + [reranked_docs],
+            "reranker_response": state.get("reranker_response", [])
+            + [reranker_response.content],
+            "reranker_response_processed": state.get("reranker_response_processed", [])
+            + [reranked_docs_titles],
+            "reranker_success": state.get("reranker_success", []) + [reranker_success],
+        }
+
+    def set_up_tokenizer(self):
+        from transformers import AutoTokenizer
+
+        if self.budget_forcing_tokenizer is not None:
+            tokenizer = AutoTokenizer.from_pretrained(self.budget_forcing_tokenizer)
+        else:
+            tokenizer = AutoTokenizer.from_pretrained(
+                self.budget_forcing_kwargs["model_name"]
+            )
+
+        return tokenizer
 
     def _budget_forcing_invoke(self, messages) -> AIMessage:
-        import logging
+        logging.info("Budget forcing invoked")
 
         from langchain_openai import OpenAI
 
@@ -122,18 +404,12 @@ class RAG:
                 "Budget forcing is only supported for OpenAI completion endpoint."
             )
 
-        from transformers import AutoTokenizer
-
-        tokenizer = AutoTokenizer.from_pretrained(
-            self.budget_forcing_kwargs["model_name"]
-        )
+        tokenizer = self.set_up_tokenizer()
 
         from langchain_openai.chat_models.base import _convert_message_to_dict
 
         # convert the messages to dicts and apply the chat template
-        messages_as_dicts = [
-            _convert_message_to_dict(message) for message in messages.to_messages()
-        ]
+        messages_as_dicts = [_convert_message_to_dict(message) for message in messages]
         prompt = tokenizer.apply_chat_template(
             messages_as_dicts,
             tokenize=False,
@@ -151,7 +427,7 @@ class RAG:
         output = "<|im_start|>think\n"
         prompt += output
 
-        # stop if reach end of thinking ("<|im_stard|>") or end ("|<im_end|>"),
+        # stop if reach end of thinking ("<|im_start|>") or end ("<|im_end|>"),
         # or reached the max thinking tokens
         stop_token_ids = tokenizer("<|im_start|><|im_end|>")["input_ids"]
         ignore_str = "Wait"
@@ -207,14 +483,14 @@ class RAG:
             "skip_special_tokens": False,
         }
 
-        output += "<|im_start|>answer\n"
-        prompt += "<|im_start|>answer\n"
+        output += "\n<|im_start|>answer\n"
+        prompt += "\n<|im_start|>answer\n"
         response = self.llm.invoke(prompt, extra_body=sampling_params)
 
         return AIMessage(output + response)
 
     async def _budget_forcing_ainvoke(self, messages) -> AIMessage:
-        import logging
+        logging.info("Budget forcing invoked")
 
         from langchain_openai import OpenAI
 
@@ -223,11 +499,7 @@ class RAG:
                 "Budget forcing is only supported for OpenAI completion endpoint."
             )
 
-        from transformers import AutoTokenizer
-
-        tokenizer = AutoTokenizer.from_pretrained(
-            self.budget_forcing_kwargs["model_name"]
-        )
+        tokenizer = self.set_up_tokenizer()
 
         from langchain_openai.chat_models.base import _convert_message_to_dict
 
@@ -252,7 +524,7 @@ class RAG:
         output = "<|im_start|>think\n"
         prompt += output
 
-        # stop if reach end of thinking ("<|im_stard|>") or end ("|<im_end|>"),
+        # stop if reach end of thinking ("<|im_start|>") or end ("<|im_end|>"),
         # or reached the max thinking tokens
         stop_token_ids = tokenizer("<|im_start|><|im_end|>")["input_ids"]
         ignore_str = "Wait"
@@ -314,12 +586,65 @@ class RAG:
 
         return AIMessage(output + response)
 
-    def obtain_context_and_sources(self, state: State) -> tuple[str, list[str]]:
+    def query_or_respond(self, state: CustomMessagesState):
+        logging.info("Query or respond invoked")
+
+        # generate tool call for retrieval or respond
+        # model can decide whether to use the tool or respond directly
+        from langchain_core.messages.system import SystemMessage
+
+        llm_with_retrieve_tool = self.conversational_agent_llm.bind_tools(
+            [create_retreiver_tool(self.retrieve_as_tool)]
+        )
+        response = llm_with_retrieve_tool.invoke(
+            [SystemMessage(NHS_RETRIEVER_TOOL_PROMPT)] + state["messages"]
+        )
+
+        return {"messages": [response]}
+
+    def process_tool_response(
+        self, state: CustomMessagesState
+    ) -> dict[str, str | list[Document]]:
+        logging.info("Process tool response invoked")
+
+        # get generated ToolMessages
+        recent_tool_messages = []
+        for message in reversed(state["messages"]):
+            if message.type == "tool":
+                recent_tool_messages.append(message)
+            else:
+                break
+
+        if recent_tool_messages:
+            # extract the latest query and context pulled
+            query, context = (
+                recent_tool_messages[-1].artifact["query"],
+                recent_tool_messages[-1].artifact["context"],
+            )
+        else:
+            query, context = "", []
+
+        return {
+            "context": state.get("context", []) + [context],
+            "retriever_queries": state.get("retriever_queries", []) + [query],
+        }
+
+    def obtain_context_and_sources(
+        self, state: State | CustomMessagesState
+    ) -> dict[str, str | list[str]]:
+        logging.info("Obtaining context and sources...")
+
         # obtain the sources and the context from the retrieved documents
-        sources = [doc.metadata["source"] for doc in state["context"]]
+        if self.rerank:
+            context = state["reranked_context"][-1]
+        else:
+            context = state["context"][-1]
+
+        # obtain the sources and the context from the retrieved documents
+        sources = [doc.metadata["source"] for doc in context]
         source_scores = [
             round(float(doc.metadata["sub_docs"][0].metadata["score"]), 3)
-            for doc in state["context"]
+            for doc in context
         ]
         sources_and_scores = [
             f"({source}, {score:.3f})" for source, score in zip(sources, source_scores)
@@ -333,14 +658,17 @@ class RAG:
                 f"similarity score: {round(float(doc.metadata['sub_docs'][0].metadata['score']), 3)}. "
                 f"Content:\n{doc.page_content}"
             )
-            for doc in state["context"]
+            for doc in context
         ]
 
         docs_content = "\n".join(retrieved_docs + [sources_str])
 
-        return docs_content, sources
+        return {
+            "serialised_docs": docs_content,
+            "sources": sources,
+        }
 
-    def generate(self, state: State) -> dict[str, str]:
+    def generate(self, state: State | CustomMessagesState) -> dict[str, str]:
         """
         Generate an answer based on the question and retrieved documents.
         The retrieved documents are passed to the LLM along with the question
@@ -356,24 +684,85 @@ class RAG:
         dict[str, str]
             A dictionary containing the generated answer and the messages used to generate it.
         """
-        docs_content, sources = self.obtain_context_and_sources(state)
-        messages = self.prompt.invoke(
+        logging.info("Generating answer...")
+
+        retriever_response = self.obtain_context_and_sources(state)
+
+        if self.conversational:
+            # get last human message
+            human_message = None
+            for message in reversed(state["messages"]):
+                if message.type == "human":
+                    human_message = message.content
+                    break
+
+            if human_message is None:
+                raise ValueError("No human message found in the state")
+        else:
+            human_message = state["question"]
+
+        messages_from_prompt = self.prompt.invoke(
             {
-                "question": state["question"],
-                "context": docs_content,
+                "question": human_message,
+                "context": retriever_response["serialised_docs"],
                 "demographics": state["demographics"],
-                "sources": sources,
+                "sources": retriever_response["sources"],
             },
         )
 
-        if self.budget_forcing:
-            response = self._budget_forcing_invoke(messages)
+        if self.conversational:
+            conversation_messages = [
+                message
+                for message in state["messages"]
+                if message.type in ("human", "system")
+                or (message.type == "ai" and not message.tool_calls)
+            ]
+            if messages_from_prompt.messages[0].type == "system":
+                system_message = messages_from_prompt.messages[0]
+                messages = [system_message] + conversation_messages
+            else:
+                system_message = None
+                messages = conversation_messages
+
+            if (
+                messages_from_prompt.messages[-1].type == "human"
+                and messages_from_prompt.messages[-1].content != ""
+                and messages[-1].type == "human"
+            ):
+                messages[-1] = messages_from_prompt.messages[-1]
         else:
-            response = self.llm.invoke(messages)
+            if messages_from_prompt.messages[-1].type == "human":
+                messages = [messages_from_prompt.messages[-1]]
 
-        return {"messages": messages, "answer": response}
+            if messages_from_prompt.messages[0].type == "system":
+                system_message = messages_from_prompt.messages[0]
+                messages = [system_message] + messages
+            else:
+                system_message = None
 
-    async def agenerate(self, state: State) -> dict[str, str]:
+        # trim the messages to the max length
+        trimmed_messages = self.trimmer.invoke(messages)
+
+        if self.budget_forcing:
+            response = self._budget_forcing_invoke(trimmed_messages)
+        else:
+            response = self.llm.invoke(trimmed_messages)
+
+        if self.conversational:
+            return {
+                "system_messages": state.get("system_messages", []) + [system_message],
+                "messages": [response],
+                "rag_input_messages": state.get("rag_input_messages", [])
+                + [trimmed_messages[-1]],
+            }
+        else:
+            return {
+                "system_messages": state.get("system_messages", []) + [system_message],
+                "messages": state.get("messages", [])
+                + [trimmed_messages[-1], response],
+            }
+
+    async def agenerate(self, state: State | CustomMessagesState) -> dict[str, str]:
         """
         Generate an answer based on the question and retrieved documents.
         The retrieved documents are passed to the LLM along with the question
@@ -389,24 +778,85 @@ class RAG:
         dict[str, str]
             A dictionary containing the generated answer and the messages used to generate it.
         """
-        docs_content, sources = self.obtain_context_and_sources(state)
-        messages = await self.prompt.ainvoke(
+        logging.info("Generating answer...")
+
+        retriever_response = self.obtain_context_and_sources(state)
+
+        if self.conversational:
+            # get last human message
+            human_message = None
+            for message in reversed(state["messages"]):
+                if message.type == "human":
+                    human_message = message
+                    break
+
+            if human_message is None:
+                raise ValueError("No human message found in the state")
+        else:
+            human_message = state["question"]
+
+        messages_from_prompt = self.prompt.invoke(
             {
-                "question": state["question"],
-                "context": docs_content,
+                "question": human_message,
+                "context": retriever_response["serialised_docs"],
                 "demographics": state["demographics"],
-                "sources": sources,
+                "sources": retriever_response["sources"],
             },
         )
 
-        if self.budget_forcing:
-            response = await self._budget_forcing_ainvoke(messages)
+        if self.conversational:
+            conversation_messages = [
+                message
+                for message in state["messages"]
+                if message.type in ("human", "system")
+                or (message.type == "ai" and not message.tool_calls)
+            ]
+            if messages_from_prompt.messages[0].type == "system":
+                system_message = messages_from_prompt.messages[0]
+                messages = [system_message] + conversation_messages
+            else:
+                system_message = None
+                messages = conversation_messages
+
+            if (
+                messages_from_prompt.messages[-1].type == "human"
+                and messages_from_prompt.messages[-1].content != ""
+                and messages[-1].type == "human"
+            ):
+                messages[-1] = messages_from_prompt.messages[-1]
         else:
-            response = await self.llm.ainvoke(messages)
+            if messages_from_prompt.messages[-1].type == "human":
+                messages = messages_from_prompt.messages[-1]
 
-        return {"messages": messages, "answer": response}
+            if messages_from_prompt.messages[0].type == "system":
+                system_message = messages_from_prompt.messages[0]
+                messages = [system_message] + messages
+            else:
+                system_message = None
 
-    def build_graph(self) -> CompiledStateGraph:
+        # trim the messages to the max length
+        trimmed_messages = self.trimmer.invoke(messages)
+
+        if self.budget_forcing:
+            response = await self._budget_forcing_ainvoke(trimmed_messages)
+        else:
+            response = await self.llm.ainvoke(trimmed_messages)
+
+        if self.conversational:
+            return {
+                "system_messages": state.get("system_messages", []) + [system_message],
+                "messages": [response],
+                "rag_input_messages": state.get("rag_input_messages", [])
+                + [trimmed_messages[-1]],
+            }
+        else:
+            return {
+                "system_messages": state.get("system_messages", []) + [system_message],
+                "messages": state.get("messages", [])
+                + [trimmed_messages[-1], response],
+            }
+
+    def build_graph(self, reset: bool = False) -> CompiledStateGraph:
         """
         Build a Langchain compiled state graph with the retrieve and generate functions
         as nodes.
@@ -416,30 +866,126 @@ class RAG:
         CompiledStateGraph
             The compiled state graph.
         """
-        graph_builder = StateGraph(State).add_sequence([self.retrieve, self.generate])
+        if self.rerank:
+            graph_builder = StateGraph(State).add_sequence(
+                [self.retrieve, self.rerank_documents, self.generate]
+            )
+        else:
+            graph_builder = StateGraph(State).add_sequence(
+                [self.retrieve, self.generate]
+            )
         graph_builder.add_edge(START, "retrieve")
+
+        if reset:
+            logging.info("Resetting memory...")
+            self.memory = InMemorySaver()
+
+        logging.info("Compiling graph...")
         graph = graph_builder.compile(checkpointer=self.memory)
+
         return graph
 
-    def _query(
-        self, question: str, user_id: str = "0", demographics: str | None = None
-    ) -> State:
-        response = self.graph.invoke(
-            input={"question": question, "demographics": demographics},
-            config={"configurable": {"thread_id": user_id}},
+    def build_conversation_graph(self, reset: bool = False) -> CompiledStateGraph:
+        """
+        Build a Langchain compiled state graph for conversational RAG.
+
+        Returns
+        -------
+        CompiledStateGraph
+            The compiled state graph.
+        """
+        tools = ToolNode([create_retreiver_tool(self.retrieve_as_tool)])
+
+        graph_builder = StateGraph(CustomMessagesState)
+        graph_builder.add_node(self.query_or_respond)
+        graph_builder.add_node(tools)
+        graph_builder.add_node(self.process_tool_response)
+        if self.rerank:
+            graph_builder.add_node(self.rerank_documents)
+        graph_builder.add_node(self.generate)
+
+        graph_builder.add_edge(START, "query_or_respond")
+        graph_builder.add_conditional_edges(
+            "query_or_respond",
+            tools_condition,
+            {END: END, "tools": "tools"},
         )
+        graph_builder.add_edge("tools", "process_tool_response")
+        if self.rerank:
+            graph_builder.add_edge("process_tool_response", "rerank_documents")
+            graph_builder.add_edge("rerank_documents", "generate")
+        else:
+            graph_builder.add_edge("process_tool_response", "generate")
+        graph_builder.add_edge("generate", END)
+
+        if reset:
+            logging.info("Resetting memory...")
+            self.memory = InMemorySaver()
+
+        logging.info("Compiling conversational graph...")
+        graph = graph_builder.compile(checkpointer=self.memory)
+
+        return graph
+
+    def clear_history(self, thread_id: str) -> str:
+        """
+        Reset the history of the RAG query by rebuilding the graph.
+        """
+        self.memory.delete_thread(thread_id=thread_id)
+        return "History cleared."
+
+    async def aclear_history(self, thread_id: str) -> str:
+        """
+        Reset the history of the RAG query by rebuilding the graph.
+        """
+        await self.memory.adelete_thread(thread_id=thread_id)
+        return "History cleared."
+
+    def _query(
+        self,
+        question: str,
+        thread_id: str = "0",
+        demographics: str | None = None,
+    ) -> State | CustomMessagesState:
+        if self.conversational:
+            input = {
+                "messages": {"role": "user", "content": question},
+                "demographics": demographics,
+            }
+        else:
+            input = {"question": question, "demographics": demographics}
+
+        response = self.graph.invoke(
+            input=input,
+            config={"configurable": {"thread_id": thread_id}},
+        )
+
         return response
 
     async def _aquery(
-        self, question: str, user_id: str = "0", demographics: str | None = None
-    ) -> State:
+        self,
+        question: str,
+        thread_id: str = "0",
+        demographics: str | None = None,
+    ) -> State | CustomMessagesState:
+        if self.conversational:
+            input = {
+                "messages": {"role": "user", "content": question},
+                "demographics": demographics,
+            }
+        else:
+            input = {"question": question, "demographics": demographics}
+
         response = await self.graph.ainvoke(
-            input={"question": question, "demographics": demographics},
-            config={"configurable": {"thread_id": user_id}},
+            input=input,
+            config={"configurable": {"thread_id": thread_id}},
         )
+
         return response
 
-    def query(self, question: str, user_id: str = "0") -> str:
+    def query(
+        self, question: str, thread_id: str = "0", demographics: str | None = None
+    ) -> str:
         """
         Query the RAG with a question and return response.
 
@@ -447,7 +993,7 @@ class RAG:
         ----------
         question : str
             The question to ask the RAG.
-        user_id : str, optional
+        thread_id : str, optional
             The user ID for the query, by default "0".
 
         Returns
@@ -455,10 +1001,15 @@ class RAG:
         str
             The answer generated by the RAG.
         """
-        response = self._query(question=question, user_id=user_id)
-        return response["answer"].content
+        response = self._query(
+            question=question, thread_id=thread_id, demographics=demographics
+        )
 
-    async def aquery(self, question: str, user_id: str = "0") -> str:
+        return response["messages"][-1].content
+
+    async def aquery(
+        self, question: str, thread_id: str = "0", demographics: str | None = None
+    ) -> str:
         """
         Async query the RAG with a question and return response.
 
@@ -466,7 +1017,7 @@ class RAG:
         ----------
         question : str
             The question to ask the RAG.
-        user_id : str, optional
+        thread_id : str, optional
             The user ID for the query, by default "0".
 
         Returns
@@ -474,10 +1025,15 @@ class RAG:
         str
             The answer generated by the RAG.
         """
-        response = await self._aquery(question=question, user_id=user_id)
-        return response["answer"].content
+        response = await self._aquery(
+            question=question, thread_id=thread_id, demographics=demographics
+        )
 
-    async def aquery_with_sources(self, question: str, user_id: str = "0") -> str:
+        return response["messages"][-1].content
+
+    async def aquery_with_sources(
+        self, question: str, thread_id: str = "0", demographics: str | None = None
+    ) -> str:
         """
         Asynchronously query the RAG with a question and return response with sources used
         in the context.
@@ -486,7 +1042,7 @@ class RAG:
         ----------
         question : str
             The question to ask the RAG.
-        user_id : str, optional
+        thread_id : str, optional
             The user ID for the query, by default "0".
 
         Returns
@@ -495,22 +1051,37 @@ class RAG:
             The answer generated by the RAG along with the sources used
             in the context.
         """
-        response = await self._query(question=question, user_id=user_id)
-
-        # extract the sources of the documents used in the context
-        pulled_context = [doc.metadata["source"] for doc in response["context"]]
-
-        # compose response with the context and answer
-        response_with_context = "\n".join(
-            [
-                f"{response['answer'].content}",
-                f"\nSources: {pulled_context}",
-            ]
+        response = await self._aquery(
+            question=question, thread_id=thread_id, demographics=demographics
         )
+
+        answer = response["messages"][-1].content
+
+        if "context" in response:
+            context = (
+                response["reranked_context"] if self.rerank else response["context"]
+            )
+            context = context[-1]
+
+            # extract the sources of the documents used in the context
+            sources = [doc.metadata["source"] for doc in context]
+
+            # compose response with the context and answer
+            response_with_context = "\n".join(
+                [
+                    f"Sources: {sources}",
+                    f"{answer}",
+                ]
+            )
+        else:
+            # if no context, just return the answer
+            response_with_context = answer
 
         return response_with_context
 
-    async def aquery_with_context(self, question: str, user_id: str = "0") -> str:
+    async def aquery_with_context(
+        self, question: str, thread_id: str = "0", demographics: str | None = None
+    ) -> str:
         """
         Asynchronously query the RAG with a question and return response with context
         used in the context.
@@ -519,7 +1090,7 @@ class RAG:
         ----------
         question : str
             The question to ask the RAG.
-        user_id : str, optional
+        thread_id : str, optional
             The user ID for the query, by default "0".
 
         Returns
@@ -528,24 +1099,77 @@ class RAG:
             The answer generated by the RAG along with the context used
             in the context.
         """
-        response = await self._aquery(question=question, user_id=user_id)
-
-        # extract the sources and contents of the documents used in the context
-        pulled_context = [
-            f"{'-' * 100}\nSource: {doc.metadata['source']}\nContent:\n{doc.page_content}"
-            for doc in response["context"]
-        ]
-
-        # compose response with the context and answer
-        response_with_context = "\n".join(
-            [
-                f"{response['answer'].content}",
-                "\nContext:",
-            ]
-            + pulled_context
+        response = await self._aquery(
+            question=question, thread_id=thread_id, demographics=demographics
         )
 
+        answer = response["messages"][-1].content
+
+        if "context" in response:
+            context = (
+                response["reranked_context"] if self.rerank else response["context"]
+            )
+            context = context[-1]
+
+            # extract the sources and contents of the documents used in the context
+            pulled_context = [
+                f"{'-' * 100}\nSource: {doc.metadata['source']}\nContent:\n{doc.page_content}"
+                for doc in context
+            ]
+            sources = [doc.metadata["source"] for doc in context]
+
+            # compose response with the context and answer
+            response_with_context = "\n".join(
+                ["\nContext:"] + pulled_context + [f"Sources: {sources}"] + [answer]
+            )
+        else:
+            # if no context, just return the answer
+            response_with_context = answer
+
         return response_with_context
+
+
+def load_llm(
+    llm_provider: str, llm_model_name: str, extra_body: dict | str | None = None
+) -> LLM:
+    if not llm_provider:
+        raise ValueError(
+            "LLM provider is not specified. Please provide a valid LLM provider."
+        )
+    if not llm_model_name:
+        raise ValueError(
+            "LLM model name is not specified. Please provide a valid LLM model name."
+        )
+
+    if llm_provider == "huggingface":
+        from t0_001.rag.chat_model import get_huggingface_chat_model
+
+        llm = get_huggingface_chat_model(method="pipeline", model_name=llm_model_name)
+    elif llm_provider == "azure_openai":
+        from t0_001.rag.chat_model import get_azure_openai_chat_model
+
+        llm = get_azure_openai_chat_model(model_name=llm_model_name)
+    elif llm_provider == "azure":
+        from t0_001.rag.chat_model import get_azure_endpoint_chat_model
+
+        llm = get_azure_endpoint_chat_model(model_name=llm_model_name)
+    elif llm_provider == "openai":
+        from t0_001.rag.chat_model import get_openai_chat_model
+
+        llm = get_openai_chat_model(model_name=llm_model_name, extra_body=extra_body)
+    elif llm_provider == "openai_completion":
+        from t0_001.rag.chat_model import get_openai_completion_model
+
+        llm = get_openai_completion_model(
+            model_name=llm_model_name, extra_body=extra_body
+        )
+    else:
+        raise ValueError(
+            f"Unknown LLM provider: {llm_provider}. Use 'huggingface', "
+            "'azure_openai', 'azure', 'openai', or 'openai_completion'."
+        )
+
+    return llm
 
 
 def build_rag(
@@ -555,13 +1179,24 @@ def build_rag(
     trust_source: bool = False,
     llm_provider: str = "huggingface",
     llm_model_name: str = "Qwen/Qwen2.5-1.5B-Instruct",
+    extra_body: dict | str | None = None,
+    conversational: bool = False,
+    conversational_agent_llm_provider: str | None = None,
+    conversational_agent_llm_model_name: str | None = None,
+    conversational_agent_extra_body: dict | str | None = None,
     tools: list | None = None,
     tools_kwargs: dict = {},
     prompt_template_path: str | Path | None = None,
     system_prompt_path: str | Path | None = None,
-    extra_body: dict | str | None = None,
     budget_forcing: bool = False,
     budget_forcing_kwargs: dict | str | None = None,
+    budget_forcing_tokenizer: str | None = None,
+    rerank: bool = False,
+    rerank_prompt_template_path: str | Path | None = None,
+    rerank_llm_provider: str | None = None,
+    rerank_llm_model_name: str | None = None,
+    rerank_extra_body: dict | str | None = None,
+    rerank_k: int = 5,
 ) -> RAG:
     if budget_forcing and llm_provider != "openai_completion":
         raise ValueError(
@@ -588,37 +1223,56 @@ def build_rag(
         )
 
     # obtain the LLM for RAG
-    if llm_provider == "huggingface":
-        from t0_001.rag.chat_model import get_huggingface_chat_model
+    llm = load_llm(
+        llm_provider=llm_provider,
+        llm_model_name=llm_model_name,
+        extra_body=extra_body,
+    )
 
-        llm = get_huggingface_chat_model(method="pipeline", model_name=llm_model_name)
-    elif llm_provider == "azure_openai":
-        from t0_001.rag.chat_model import get_azure_openai_chat_model
+    if conversational:
+        logging.info("Building conversational RAG...")
 
-        llm = get_azure_openai_chat_model(model_name=llm_model_name)
-    elif llm_provider == "azure":
-        from t0_001.rag.chat_model import get_azure_endpoint_chat_model
-
-        llm = get_azure_endpoint_chat_model(model_name=llm_model_name)
-    elif llm_provider == "openai":
-        from t0_001.rag.chat_model import get_openai_chat_model
-
-        llm = get_openai_chat_model(model_name=llm_model_name, extra_body=extra_body)
-    elif llm_provider == "openai_completion":
-        from t0_001.rag.chat_model import get_openai_completion_model
-
-        llm = get_openai_completion_model(
-            model_name=llm_model_name, extra_body=extra_body
+        # obtain the LLM for conversational retriever agent
+        conversational_agent_llm = load_llm(
+            llm_provider=conversational_agent_llm_provider,
+            llm_model_name=conversational_agent_llm_model_name,
+            extra_body=conversational_agent_extra_body,
         )
     else:
-        raise ValueError(
-            f"Unknown LLM provider: {llm_provider}. Use 'huggingface', 'azure_openai', or 'azure'."
+        conversational_agent_llm = None
+
+    if rerank:
+        logging.info("Building RAG with reranking...")
+
+        # obtain the prompt template for reranking
+        if rerank_prompt_template_path is None:
+            raise ValueError(
+                "Reranking is enabled, but no prompt template path is provided. Please provide a `rerank_prompt_template_path`."
+            )
+        else:
+            from t0_001.rag.custom_prompt_template import read_prompt_template
+
+            rerank_prompt_template = read_prompt_template(
+                prompt_template_path=rerank_prompt_template_path,
+            )
+
+        # obtain the LLM for reranking
+        rerank_llm = load_llm(
+            llm_provider=rerank_llm_provider,
+            llm_model_name=rerank_llm_model_name,
+            extra_body=rerank_extra_body,
         )
+    else:
+        rerank_llm = None
+        rerank_prompt_template = None
+        rerank_k = None
 
     rag = RAG(
         retriever=retriever,
         prompt=prompt_template,
         llm=llm,
+        conversational=conversational,
+        conversational_agent_llm=conversational_agent_llm,
         tools=tools,
         tools_kwargs=tools_kwargs,
         budget_forcing=budget_forcing,
@@ -628,6 +1282,11 @@ def build_rag(
             "num_stop_skips": 3,
         }
         | process_arg_to_dict(budget_forcing_kwargs),
+        budget_forcing_tokenizer=budget_forcing_tokenizer,
+        rerank=rerank,
+        rerank_prompt=rerank_prompt_template,
+        rerank_llm=rerank_llm,
+        rerank_k=rerank_k,
     )
 
     return rag

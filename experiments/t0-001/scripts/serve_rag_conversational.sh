@@ -1,0 +1,19 @@
+uv run t0-001 serve-rag \
+--k 5 \
+--db-choice chroma \
+--llm-provider openai_completion \
+--llm-model-name TomasLaz/t0-k5-32B \
+--budget-forcing \
+--budget-forcing-kwargs '{"max_tokens_thinking": 1024, "num_stop_skips": 0}' \
+--extra-body '{"max_tokens": 4096}' \
+--conversational \
+--conversational-agent-llm-provider openai \
+--conversational-agent-llm-model-name Qwen/Qwen2.5-32B-Instruct \
+--conversational-agent-extra-body '{"max_tokens": 4096}' \
+--prompt-template-path ./templates/rag_prompt_conversational.txt \
+--system-prompt-path ./templates/rag_system_prompt_conversational.txt \
+--conditions-file ./data/nhs-conditions/v4/qwen_summarised_conditions.jsonl \
+--persist-directory ./v4-summarised-db \
+--local-file-store ./v4-summarised-lfs \
+--host 0.0.0.0 \
+--port 8050

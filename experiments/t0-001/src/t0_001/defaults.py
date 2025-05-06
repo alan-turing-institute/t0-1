@@ -15,7 +15,7 @@ class LLMProvider(str, Enum):
     openai_completion = "openai_completion"
 
 
-CONDITIONS_FILE: Final[str] = "./data/nhs-conditions/v3/conditions.jsonl"
+CONDITIONS_FILE: Final[str] = "./data/nhs-conditions/v4/conditions.jsonl"
 
 DEFAULTS = {
     "embedding_model_name": "sentence-transformers/all-mpnet-base-v2",
@@ -28,6 +28,9 @@ DEFAULTS = {
     "with_score": False,
     "llm_provider": LLMProvider.huggingface,
     "llm_model_name": "Qwen/Qwen2.5-1.5B-Instruct",
+    "conversational": False,
+    "conversational_agent_llm_provider": LLMProvider.huggingface,
+    "conversational_agent_llm_model_name": "Qwen/Qwen2.5-1.5B-Instruct",
     "prompt_template_path": None,
     "system_prompt_path": None,
     "force_create": False,
@@ -38,5 +41,9 @@ DEFAULTS = {
     "env_file": ".env",
     "budget_forcing": False,
     "budget_forcing_kwargs": '{"max_tokens_thinking": 1024, "num_stop_skips": 3}',
+    "rerank_prompt_template_path": None,
+    "rerank_llm_provider": LLMProvider.huggingface,
+    "rerank_llm_model_name": "Qwen/Qwen2.5-1.5B-Instruct",
     "max_queries_per_minute": 60,
+    "logging_level": 20,
 }
