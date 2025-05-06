@@ -47,7 +47,7 @@ def train():
     lora_config = None
     if config.lora:
 
-        lora_config_path = "lora_config.json"
+        lora_config_path = "train/lora_config.json"
 
         if os.path.exists(lora_config_path):
             with open(lora_config_path, "r") as f:
