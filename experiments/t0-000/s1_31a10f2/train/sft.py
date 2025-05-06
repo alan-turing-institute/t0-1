@@ -8,7 +8,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 from datasets import load_dataset, load_from_disk
 import transformers
 import trl
-from peft import LoraConfig
+from peft import LoraConfig, get_peft_model
 
 
 @dataclass
@@ -46,7 +46,8 @@ def train():
 
     lora_config = None
     if config.lora:
-        lora_config_path = "train/lora_config.json"
+
+        lora_config_path = "lora_config.json"
 
         if os.path.exists(lora_config_path):
             with open(lora_config_path, "r") as f:
@@ -56,6 +57,13 @@ def train():
             raise FileNotFoundError(f"LoRA configuration file not found at {lora_config_path}.")
 
         logging.info("LoRA configuration loaded successfully.")
+
+        model = get_peft_model(model, lora_config)
+
+        logging.info("LoRA model loaded successfully.")
+        logging.info(f"LoRA config: {lora_config}")
+        logging.info("LoRA model parameters:")
+        model.print_trainable_parameters()
 
     try:
         dataset = load_dataset(config.train_file_path)
@@ -88,6 +96,13 @@ def train():
     )
     args.dataset_text_field = 'text'
     args.max_seq_length = config.block_size
+
+    # hardcoding gradient checkpointing
+    args.gradient_checkpointing = True
+    args.gradient_checkpointing_kwargs = {"use_reentrant": False}
+    logging.info(f"Gradient checkpointing set to {args.gradient_checkpointing}")
+    logging.info(f"Gradient checkpointing kwargs set to {args.gradient_checkpointing_kwargs}")
+
     trainer = trl.SFTTrainer(
         model,
         train_dataset=dataset['train'],
