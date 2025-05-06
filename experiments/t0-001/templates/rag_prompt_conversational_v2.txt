@@ -1,4 +1,0 @@
-Retrieved context:
-{context}
-
-Query: {question}
