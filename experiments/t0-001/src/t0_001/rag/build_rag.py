@@ -387,9 +387,7 @@ class RAG:
         from langchain_openai.chat_models.base import _convert_message_to_dict
 
         # convert the messages to dicts and apply the chat template
-        messages_as_dicts = [
-            _convert_message_to_dict(message) for message in messages
-        ]
+        messages_as_dicts = [_convert_message_to_dict(message) for message in messages]
         prompt = tokenizer.apply_chat_template(
             messages_as_dicts,
             tokenize=False,
@@ -463,8 +461,8 @@ class RAG:
             "skip_special_tokens": False,
         }
 
-        output += "<|im_start|>answer\n"
-        prompt += "<|im_start|>answer\n"
+        output += "\n<|im_start|>answer\n"
+        prompt += "\n<|im_start|>answer\n"
         response = self.llm.invoke(prompt, extra_body=sampling_params)
 
         return AIMessage(output + response)
