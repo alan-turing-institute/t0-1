@@ -173,6 +173,16 @@ class RAG:
         self.memory: InMemorySaver = InMemorySaver()
         self.reset_graph()
 
+        self.trimmer = trim_messages(
+            max_tokens=128000,  # TODO: should this be configurable?
+            strategy="last",
+            token_counter=count_tokens_approximately,
+            include_system=True,
+            allow_partial=False,
+            start_on="human",
+            end_on="human",
+        )
+
     def reset_graph(self):
         """
         Reset the graph to a new instance of the compiled state graph.
@@ -183,14 +193,6 @@ class RAG:
             self.graph: CompiledStateGraph = self.build_conversation_graph(reset=True)
         else:
             self.graph: CompiledStateGraph = self.build_graph(reset=True)
-        self.trimmer = trim_messages(
-            max_tokens=65,
-            strategy="last",
-            token_counter=count_tokens_approximately,
-            include_system=True,
-            allow_partial=False,
-            start_on="human",
-        )
 
     async def aretrieve(self, state: State) -> dict[str, list[Document]]:
         """
