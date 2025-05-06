@@ -230,15 +230,7 @@ class RAG:
         Get a list of messages from the stored memory for a given thread ID.
         """
         config = {"configurable": {"thread_id": thread_id}}
-        messages = self.memory.get_tuple(config).checkpoint["channel_values"][
-            "messages"
-        ]
-        return [
-            message
-            for message in messages
-            if message.type in ("human", "system")
-            or (message.type == "ai" and not message.tool_calls)
-        ]
+        return self.memory.get_tuple(config).checkpoint["channel_values"]["messages"]
 
     def retrieve(self, state: State) -> dict[str, list[Document]]:
         """
