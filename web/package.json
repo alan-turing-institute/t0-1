@@ -1,0 +1,28 @@
+{
+  "name": "web",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "check": "svelte-check --tsconfig ./tsconfig.app.json && tsc -p tsconfig.node.json",
+    "serve-rag": "cd ../experiments/t0-001/scripts && source ../.venv/bin/activate && bash serve_rag_conversational_local.sh"
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "^5.0.3",
+    "@tsconfig/svelte": "^5.0.4",
+    "@types/sanitize-html": "^2.15.0",
+    "@types/showdown": "^2.0.6",
+    "svelte": "^5.23.1",
+    "svelte-check": "^4.1.5",
+    "svelte-typewriter": "^3.2.3",
+    "typescript": "~5.7.2",
+    "vite": "^6.3.1"
+  },
+  "dependencies": {
+    "sanitize-html": "^2.16.0",
+    "showdown": "^2.1.0"
+  }
+}
