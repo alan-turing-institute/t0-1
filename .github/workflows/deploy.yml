@@ -23,15 +23,17 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install
+        working-directory: web
 
       - name: Build website
         run: pnpm build --base /t0
+        working-directory: web
 
       - name: Deploy website
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: dist
+          publish_dir: web/dist
           keep_files: false
           user_name: "GitHub Actions"
           user_email: "github-actions[bot]@users.noreply.github.com"
