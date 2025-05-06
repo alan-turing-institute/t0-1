@@ -183,6 +183,7 @@ async def process_query(
                     )
 
                     if arguments.get("condition") is not None:
+                        parsed_condition = arguments["condition"]
                         prediction_condition = remove_dash_and_spaces(
                             arguments["condition"]
                         )
@@ -192,6 +193,7 @@ async def process_query(
                         conditions_match = False
 
                     if arguments.get("severity_level") is not None:
+                        parsed_severity_level = arguments["severity_level"]
                         severity_match = (
                             arguments["severity_level"].lower()
                             == item["severity_level"].lower()
@@ -294,9 +296,19 @@ async def process_query(
             res["reranked_documents_sources"]
         )
 
-        if deepseek_r1 or s1:
-            res["parsed_conditions"] = parsed_condition
-            res["parsed_severity_level"] = parsed_severity_level
+        res["parsed_conditions"] = parsed_condition
+        res["parsed_severity_level"] = parsed_severity_level
+
+        if parsed_condition == "inconclusive":
+            # if model said inconclusive, then it is correct if the target document
+            # is not in the retrieved documents
+            if res["reranked_documents_sources"]:
+                # we used reranking so need to check the reranked documents
+                res["conditions_match"] = not res[
+                    "reranked_retriever_match"
+                ]  # i.e. False if res["reranked_retreiver_match"] else True
+            else:
+                res["conditions_match"] = not res["retriever_match"]
 
     # write the results to the output file
     async with FILE_WRITE_LOCK:
