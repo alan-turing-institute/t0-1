@@ -4,7 +4,9 @@ from pathlib import Path
 from langchain import hub
 from langchain_core.documents import Document
 from langchain_core.language_models.llms import LLM
+from langchain_core.messages import trim_messages
 from langchain_core.messages.ai import AIMessage
+from langchain_core.messages.utils import count_tokens_approximately
 from langchain_core.prompts import PromptTemplate
 from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.graph import END, START, MessagesState
@@ -170,6 +172,16 @@ class RAG:
         self.rerank_k: int = rerank_k
         self.memory: InMemorySaver = InMemorySaver()
         self.reset_graph()
+
+        self.trimmer = trim_messages(
+            max_tokens=128000,  # TODO: should this be configurable?
+            strategy="last",
+            token_counter=count_tokens_approximately,
+            include_system=True,
+            allow_partial=False,
+            start_on="human",
+            end_on="human",
+        )
 
     def reset_graph(self):
         """
@@ -728,22 +740,26 @@ class RAG:
             else:
                 system_message = None
 
+        # trim the messages to the max length
+        trimmed_messages = self.trimmer.invoke(messages)
+
         if self.budget_forcing:
-            response = self._budget_forcing_invoke(messages)
+            response = self._budget_forcing_invoke(trimmed_messages)
         else:
-            response = self.llm.invoke(messages)
+            response = self.llm.invoke(trimmed_messages)
 
         if self.conversational:
             return {
                 "system_messages": state.get("system_messages", []) + [system_message],
                 "messages": [response],
                 "rag_input_messages": state.get("rag_input_messages", [])
-                + [messages[-1]],
+                + [trimmed_messages[-1]],
             }
         else:
             return {
                 "system_messages": state.get("system_messages", []) + [system_message],
-                "messages": state.get("messages", []) + [messages[-1], response],
+                "messages": state.get("messages", [])
+                + [trimmed_messages[-1], response],
             }
 
     async def agenerate(self, state: State | CustomMessagesState) -> dict[str, str]:
@@ -818,22 +834,26 @@ class RAG:
             else:
                 system_message = None
 
+        # trim the messages to the max length
+        trimmed_messages = self.trimmer.invoke(messages)
+
         if self.budget_forcing:
-            response = await self._budget_forcing_ainvoke(messages)
+            response = await self._budget_forcing_ainvoke(trimmed_messages)
         else:
-            response = await self.llm.ainvoke(messages)
+            response = await self.llm.ainvoke(trimmed_messages)
 
         if self.conversational:
             return {
                 "system_messages": state.get("system_messages", []) + [system_message],
                 "messages": [response],
                 "rag_input_messages": state.get("rag_input_messages", [])
-                + [messages[-1]],
+                + [trimmed_messages[-1]],
             }
         else:
             return {
                 "system_messages": state.get("system_messages", []) + [system_message],
-                "messages": state.get("messages", []) + [messages[-1], response],
+                "messages": state.get("messages", [])
+                + [trimmed_messages[-1], response],
             }
 
     def build_graph(self, reset: bool = False) -> CompiledStateGraph:
