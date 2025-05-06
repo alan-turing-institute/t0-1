@@ -62,9 +62,17 @@
             {:else if entry.role === "human"}
                 {@html entry.content}
             {:else if entry.role === "tool"}
-                {#each entry.sources as source}
-                    <p>{source}</p>
-                {/each}
+                <p>Looked up the following sources:</p>
+                <ul>
+                    {#each entry.sources as source}
+                        <li>
+                            <a
+                                href="https://www.nhs.uk/conditions/{source}"
+                                target="_blank">{source}</a
+                            >
+                        </li>
+                    {/each}
+                </ul>
             {/if}
         </div>
     {/each}
@@ -87,9 +95,24 @@
     }
 
     div.tool {
-        background-color: #ede861;
-        border-radius: 15px;
-        border: 1px solid #d4d700;
+        font-size: 0.8em;
+        color: var(--secondary-fg);
+
+        a {
+            color: var(--secondary-fg);
+        }
+        a:hover, a:active, a:focus {
+            color: var(--foreground);
+        }
+
+        p {
+            margin: 0;
+            padding: 0;
+        }
+        ul {
+            margin: 0;
+            padding-left: 20px;
+        }
     }
 
     div.human :global,
