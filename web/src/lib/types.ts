@@ -67,11 +67,17 @@ export function parseChatEntries(json: object): ChatEntry[] {
 }
 
 export type Demographics = {
-    name: string;
     age: number;
+    sex: "female" | "male" | "unspecified";
+    occupation: string;
+    supportSystem: string;
+    medicalHistory: string;
 }
 
 export let emptyDemographics = {
-    name: "",
-    age: 0
+    age: 0,
+    sex: "unspecified",
+    occupation: "",
+    supportSystem: "",
+    medicalHistory: ""
 }
