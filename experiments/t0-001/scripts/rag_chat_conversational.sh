@@ -14,4 +14,4 @@ uv run t0-001 rag-chat \
 --system-prompt-path ./templates/rag_system_prompt_conversational.txt \
 --conditions-file ./data/nhs-conditions/v4/qwen_summarised_conditions.jsonl \
 --persist-directory ./v4-summarised-db \
---local-file-store ./v4-summarised-lfs \
+--local-file-store ./v4-summarised-lfs
