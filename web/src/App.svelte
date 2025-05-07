@@ -147,9 +147,9 @@
                     }
                 }
                 response.json().then((data) => {
-                    console.log("loaded messages", data);
+                    console.log("received these messages from backend: ", data);
                     messages = parseChatEntries(data);
-                    console.log("loaded messages", $state.snapshot(messages));
+                    console.log("frontend messages set to: ", $state.snapshot(messages));
                 });
             })
             .catch((error) => {
@@ -159,8 +159,6 @@
 
     function queryLLM(query: string) {
         loading = true;
-
-        console.log($state.snapshot(demographics));
 
         if (currentId === "new") {
             // Generate new ID
@@ -196,7 +194,7 @@
                     );
                 }
                 response.json().then((data) => {
-                    console.log(data);
+                    console.log("received this data from querying backend: ", data);
                     // We don't bother parsing the response manually here --
                     // instead we'll just load the entire conversation from the
                     // server. This is rather wasteful in terms of bandwidth,
