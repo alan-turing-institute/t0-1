@@ -9,6 +9,7 @@
         parseChatEntries,
         type Demographics,
         emptyDemographics,
+        demographicsToJson,
     } from "./lib/types";
 
     // HTTPS proxy
@@ -111,7 +112,7 @@
     let demographics: Demographics = $state(emptyDemographics);
     function changeDemographics(newDemographics: Demographics) {
         demographics = newDemographics;
-        console.log("updating demographics to ", $state.snapshot(demographics));
+        console.log("updating demographics to ", demographicsToJson(demographics));
     }
 
     // API queries
@@ -170,7 +171,7 @@
         const body = {
             query: query,
             thread_id: currentId,
-            demographics: JSON.stringify(demographics),
+            demographics: demographicsToJson(demographics),
         };
         const url = `${HOST}/query`;
 

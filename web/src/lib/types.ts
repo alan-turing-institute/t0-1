@@ -91,3 +91,17 @@ export let emptyDemographics = {
     supportSystem: "",
     medicalHistory: ""
 }
+
+export function demographicsToJson(demo: Demographics) {
+    // could use JSON.stringify, but we want to avoid serialising
+    // values that weren't provided
+    let json = {};
+    if (demo.age > 0) json = { ...json, age: demo.age };
+    if (demo.sex !== "unspecified") json = { ...json, sex: demo.sex };
+    if (demo.occupation !== "") json = { ...json, occupation: demo.occupation };
+    if (demo.supportSystem !== "") json = { ...json, supportSystem: demo.supportSystem };
+    if (demo.medicalHistory !== "") json = { ...json, medicalHistory: demo.medicalHistory };
+    const s = JSON.stringify(json);
+    console.log("Demographics JSON: ", s);
+    return s;
+}
