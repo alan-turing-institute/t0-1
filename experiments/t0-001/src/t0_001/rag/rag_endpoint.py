@@ -2,6 +2,7 @@ from pathlib import Path
 
 import uvicorn
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from t0_001.rag.build_rag import (
@@ -68,6 +69,14 @@ def create_rag_app(rag: RAG) -> FastAPI:
     @app.get("/get_thread_ids")
     async def get_thread_ids():
         return {"thread_ids": rag.get_thread_ids()}
+
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
     return app
 

@@ -1,4 +1,4 @@
-uv run t0-001 serve-rag \
+uv run t0-001 rag-chat \
 --k 5 \
 --db-choice chroma \
 --llm-provider openai_completion \
@@ -14,6 +14,4 @@ uv run t0-001 serve-rag \
 --system-prompt-path ./templates/rag_system_prompt_conversational.txt \
 --conditions-file ./data/nhs-conditions/v4/qwen_summarised_conditions.jsonl \
 --persist-directory ./v4-summarised-db \
---local-file-store ./v4-summarised-lfs \
---host 0.0.0.0 \
---port 8050
+--local-file-store ./v4-summarised-lfs

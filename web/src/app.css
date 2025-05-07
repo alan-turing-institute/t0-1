@@ -1,0 +1,50 @@
+/* https://css-tricks.com/box-sizing/ */
+html {
+    font-family: "IBM Plex Sans", sans-serif;
+    box-sizing: border-box;
+    font-size: 16px;
+    line-height: 1.5;
+}
+
+*, *:before, *:after {
+    box-sizing: inherit;
+}
+
+/* Override browser default style sheet. */
+body {
+    margin: 0px;
+    padding: 0px;
+    width: 100vw;
+    height: 100vh;
+}
+
+html[data-theme="light"] {
+    --background: #f8f8f8;
+    --foreground: #151515;
+    --user-message-bg: #e2e2e2;
+    --secondary-fg: #646464;
+    --secondary-bg: #ffffff;
+    --highlight: #007acc;
+    --error: #ff0000;
+    --sidebar-bg: #d9d7ea;
+    --button-disabled-bg: #cccccc;
+    --button-disabled-fg: #888888;
+    --linear-gradient-start: rgba(186, 50, 227, 1);
+    --linear-gradient-end: rgba(124, 11, 158, 1);
+    background-color: var(--background);
+}
+html[data-theme="dark"] {
+    --background: #1e1e1e;
+    --foreground: #d8d8d8;
+    --user-message-bg: #484848;
+    --secondary-fg: #939393;
+    --secondary-bg: #000000;
+    --highlight: #007acc;
+    --error: #ff0000;
+    --sidebar-bg: #534f89;
+    --button-disabled-bg: #888888;
+    --button-disabled-fg: #cccccc;
+    --linear-gradient-start: rgba(197, 132, 216, 1);
+    --linear-gradient-end: rgba(207, 135, 229, 1);
+    background-color: var(--background);
+}

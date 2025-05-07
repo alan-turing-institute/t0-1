@@ -1,0 +1,39 @@
+name: "Deploy website"
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    name: Deploy website
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Install dependencies
+        run: pnpm install
+        working-directory: web
+
+      - name: Build website
+        run: pnpm build --base /t0
+        working-directory: web
+
+      - name: Deploy website
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: web/dist
+          keep_files: false
+          user_name: "GitHub Actions"
+          user_email: "github-actions[bot]@users.noreply.github.com"
