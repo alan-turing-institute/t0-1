@@ -25,11 +25,11 @@
 </script>
 
 <div class="sidebar">
-    <div>
+    <div class="sidebar-inner">
         <h1>t0 online</h1>
         <div class="sidebar-buttons">
+            <span><i>Select conversation:</i></span>
             <div class="conversations">
-                <span><i>Select conversation:</i></span>
                 {#each allIds as id}
                     <div class="conversation-manager" transition:slide>
                         <input
@@ -42,7 +42,7 @@
                             disabled={loading}
                             hidden
                         />
-                        <label for={id}>{id.slice(0, 8)}</label>
+                        <label for={id}>{id}</label>
                         <button
                             class="delete-conversation"
                             onclick={() => deleteConversation(id)}
@@ -69,21 +69,23 @@
             </div>
         </div>
     </div>
-    <button id="darkmode" onclick={(_e) => toggleTheme()}
-        >switch to {darkMode ? "light" : "dark"} mode</button
-    >
+    <div id="button-wrapper">
+        <button id="darkmode" onclick={(_e) => toggleTheme()}
+            >switch to {darkMode ? "light" : "dark"} mode</button
+        >
+    </div>
 </div>
 
 <style>
     div.sidebar {
         height: 100%;
-        min-width: 200px;
+        min-width: 225px;
         width: max-content;
         display: flex;
         flex-direction: column;
         gap: 20px;
         padding: 40px 20px;
-        align-items: flex-start;
+        align-items: stretch;
         justify-content: space-between;
         margin-bottom: auto;
         flex: 0 0 auto;
@@ -95,6 +97,7 @@
     }
 
     div.sidebar-buttons {
+        width: 100%;
         display: flex;
         flex-direction: column;
         gap: 20px;
@@ -106,6 +109,9 @@
         flex-direction: column;
         gap: 10px;
         align-items: stretch;
+        max-height: 70vh;
+        padding-right: 10px;
+        overflow-y: auto;
     }
 
     div.conversation-manager {
@@ -116,7 +122,11 @@
 
         label,
         input:disabled + label {
-            font-family: "Fira Code", monospace;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            width: 150px;
+            font-size: 0.9em;
             margin: 0 0 0 10px;
             padding: 0;
             cursor: pointer;
@@ -172,6 +182,10 @@
         }
     }
 
+    div#button-wrapper {
+        width: 100%;
+        display: flex;
+    }
     button#darkmode {
         font: inherit;
         height: min-content;
@@ -180,6 +194,6 @@
         text-decoration: underline;
         color: var(--foreground);
         cursor: pointer;
-        text-align: left;
+        margin: 0 auto;
     }
 </style>

@@ -10,13 +10,14 @@
         type Demographics,
         emptyDemographics,
         demographicsToJson,
+        generateCuteUUID,
     } from "./lib/types";
 
     // HTTPS proxy
     const HOST = "https://atit0proxy.fly.dev";
 
     // Locally running
-    // const HOST = "localhost:8000";
+    // const HOST = "http://localhost:8000";
 
     // UI state
     let loading: boolean = $state(false);
@@ -162,7 +163,12 @@
         console.log($state.snapshot(demographics));
 
         if (currentId === "new") {
-            currentId = crypto.randomUUID();
+            // Generate new ID
+            let newId = generateCuteUUID();
+            while (allIds.includes(newId)) {
+                newId = generateCuteUUID();
+            }
+            currentId = newId;
             // push to the front as it will be the most recent
             allIds.unshift(currentId);
         }
