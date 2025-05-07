@@ -47,8 +47,9 @@
                             class="delete-conversation"
                             onclick={() => deleteConversation(id)}
                             disabled={loading}
+                            aria-label="Delete conversation"
                         >
-                            (×)
+                            <i class="fa-solid fa-trash"></i>
                         </button>
                     </div>
                 {/each}
@@ -113,7 +114,8 @@
         justify-content: space-between;
         align-items: center;
 
-        label, input:disabled + label {
+        label,
+        input:disabled + label {
             font-family: "Fira Code", monospace;
             margin: 0 0 0 10px;
             padding: 0;
@@ -162,10 +164,10 @@
             text-decoration: none;
             border: none;
             margin-bottom: 2px;
-            transition: font-weight 0.2s;
+            transition: color 0.2s;
         }
         button.delete-conversation:hover {
-            font-weight: bold;
+            color: var(--secondary-fg);
             cursor: pointer;
         }
     }
