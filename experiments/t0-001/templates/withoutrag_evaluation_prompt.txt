@@ -10,4 +10,4 @@ This is a summary of their demographics:
 Using the sources provided, use the "submit_condition_recommendation" tool to submit the condition and the severity level.
 
 Remember that the condition must either be one of the conditions listed above or "inconclusive" if you think that the condition is not listed.
-Remember that the severity level must be one of ["Self-care", "Urgent Primary Care", "A&E"].
+Remember that the severity level must be one of ["Self-care", "Routine GP appointment", "Urgent Primary Care", "A&E"].
