@@ -10,7 +10,8 @@ Generate a synthetic NHS 111 query based on the following details:
 
 ### Severity Level:
 * A&E: Emergency hospital treatment required
-* Urgent Primary Care: patient should be seen as soon as posisble by a GP
+* Urgent Primary Care: patient should be seen today, by a GP, urgent care centre, or similar
+* Routine GP appointment: patient should be seen at some point, but this can wait for several days
 * Self-care: Issue can be handled at home and/or with over-the-counter medication
 
 ### Required JSON Output:
