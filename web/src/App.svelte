@@ -9,15 +9,14 @@
         parseChatEntries,
         type Demographics,
         emptyDemographics,
+        demographicsToJson,
     } from "./lib/types";
 
-    // This is for t0-2 VM
-    const HOST = "http://20.117.204.190";
-    const PORT = 8050;
+    // HTTPS proxy
+    const HOST = "https://atit0proxy.fly.dev";
 
     // Locally running
-    // const HOST = "localhost";
-    // const PORT = 8000;
+    // const HOST = "localhost:8000";
 
     // UI state
     let loading: boolean = $state(false);
@@ -28,7 +27,7 @@
     let allIds: Array<string> = $state([]);
     let messages: Array<ChatEntry> = $state([]);
 
-    fetch(`${HOST}:${PORT}/get_thread_ids`, {
+    fetch(`${HOST}/get_thread_ids`, {
         method: "GET",
     })
         .then((response) => {
@@ -64,7 +63,7 @@
         messages = [];
     }
     function deleteConversation(id: string) {
-        fetch(`${HOST}:${PORT}/clear_history`, {
+        fetch(`${HOST}/clear_history`, {
             method: "POST",
             body: JSON.stringify({ thread_id: id }),
             headers: {
@@ -113,7 +112,7 @@
     let demographics: Demographics = $state(emptyDemographics);
     function changeDemographics(newDemographics: Demographics) {
         demographics = newDemographics;
-        console.log("updating demographics to ", $state.snapshot(demographics));
+        console.log("updating demographics to ", demographicsToJson(demographics));
     }
 
     // API queries
@@ -127,7 +126,7 @@
     }
 
     function loadMessages(thread_id: string) {
-        const url = `${HOST}:${PORT}/get_history?thread_id=${thread_id}`;
+        const url = `${HOST}/get_history?thread_id=${thread_id}`;
         fetch(url, {
             method: "GET",
         })
@@ -172,9 +171,9 @@
         const body = {
             query: query,
             thread_id: currentId,
-            demographics: JSON.stringify(demographics),
+            demographics: demographicsToJson(demographics),
         };
-        const url = `${HOST}:${PORT}/query`;
+        const url = `${HOST}/query`;
 
         fetch(url, {
             method: "POST",
