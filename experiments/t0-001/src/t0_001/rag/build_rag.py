@@ -997,14 +997,16 @@ class RAG:
         else:
             input = {"question": question, "demographics": demographics}
 
+        response = AIMessage("")
         for message_chunk, metadata in self.graph.stream(
             input=input,
             config={"configurable": {"thread_id": thread_id}},
             stream_mode="messages",
         ):
+            response += message_chunk
             if message_chunk.response_metadata.get("finish_reason") == "stop":
                 # if the message is from the generate node, break
-                break
+                return response
             if metadata.get("langgraph_node") == "generate":
                 # if the message is from the generate node, yield the content
                 yield message_chunk.content
