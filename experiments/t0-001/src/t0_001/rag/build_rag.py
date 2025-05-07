@@ -997,19 +997,24 @@ class RAG:
         else:
             input = {"question": question, "demographics": demographics}
 
-        response = AIMessage("")
+        finished = False
+        response = ""
         for message_chunk, metadata in self.graph.stream(
             input=input,
             config={"configurable": {"thread_id": thread_id}},
             stream_mode="messages",
         ):
-            response += message_chunk
+            response += message_chunk.content
             if message_chunk.response_metadata.get("finish_reason") == "stop":
-                # if the message is from the generate node, break
-                return response
-            if metadata.get("langgraph_node") == "generate":
-                # if the message is from the generate node, yield the content
-                yield message_chunk.content
+                # self.graph.update_state(
+                #     config={"configurable": {"thread_id": thread_id}},
+                #     values={"messages": [AIMessage(response)]},
+                # )
+                finished = True
+            if not finished:
+                if metadata.get("langgraph_node") == "generate":
+                    # if the message is from the generate node, yield the content
+                    yield message_chunk.content
 
     def query(
         self, question: str, thread_id: str = "0", demographics: str | None = None
