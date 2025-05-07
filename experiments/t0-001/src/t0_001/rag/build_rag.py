@@ -997,12 +997,17 @@ class RAG:
         else:
             input = {"question": question, "demographics": demographics}
 
-        for message_chunk, _ in self.graph.stream(
+        for message_chunk, metadata in self.graph.stream(
             input=input,
             config={"configurable": {"thread_id": thread_id}},
             stream_mode="messages",
         ):
-            yield message_chunk.content
+            if message_chunk.response_metadata.get("finish_reason") == "stop":
+                # if the message is from the generate node, break
+                break
+            if metadata.get("langgraph_node") == "generate":
+                # if the message is from the generate node, yield the content
+                yield message_chunk.content
 
     def query(
         self, question: str, thread_id: str = "0", demographics: str | None = None
