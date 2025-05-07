@@ -53,7 +53,6 @@ export function parseChatEntries(json: object): ChatEntry[] {
         return [];
     } else {
         return json.messages.flatMap((entry: any) => {
-            console.log(entry);
             if (entry.type === "human") {
                 return [makeHumanEntry(entry.content)];
             }
@@ -101,9 +100,7 @@ export function demographicsToJson(demo: Demographics) {
     if (demo.occupation !== "") json = { ...json, occupation: demo.occupation };
     if (demo.supportSystem !== "") json = { ...json, supportSystem: demo.supportSystem };
     if (demo.medicalHistory !== "") json = { ...json, medicalHistory: demo.medicalHistory };
-    const s = JSON.stringify(json);
-    console.log("Demographics JSON: ", s);
-    return s;
+    return JSON.stringify(json);
 }
 
 export function generateCuteUUID() {
