@@ -6,10 +6,12 @@ from langchain import hub
 from langchain_core.documents import Document
 from langchain_core.language_models.llms import LLM
 from langchain_core.messages import trim_messages
-from langchain_core.messages.ai import AIMessage
+from langchain_core.messages.ai import AIMessage, AIMessageChunk
 from langchain_core.messages.utils import count_tokens_approximately
 from langchain_core.prompts import PromptTemplate
+from langchain_core.runnables import RunnableConfig
 from langgraph.checkpoint.memory import InMemorySaver
+from langgraph.config import get_stream_writer
 from langgraph.graph import END, START, MessagesState
 from langgraph.graph.state import CompiledStateGraph, StateGraph
 from langgraph.prebuilt import ToolNode, tools_condition
@@ -395,7 +397,9 @@ class RAG:
 
         return tokenizer
 
-    def _budget_forcing_invoke(self, messages) -> AIMessage:
+    def _budget_forcing_invoke(
+        self, messages: list, config: RunnableConfig
+    ) -> AIMessage:
         logging.info("Budget forcing invoked")
 
         from langchain_openai import OpenAI
@@ -416,17 +420,26 @@ class RAG:
             tokenize=False,
         )
 
+        writer = get_stream_writer()
         if self.budget_forcing_kwargs["max_tokens_thinking"] <= 0:
             # don't need to think, just generate the answer directly
-            prompt += "<|im_start|>think\n<|im_start|>answer\n"
-            response = self.llm.invoke(prompt)
+            answer_init = "<|im_start|>think\n<|im_start|>answer\n"
+            prompt += answer_init
+            writer((AIMessageChunk(answer_init), config["metadata"]))
+
+            response = ""
+            for msg in self.llm.stream(prompt):
+                writer((AIMessageChunk(msg), config["metadata"]))
+                response += msg
             return AIMessage(response)
 
         # otherwise we need to think and apply budget forcing
         # output tracks the generated output after the initial prompt
         # prompt tracks the prompt used for generation which will need to keep adding the responses
-        output = "<|im_start|>think\n"
-        prompt += output
+        thinking_init = "<|im_start|>think\n"
+        output = thinking_init
+        prompt += thinking_init
+        writer((AIMessageChunk(thinking_init), config["metadata"]))
 
         # stop if reach end of thinking ("<|im_start|>") or end ("<|im_end|>"),
         # or reached the max thinking tokens
@@ -454,7 +467,11 @@ class RAG:
 
             logging.info(f"Thinking round {i + 1} out of {max_thinking_steps}")
             logging.info(f"Thinking tokens remaining: {thinking_tokens_remaining}")
-            response = self.llm.invoke(prompt, extra_body=sampling_params)
+
+            response = ""
+            for msg in self.llm.stream(prompt, extra_body=sampling_params):
+                writer((AIMessageChunk(msg), config["metadata"]))
+                response += msg
             output += response
             prompt += response
 
@@ -484,13 +501,27 @@ class RAG:
             "skip_special_tokens": False,
         }
 
-        output += "\n<|im_start|>answer\n"
-        prompt += "\n<|im_start|>answer\n"
-        response = self.llm.invoke(prompt, extra_body=sampling_params)
+        answer_init = "\n<|im_start|>answer\n"
+        output += answer_init
+        prompt += answer_init
+        writer((AIMessageChunk(answer_init), config["metadata"]))
 
-        return AIMessage(output + response)
+        for msg in self.llm.stream(prompt, extra_body=sampling_params):
+            writer((AIMessageChunk(msg), config["metadata"]))
+            output += msg
 
-    async def _budget_forcing_ainvoke(self, messages) -> AIMessage:
+        writer(
+            (
+                AIMessageChunk("", response_metadata={"finish_reason": "stop"}),
+                config["metadata"],
+            )
+        )
+
+        return AIMessage(output)
+
+    async def _budget_forcing_ainvoke(
+        self, messages: list, config: RunnableConfig
+    ) -> AIMessage:
         logging.info("Budget forcing invoked")
 
         from langchain_openai import OpenAI
@@ -513,17 +544,26 @@ class RAG:
             tokenize=False,
         )
 
+        writer = get_stream_writer()
         if self.budget_forcing_kwargs["max_tokens_thinking"] <= 0:
             # don't need to think, just generate the answer directly
-            prompt += "<|im_start|>think\n<|im_start|>answer\n"
-            response = await self.llm.ainvoke(prompt)
+            answer_init = "<|im_start|>think\n<|im_start|>answer\n"
+            prompt += answer_init
+            writer((AIMessageChunk(answer_init), config["metadata"]))
+
+            response = ""
+            async for msg in self.llm.astream(prompt):
+                writer((AIMessageChunk(msg), config["metadata"]))
+                response += msg
             return AIMessage(response)
 
         # otherwise we need to think and apply budget forcing
         # output tracks the generated output after the initial prompt
         # prompt tracks the prompt used for generation which will need to keep adding the responses
-        output = "<|im_start|>think\n"
-        prompt += output
+        thinking_init = "<|im_start|>think\n"
+        output = thinking_init
+        prompt += thinking_init
+        writer((AIMessageChunk(thinking_init), config["metadata"]))
 
         # stop if reach end of thinking ("<|im_start|>") or end ("<|im_end|>"),
         # or reached the max thinking tokens
@@ -551,7 +591,10 @@ class RAG:
 
             logging.info(f"Thinking round {i + 1} out of {max_thinking_steps}")
             logging.info(f"Thinking tokens remaining: {thinking_tokens_remaining}")
-            response = await self.llm.ainvoke(prompt, extra_body=sampling_params)
+            response = ""
+            async for msg in self.llm.astream(prompt, extra_body=sampling_params):
+                writer((AIMessageChunk(msg), config["metadata"]))
+                response += msg
             output += response
             prompt += response
 
@@ -581,11 +624,23 @@ class RAG:
             "skip_special_tokens": False,
         }
 
-        output += "<|im_start|>answer\n"
-        prompt += "<|im_start|>answer\n"
-        response = await self.llm.ainvoke(prompt, extra_body=sampling_params)
+        answer_init = "\n<|im_start|>answer\n"
+        output += answer_init
+        prompt += answer_init
+        writer((AIMessageChunk(answer_init), config["metadata"]))
 
-        return AIMessage(output + response)
+        async for msg in self.llm.astream(prompt, extra_body=sampling_params):
+            writer((AIMessageChunk(msg), config["metadata"]))
+            output += msg
+
+        writer(
+            (
+                AIMessageChunk("", response_metadata={"finish_reason": "stop"}),
+                config["metadata"],
+            )
+        )
+
+        return AIMessage(output)
 
     def query_or_respond(self, state: CustomMessagesState):
         logging.info("Query or respond invoked")
@@ -669,7 +724,9 @@ class RAG:
             "sources": sources,
         }
 
-    def generate(self, state: State | CustomMessagesState) -> dict[str, str]:
+    def generate(
+        self, state: State | CustomMessagesState, config: RunnableConfig
+    ) -> dict[str, str]:
         """
         Generate an answer based on the question and retrieved documents.
         The retrieved documents are passed to the LLM along with the question
@@ -745,7 +802,7 @@ class RAG:
         trimmed_messages = self.trimmer.invoke(messages)
 
         if self.budget_forcing:
-            response = self._budget_forcing_invoke(trimmed_messages)
+            response = self._budget_forcing_invoke(trimmed_messages, config)
         else:
             response = self.llm.invoke(trimmed_messages)
 
@@ -763,7 +820,9 @@ class RAG:
                 + [trimmed_messages[-1], response],
             }
 
-    async def agenerate(self, state: State | CustomMessagesState) -> dict[str, str]:
+    async def agenerate(
+        self, state: State | CustomMessagesState, config: RunnableConfig
+    ) -> dict[str, str]:
         """
         Generate an answer based on the question and retrieved documents.
         The retrieved documents are passed to the LLM along with the question
@@ -839,7 +898,7 @@ class RAG:
         trimmed_messages = self.trimmer.invoke(messages)
 
         if self.budget_forcing:
-            response = await self._budget_forcing_ainvoke(trimmed_messages)
+            response = await self._budget_forcing_ainvoke(trimmed_messages, config)
         else:
             response = await self.llm.ainvoke(trimmed_messages)
 
@@ -999,17 +1058,16 @@ class RAG:
             input = {"question": question, "demographics": demographics}
 
         finished = False
-        for message_chunk, metadata in self.graph.stream(
+        for stream_mode, (message_chunk, metadata) in self.graph.stream(
             input=input,
             config={"configurable": {"thread_id": thread_id}},
-            stream_mode="messages",
+            stream_mode=["messages", "custom"],
         ):
             if message_chunk.response_metadata.get("finish_reason") == "stop":
                 finished = True
-            if not finished:
-                if metadata.get("langgraph_node") == "generate":
-                    # if the message is from the generate node, yield the content
-                    yield message_chunk.content
+            if not finished and metadata.get("langgraph_node") == "generate":
+                # if the message is from the generate node, yield the content
+                yield message_chunk.content
 
     def query(
         self, question: str, thread_id: str = "0", demographics: str | None = None
