@@ -211,3 +211,10 @@ experiments/t0-000/src/new_dataset_dict/*
 experiments/t0-001/dataset.hf/*
 experiments/t0-001/new_dataset_cut/*
 experiments/t0-001/new_dataset_dict*
+
+# web frontend
+web/pnpm-lock.yaml
+web/package-lock.json
+web/node_modules/
+!web/src/lib
+web/.vite
