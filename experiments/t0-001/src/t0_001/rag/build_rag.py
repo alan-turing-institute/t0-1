@@ -971,6 +971,27 @@ class RAG:
 
         return response
 
+    def _query_stream(
+        self,
+        question: str,
+        thread_id: str = "0",
+        demographics: str | None = None,
+    ):
+        if self.conversational:
+            input = {
+                "messages": {"role": "user", "content": question},
+                "demographics": demographics,
+            }
+        else:
+            input = {"question": question, "demographics": demographics}
+
+        for message_chunk, _ in self.graph.stream(
+            input=input,
+            config={"configurable": {"thread_id": thread_id}},
+            stream_mode="messages",
+        ):
+            yield message_chunk.content
+
     def query(
         self, question: str, thread_id: str = "0", demographics: str | None = None
     ) -> str:

@@ -2,6 +2,7 @@ from pathlib import Path
 
 import uvicorn
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from t0_001.rag.build_rag import (
     DEFAULT_RETRIEVER_CONFIG,
@@ -38,6 +39,16 @@ def create_rag_app(rag: RAG) -> FastAPI:
             "thread_id": req.thread_id,
             "demographics": req.demographics,
         }
+
+    @app.post("/query_stream")
+    async def query_stream_endpoint(req: QueryRequest):
+        return StreamingResponse(
+            rag._query_stream(
+                req.query,
+                thread_id=req.thread_id,
+                demographics=req.demographics,
+            ),
+        )
 
     # Delete history
     @app.post("/clear_history")
