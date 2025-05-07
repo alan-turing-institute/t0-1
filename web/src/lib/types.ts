@@ -32,8 +32,13 @@ export function makeHumanEntry(message: string): ChatEntry {
 export function makeAIEntry(message: string): ChatEntry {
     const components = message.split("<|im_start|>answer");
     if (components.length == 2) {
-        const [reasoning2, answer] = components;
-        const [_, reasoning] = reasoning2.split("<|im_start|>think");
+        const [reasoning2, answer2] = components;
+        const [_, reasoning3] = reasoning2.split("<|im_start|>think");
+        // cut at the last sentence
+        const reasoning4 = reasoning3.split(".").slice(0, -1).join(".") + ".";
+        // remove stray im_starts
+        const reasoning = reasoning4.replace(/<\|im_start\|>/g, "");
+        const answer = answer2.replace(/<\|im_start\|>/g, "");
         return { role: "ai", content: mdToHtml(answer.trim()), reasoning: mdToHtml(reasoning.trim()) };
     } else {
         return { role: "ai", content: mdToHtml(message), reasoning: null };
