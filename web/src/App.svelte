@@ -9,15 +9,15 @@
         parseChatEntries,
         type Demographics,
         emptyDemographics,
+        demographicsToJson,
+        generateCuteUUID,
     } from "./lib/types";
 
-    // This is for t0-2 VM
-    const HOST = "http://20.117.204.190";
-    const PORT = 8050;
+    // HTTPS proxy
+    const HOST = "https://atit0proxy.fly.dev";
 
     // Locally running
-    // const HOST = "localhost";
-    // const PORT = 8000;
+    // const HOST = "http://localhost:8000";
 
     // UI state
     let loading: boolean = $state(false);
@@ -28,7 +28,7 @@
     let allIds: Array<string> = $state([]);
     let messages: Array<ChatEntry> = $state([]);
 
-    fetch(`${HOST}:${PORT}/get_thread_ids`, {
+    fetch(`${HOST}/get_thread_ids`, {
         method: "GET",
     })
         .then((response) => {
@@ -64,7 +64,7 @@
         messages = [];
     }
     function deleteConversation(id: string) {
-        fetch(`${HOST}:${PORT}/clear_history`, {
+        fetch(`${HOST}/clear_history`, {
             method: "POST",
             body: JSON.stringify({ thread_id: id }),
             headers: {
@@ -113,7 +113,7 @@
     let demographics: Demographics = $state(emptyDemographics);
     function changeDemographics(newDemographics: Demographics) {
         demographics = newDemographics;
-        console.log("updating demographics to ", $state.snapshot(demographics));
+        console.log("updating demographics to ", demographicsToJson(demographics));
     }
 
     // API queries
@@ -127,7 +127,7 @@
     }
 
     function loadMessages(thread_id: string) {
-        const url = `${HOST}:${PORT}/get_history?thread_id=${thread_id}`;
+        const url = `${HOST}/get_history?thread_id=${thread_id}`;
         fetch(url, {
             method: "GET",
         })
@@ -147,9 +147,9 @@
                     }
                 }
                 response.json().then((data) => {
-                    console.log("loaded messages", data);
+                    console.log("received these messages from backend: ", data);
                     messages = parseChatEntries(data);
-                    console.log("loaded messages", $state.snapshot(messages));
+                    console.log("frontend messages set to: ", $state.snapshot(messages));
                 });
             })
             .catch((error) => {
@@ -160,10 +160,13 @@
     function queryLLM(query: string) {
         loading = true;
 
-        console.log($state.snapshot(demographics));
-
         if (currentId === "new") {
-            currentId = crypto.randomUUID();
+            // Generate new ID
+            let newId = generateCuteUUID();
+            while (allIds.includes(newId)) {
+                newId = generateCuteUUID();
+            }
+            currentId = newId;
             // push to the front as it will be the most recent
             allIds.unshift(currentId);
         }
@@ -172,9 +175,9 @@
         const body = {
             query: query,
             thread_id: currentId,
-            demographics: JSON.stringify(demographics),
+            demographics: demographicsToJson(demographics),
         };
-        const url = `${HOST}:${PORT}/query`;
+        const url = `${HOST}/query`;
 
         fetch(url, {
             method: "POST",
@@ -191,7 +194,7 @@
                     );
                 }
                 response.json().then((data) => {
-                    console.log(data);
+                    console.log("received this data from querying backend: ", data);
                     // We don't bother parsing the response manually here --
                     // instead we'll just load the entire conversation from the
                     // server. This is rather wasteful in terms of bandwidth,
