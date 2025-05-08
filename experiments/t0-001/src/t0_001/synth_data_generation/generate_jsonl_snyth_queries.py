@@ -87,6 +87,7 @@ def generate_synthetic_queries(
                 [
                     "A&E",
                     "Urgent Primary Care",
+                    "Routine GP appointment",
                     "Self-care",
                 ]
             )
