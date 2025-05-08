@@ -3,8 +3,6 @@ t0-001 serve-rag \
   --db-choice chroma \
   --llm-provider azure_openai \
   --llm-model-name gpt-4o \
-  --prompt-template-path ../templates/rag_prompt.txt \
-  --system-prompt-path ../templates/rag_system_prompt.txt \
   --conditions-file ../data/nhs-conditions/v4/qwen_summarised_conditions.jsonl \
   --persist-directory $HOME/test/_t0db \
   --local-file-store $HOME/test/_t0lfs \
@@ -16,9 +14,4 @@ t0-001 serve-rag \
   --conversational-agent-llm-provider azure_openai \
   --conversational-agent-llm-model-name gpt-4o \
   --prompt-template-path ../templates/rag_prompt_conversational.txt \
-  --system-prompt-path ../templates/rag_system_prompt_conversational.txt \
-  --rerank \
-  --rerank-prompt-template-path ../templates/reranking_prompt.txt  \
-  --rerank-llm-provider azure_openai  \
-  --rerank-llm-model-name gpt-4o \
-  --rerank-k 5
+  --system-prompt-path ../templates/rag_system_prompt_conversational.txt
