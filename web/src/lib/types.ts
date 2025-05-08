@@ -32,8 +32,13 @@ export function makeHumanEntry(message: string): ChatEntry {
 export function makeAIEntry(message: string): ChatEntry {
     const components = message.split("<|im_start|>answer");
     if (components.length == 2) {
-        const [reasoning2, answer] = components;
-        const [_, reasoning] = reasoning2.split("<|im_start|>think");
+        const [reasoning2, answer2] = components;
+        const [_, reasoning3] = reasoning2.split("<|im_start|>think");
+        // cut at the last sentence
+        const reasoning4 = reasoning3.split(".").slice(0, -1).join(".") + ".";
+        // remove stray im_starts
+        const reasoning = reasoning4.replace(/<\|im_start\|>/g, "");
+        const answer = answer2.replace(/<\|im_start\|>/g, "");
         return { role: "ai", content: mdToHtml(answer.trim()), reasoning: mdToHtml(reasoning.trim()) };
     } else {
         return { role: "ai", content: mdToHtml(message), reasoning: null };
@@ -48,7 +53,6 @@ export function parseChatEntries(json: object): ChatEntry[] {
         return [];
     } else {
         return json.messages.flatMap((entry: any) => {
-            console.log(entry);
             if (entry.type === "human") {
                 return [makeHumanEntry(entry.content)];
             }
@@ -85,4 +89,40 @@ export let emptyDemographics = {
     occupation: "",
     supportSystem: "",
     medicalHistory: ""
+}
+
+export function demographicsToJson(demo: Demographics) {
+    // could use JSON.stringify, but we want to avoid serialising
+    // values that weren't provided
+    let json = {};
+    if (demo.age > 0) json = { ...json, age: demo.age };
+    if (demo.sex !== "unspecified") json = { ...json, sex: demo.sex };
+    if (demo.occupation !== "") json = { ...json, occupation: demo.occupation };
+    if (demo.supportSystem !== "") json = { ...json, supportSystem: demo.supportSystem };
+    if (demo.medicalHistory !== "") json = { ...json, medicalHistory: demo.medicalHistory };
+    return JSON.stringify(json);
+}
+
+export function generateCuteUUID() {
+    const adjectives = [
+        "adorable", "bubbly", "cheerful", "cuddly", "dizzy", "fluffy", "happy",
+        "jolly", "kind", "lovely", "mellow", "nifty", "peppy", "plucky",
+        "precious", "quiet", "rosy", "sleepy", "snuggly", "soft", "sparkly",
+        "sunny", "sweet", "ticklish", "tiny", "warm", "wiggly", "zesty", "zany",
+        "glowy", "gentle", "bright", "dreamy", "honeyed", "charming", "fuzzy",
+        "smiley", "tender", "twinkly", "winsome", "chirpy"
+    ];
+    const animals = [
+        "bunny", "kitten", "puppy", "duckling", "hedgehog", "penguin", "panda",
+        "fawn", "lamb", "koala", "hamster", "otter", "sloth", "mouse", "calf",
+        "seal", "whale", "swan", "cub", "foal", "quokka", "flamingo",
+        "starling", "parakeet", "peep", "caterpillar", "guinea", "deerling",
+        "shrew", "snail", "turtle", "lovebird", "wren", "goldfinch", "bluebird",
+        "mole", "cygnet"
+    ];
+    const adjective = adjectives[Math.floor(Math.random() * adjectives.length)];
+    const animal = animals[Math.floor(Math.random() * animals.length)];
+    const number = Math.floor(Math.random() * 99);
+    const numberString = number < 10 ? `0${number}` : `${number}`;
+    return `${adjective}-${animal}-${numberString}`;
 }
