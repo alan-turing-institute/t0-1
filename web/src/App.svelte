@@ -10,13 +10,14 @@
         type Demographics,
         emptyDemographics,
         demographicsToJson,
+        generateCuteUUID,
     } from "./lib/types";
 
     // HTTPS proxy
     const HOST = "https://atit0proxy.fly.dev";
 
     // Locally running
-    // const HOST = "localhost:8000";
+    // const HOST = "http://localhost:8000";
 
     // UI state
     let loading: boolean = $state(false);
@@ -146,9 +147,9 @@
                     }
                 }
                 response.json().then((data) => {
-                    console.log("loaded messages", data);
+                    console.log("received these messages from backend: ", data);
                     messages = parseChatEntries(data);
-                    console.log("loaded messages", $state.snapshot(messages));
+                    console.log("frontend messages set to: ", $state.snapshot(messages));
                 });
             })
             .catch((error) => {
@@ -159,10 +160,13 @@
     function queryLLM(query: string) {
         loading = true;
 
-        console.log($state.snapshot(demographics));
-
         if (currentId === "new") {
-            currentId = crypto.randomUUID();
+            // Generate new ID
+            let newId = generateCuteUUID();
+            while (allIds.includes(newId)) {
+                newId = generateCuteUUID();
+            }
+            currentId = newId;
             // push to the front as it will be the most recent
             allIds.unshift(currentId);
         }
@@ -190,7 +194,7 @@
                     );
                 }
                 response.json().then((data) => {
-                    console.log(data);
+                    console.log("received this data from querying backend: ", data);
                     // We don't bother parsing the response manually here --
                     // instead we'll just load the entire conversation from the
                     // server. This is rather wasteful in terms of bandwidth,

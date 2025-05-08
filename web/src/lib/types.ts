@@ -53,7 +53,6 @@ export function parseChatEntries(json: object): ChatEntry[] {
         return [];
     } else {
         return json.messages.flatMap((entry: any) => {
-            console.log(entry);
             if (entry.type === "human") {
                 return [makeHumanEntry(entry.content)];
             }
@@ -101,7 +100,29 @@ export function demographicsToJson(demo: Demographics) {
     if (demo.occupation !== "") json = { ...json, occupation: demo.occupation };
     if (demo.supportSystem !== "") json = { ...json, supportSystem: demo.supportSystem };
     if (demo.medicalHistory !== "") json = { ...json, medicalHistory: demo.medicalHistory };
-    const s = JSON.stringify(json);
-    console.log("Demographics JSON: ", s);
-    return s;
+    return JSON.stringify(json);
+}
+
+export function generateCuteUUID() {
+    const adjectives = [
+        "adorable", "bubbly", "cheerful", "cuddly", "dizzy", "fluffy", "happy",
+        "jolly", "kind", "lovely", "mellow", "nifty", "peppy", "plucky",
+        "precious", "quiet", "rosy", "sleepy", "snuggly", "soft", "sparkly",
+        "sunny", "sweet", "ticklish", "tiny", "warm", "wiggly", "zesty", "zany",
+        "glowy", "gentle", "bright", "dreamy", "honeyed", "charming", "fuzzy",
+        "smiley", "tender", "twinkly", "winsome", "chirpy"
+    ];
+    const animals = [
+        "bunny", "kitten", "puppy", "duckling", "hedgehog", "penguin", "panda",
+        "fawn", "lamb", "koala", "hamster", "otter", "sloth", "mouse", "calf",
+        "seal", "whale", "swan", "cub", "foal", "quokka", "flamingo",
+        "starling", "parakeet", "peep", "caterpillar", "guinea", "deerling",
+        "shrew", "snail", "turtle", "lovebird", "wren", "goldfinch", "bluebird",
+        "mole", "cygnet"
+    ];
+    const adjective = adjectives[Math.floor(Math.random() * adjectives.length)];
+    const animal = animals[Math.floor(Math.random() * animals.length)];
+    const number = Math.floor(Math.random() * 99);
+    const numberString = number < 10 ? `0${number}` : `${number}`;
+    return `${adjective}-${animal}-${numberString}`;
 }
