@@ -27,7 +27,6 @@
 
 `python overly_simple_s1.py --output_dir="fine_tuned_model"`
 
-
 ## The Code
 
 The code in `s1_31a10f2` has been modified to incorporate LoRA, and an additional LoRA config file, `train/lora_config.json`, has been added.
@@ -43,7 +42,7 @@ To train any of the models, the following commands can be used as templates:
 torchrun \
   --standalone \
   --nproc-per-node=8 \
-  train/sft_peft.py \
+  train/sft.py \
   --per_device_train_batch_size=1 \
   --per_device_eval_batch_size=1 \
   --gradient_accumulation_steps=1 \
@@ -91,7 +90,7 @@ torchrun \
   --rdzv_backend=c10d \
   --rdzv_conf='read_timeout=420' \
   --rdzv_endpoint=10.0.0.5:29404 \
-  train/sft_peft.py \
+  train/sft.py \
   --per_device_train_batch_size=1 \
   --per_device_eval_batch_size=1 \
   --gradient_accumulation_steps=1 \
@@ -134,7 +133,7 @@ torchrun \
   --rdzv_backend=c10d \
   --rdzv_conf='read_timeout=420' \
   --rdzv_endpoint=10.0.0.5:29404 \
-  train/sft_peft.py \
+  train/sft.py \
   --per_device_train_batch_size=1 \
   --per_device_eval_batch_size=1 \
   --gradient_accumulation_steps=1 \
@@ -217,8 +216,6 @@ micro_batch_size=1
 gpu_count=${SLURM_GPUS_ON_NODE}
 gradient_accumulation_steps=1
 block_size=32768
-
-
 
 # Launch training
 srun torchrun \
