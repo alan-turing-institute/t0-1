@@ -31,6 +31,27 @@
 
 The code in `s1_31a10f2` has been modified to incorporate LoRA, and an additional LoRA config file, `train/lora_config.json`, has been added.
 
+## LoRA
+
+To use LoRA, set the `--lora` flag to `True` in the training command (`torchrun ...`). The LoRA configuration file is located at `train/lora_config.json`, and can be modified as needed. 
+
+The default configuration is shown below. For the QWEN 2.5 7B model, it results in the following reduction in the number of trainable parameters:
+
+**Trainable params:** 40,370,176  
+**Total params:** 7,655,986,688  
+**Trainable %:** 0.5273
+
+```json
+{
+    "r": 16,
+    "lora_alpha": 32,
+    "lora_dropout": 0.05,
+    "bias": "none",
+    "target_modules": "all-linear",
+    "task_type": "CAUSAL_LM"
+}
+```
+
 ## Training
 
 To train any of the models, the following commands can be used as templates:
