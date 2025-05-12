@@ -190,6 +190,7 @@ async def process_query(
                         target_condition = remove_dash_and_spaces(target_document)
                         conditions_match = prediction_condition == target_condition
                     else:
+                        parsed_condition = ""
                         conditions_match = False
 
                     if arguments.get("severity_level") is not None:
@@ -199,10 +200,13 @@ async def process_query(
                             == item["severity_level"].lower()
                         )
                     else:
+                        parsed_severity_level = ""
                         severity_match = False
                 else:
                     conditions_match = False
                     severity_match = False
+                    parsed_condition = ""
+                    parsed_severity_level = ""
 
         # create dictionary to store the results
         retrieved_docs_scores = [
@@ -249,7 +253,7 @@ async def process_query(
                 "tool_calls"
             ),
         }
-    except (Exception, asyncio.CancelledError, asyncio.TimeoutError) as err:
+    except (Exception, BaseException) as err:
         error_as_str = f"{type(err).__name__} - {err}"
         logging.error(f"Error querying RAG: {error_as_str}")
 
@@ -296,7 +300,7 @@ async def process_query(
             res["reranked_documents_sources"]
         )
 
-        res["parsed_conditions"] = parsed_condition
+        res["parsed_condition"] = parsed_condition
         res["parsed_severity_level"] = parsed_severity_level
 
         if parsed_condition == "inconclusive":
