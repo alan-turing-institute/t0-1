@@ -44,7 +44,7 @@ RAG with retrieval as above and a non--reasoning model as generator vs the same 
 
 | $k$ | LLM            | Condition Accuracy | Severity Accuracy |
 |----:|----------------|-------------------:|------------------:|
-|  NA   | GPT-4o    |               0. |              0. |
+|  NA   | GPT-4o    |               0.49 |              0.56 |
 |     | Qwen (32B)     |               0. |              0. |
 |  5   | GPT-4o    |               0.55 |              0.54 |
 |     | Qwen (32B)     |               0.52 |              0.50 |
