@@ -1,11 +1,11 @@
-# Knowledge retrieval summary results
+# Knowledge retrieval with a reasoning model: summary results
 
 ## Goal
 
 Answers to:
-1. Does RAG improve over no RAG? (results in table 2b vs 3a)
-2. Does reasoning improve over only RAG? (s1 in Table 4 vs Qwen-32B in table 2b)
-3. Does domain-reasoning improve over general reasoning? (s1 vs Marcel)
+1. Does RAG improve over no RAG?
+2. Does reasoning improve over only RAG?
+3. Does domain-reasoning improve over general reasoning?
 
 Performance is measured by the fraction of predictions of condition
 and severity that are correct. Some evaluations return $k$ possible
@@ -13,128 +13,63 @@ conditions and there we give the "precision at $k$", or the fraction
 of queries for which at least one of the returned conditions is
 correct.
 
-Two evaluation datasets are used: (1) "small," our original one of
-~100 synthetic queries; (2) "large," our revised set of ~1,000
-queries. (We may revise "large" to make "large2").
+The evaluation dataset contains 1,000 synthetically generated patient queries.
 
-## Priority order for running evaluations
-
-All for large evaluation set only.
-
-1. **2.b**: Baseline RAG, Qwen 32B.
-2. **3.a**: Baseline **without** RAG, Qwen 32B and DeepSeek-r1
-3. **4**: RAG, “Marcel” (first) and s1 (cross-check)
-4. **2.c**: Baseline RAG, DeepSeek-r1 or o3-mini, Qwen 1.5B
-
-## 1. Retrieval only
+## 1. Results: retrieval only
 
 Retrieval only, by means of vector dB similarity lookup. Returns $k$
-chunks. $p@k$ refers to the fraction of those chunks coming from the
-correct condition.
+conditions based on the similarity with the patienty query and the summary of the condition. $p@k$ refers to the number of times the correct condition is present among the $k$ returned contisions.
 
 Sets the highest precision possible through RAG, if the predicted
 condition is constrained to be one of the $k$ retrieved documents.
 
-| Embedding Method             | Eval Set |  p@1 |  p@5 | p@10 | p@20 | p@50 | p@100 |
+| Embedding Method             | Eval Set |  p@1 |  p@5 | p@10 | p@30 | p@50 | p@100 |
 |------------------------------|----------|-----:|-----:|-----:|-----:|-----:|------:|
-| mpnet-base-v2 / Chroma       | Small    | 0.47 | 0.56 | 0.68 | 0.69 |    - |     - |
-| mpnet-base-v2 / FAISS        | Small    | 0.47 | 0.68 | 0.71 | 0.78 |    - |     - |
-| mxbai-embed-large-v1 / FAISS | Small    | 0.51 | 0.68 | 0.71 | 0.76 |    - |     - |
-| mpnet-base-v2 / Chroma       | Large    | 0.41 | 0.61 | 0.69 | 0.78 | 0.87 |  0.91 |
-| mpnet-base-v2 / FAISS        | Large    | 0.40 | 0.61 | 0.69 | 0.78 | 0.87 |  0.91 |
+| mpnet-base-v2 / Chroma       | Large    | 0.51 | 0.75 | 0.83 | 0.93 | 0.96 |  0.98 |
+| mpnet-base-v2 / FAISS        | Large    | 0.51 | 0. | 0. | 0. | 0. |  0. |
 
 ### Conclusion
 
 Chroma and FAISS perform very similarly on the large eval set, and
 Chroma is just slightly faster, so we'll use this as retrieval system
 for the rest of the evaluation. From now on, we'll consider two *k*,
-10 and 50, as they provide an overview of performance when retrieving
-documents where at least one is relevant in respectivelly 70% and 86%
+5 and 30, as they provide an overview of performance when retrieving
+documents where at least one is relevant in respectivelly 75% and 90%
 of the queries.
 
-## 2. Baseline models (RAG)
+## 2. Results: RAG vs no RAG
 
-RAG with retrieval as above and a non--fine-tuned, baseline
-model. Sets the baseline precision.
-
-### 2 a. Small evaluation set
-
-| LLM         | $k$ | Condition Accuracy | Severity Accuracy |
-|-------------|----:|-------------------:|------------------:|
-| GPT-4o      |  10 |               0.52 |              0.49 |
-|             |  50 |           **0.61** |              0.53 |
-| o3-mini     |  10 |               0.56 |              0.54 |
-|             |  50 |               0.59 |          **0.62** |
-| DeepSeek-r1 |  10 |               0.52 |              0.49 |
-|             |  50 |               0.57 |              0.43 |
-| Qwen (1.5B) |  10 |               0.35 |              0.34 |
-|             |  50 |               0.20 |              0.29 |
-| Qwen (14B)  |  10 |               0.47 |              0.52 |
-|             |  50 |               0.51 |              0.46 |
-| Qwen (32B)  |  10 |               0.53 |              0.46 |
-|             |  50 |               0.59 |              0.43 |
-
-NB. Qwen is Qwen2.5 Instruct.
-
-### 2.b Large evaluation set (cross-check with 2a)
+RAG with retrieval as above and a non--reasoning model as generator vs the same model, without RAG to support it. This will let us understanding the usefulness of RAG.
 
 
 | $k$ | LLM            | Condition Accuracy | Severity Accuracy |
 |----:|----------------|-------------------:|------------------:|
-|  10 | DeepSeek-r1    |               0.42 |              0.43 |
-|     | o3-mini        |               0.47 |              0.42 |
-|     | Qwen (1.5B)    |               0.26 |              0.08 |
-|     | Qwen (32B)     |               0.42 |              0.41 |
-|  30 | DeepSeek-r1    |               0.44 |              0.42 |
-|     | o3-mini        |               0.48 |              0.46 |
-|     | Qwen (1.5B)    |               0.16 |              0.05 |
-|     | Qwen (7B) [p]  |               0.37 |              0.30 |
-|     | Qwen (14B) [p] |               0.29 |              0.35 |
-|     | Qwen (32B)     |               0.45 |              0.40 |
+|  NA   | GPT-4o    |               0. |              0. |
+|     | Qwen (32B)     |               0. |              0. |
+|  5   | GPT-4o    |               0. |              0. |
+|     | Qwen (32B)     |               0. |              0. |
+|  30   | GPT-4o    |               0. |              0. |
+|     | Qwen (32B)     |               0. |              0. |
 
-### 2.c (Omitted)
-
-### 2.d Large evaluation set (not essential)
-
-| LLM         | $k$ | Condition Accuracy | Severity Accuracy |
-|-------------|----:|-------------------:|------------------:|
-| o3-mini     | 100 |                  x |                 x |
-| DeepSeek-r1 | 100 |                  x |                 x |
-| Qwen (1.5B) | 100 |                  x |                 x |
+### Conclusion
 
 
-## 3. Baseline model (no RAG)
-
-Results with a large model, without passing in documents for RAG,
-large evaluation set.
-
-### 3.a
-
-| LLM         | Condition Accuracy | Severity Accuracy |
-|-------------|-------------------:|------------------:|
-| GPT-4o      |               0.41 |              0.46 |
-| 03-mini     |               0.17 |              0.44 |
-| DeepSeek-r1 |                  x |                 x |
-| Qwen-32B    |                  x |                 x |
-
-### 3.b (as time allows)
-
-| LLM       | Condition Accuracy | Severity Accuracy |
-|-----------|-------------------:|------------------:|
-| o3-mini   |                  x |                 x |
-| Qwen-1.5B |                  x |                 x |
-
-
-## 4. RAG + post-trained model
+## 3. Results: RAG + reasoning model
 
 Same as before but now we are using models post-trained on reasoning
-data. There are two ideas:
+data as generators:
 
-1. s1 (Qwen32B fine-tuned on reasoning)
-2. "Marcel" aka t1 (Qwen32B fine-tuned on domain-specific reasoning
-   traces).
 
-| LLM    | Condition Accuracy | Severity Accuracy |
-|--------|-------------------:|------------------:|
-| s1     | x                  | x                 |
-| Marcel | x                  | x                 |
+| $k$ | LLM       | Condition Accuracy | Severity Accuracy |
+|----:|-----------|-------------------:|------------------:|
+|  5   | 03-mini    |               0. |              0. |
+|     | DeepSeek-r1     |               0. |              0. |
+|     | s1     |               0. |              0. |
+|     | Qwen3     |               0. |              0. |
+|     | t0-k5C-32B     |               0. |              0. |
+|  30   | 03-mini    |               0. |              0. |
+|     | DeepSeek-r1     |               0. |              0. |
+|     | Qwen3     |               0. |              0. |
+|     | t0-k5C-32B     |               0. |              0. |
+
+### Conclusion
