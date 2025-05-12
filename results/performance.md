@@ -34,7 +34,7 @@ Chroma and FAISS perform very similarly on the large eval set, and
 Chroma is just slightly faster, so we'll use this as retrieval system
 for the rest of the evaluation. From now on, we'll consider two *k*,
 5 and 30, as they provide an overview of performance when retrieving
-documents where at least one is relevant in respectivelly 75% and 90%
+documents where at least one is relevant in respectively 75% and 90%
 of the queries.
 
 ## 2. Results: RAG vs no RAG
@@ -46,9 +46,9 @@ RAG with retrieval as above and a non--reasoning model as generator vs the same 
 |----:|----------------|-------------------:|------------------:|
 |  NA   | GPT-4o    |               0. |              0. |
 |     | Qwen (32B)     |               0. |              0. |
-|  5   | GPT-4o    |               0. |              0. |
+|  5   | GPT-4o    |               0.55 |              0.54 |
 |     | Qwen (32B)     |               0.52 |              0.50 |
-|  30   | GPT-4o    |               0. |              0. |
+|  30   | GPT-4o    |               0.58 |              0.53 |
 |     | Qwen (32B)     |               0.51 |              0.50 |
 
 ### Conclusion
@@ -70,7 +70,7 @@ data as generators:
 |  30   | o3-mini    |               0.58 |              0.56 |
 |     | DeepSeek-r1     |               0.56 |              0.51 |
 |     | s1     |               0.45 |              0.45 |
-|     | Qwen3     |               0. |              0. |
+|     | Qwen3     |               0.56 |              0.46 |
 |     | t0-k5-32B     |               0.55 |              0.50 |
 
 * (budget forcing with 256 max thinking tokens, num_stop_skips=3)
