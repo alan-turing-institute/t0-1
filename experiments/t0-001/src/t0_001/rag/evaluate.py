@@ -205,6 +205,8 @@ async def process_query(
                 else:
                     conditions_match = False
                     severity_match = False
+                    parsed_condition = ""
+                    parsed_severity_level = ""
 
         # create dictionary to store the results
         retrieved_docs_scores = [
