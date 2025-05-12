@@ -26,7 +26,7 @@ condition is constrained to be one of the $k$ retrieved documents.
 | Embedding Method             | Eval Set |  p@1 |  p@5 | p@10 | p@30 | p@50 | p@100 |
 |------------------------------|----------|-----:|-----:|-----:|-----:|-----:|------:|
 | mpnet-base-v2 / Chroma       | Large    | 0.51 | 0.75 | 0.83 | 0.93 | 0.96 |  0.98 |
-| mpnet-base-v2 / FAISS        | Large    | 0.51 | 0. | 0. | 0. | 0. |  0. |
+| mpnet-base-v2 / FAISS        | Large    | 0.51 | 0.76 | 0. | 0.93 | 0. |  0. |
 
 ### Conclusion
 
@@ -45,11 +45,11 @@ RAG with retrieval as above and a non--reasoning model as generator vs the same 
 | $k$ | LLM            | Condition Accuracy | Severity Accuracy |
 |----:|----------------|-------------------:|------------------:|
 |  NA   | GPT-4o    |               0. |              0. |
-|     | Qwen (32B)     |               0. |              0. |
+|     | Qwen (32B)     |               0.52 |              0.50 |
 |  5   | GPT-4o    |               0. |              0. |
 |     | Qwen (32B)     |               0. |              0. |
 |  30   | GPT-4o    |               0. |              0. |
-|     | Qwen (32B)     |               0. |              0. |
+|     | Qwen (32B)     |               0.51 |              0.50 |
 
 ### Conclusion
 
@@ -62,14 +62,17 @@ data as generators:
 
 | $k$ | LLM       | Condition Accuracy | Severity Accuracy |
 |----:|-----------|-------------------:|------------------:|
-|  5   | 03-mini    |               0. |              0. |
-|     | DeepSeek-r1     |               0. |              0. |
-|     | s1     |               0. |              0. |
+|  5   | o3-mini    |               0.54 |              0.56 |
+|     | DeepSeek-r1     |               0.56 |              0.51 |
+|     | s1     |               0.50 |              0.44 |
+|     | Qwen3     |               0.53 |              0.49 |
+|     | t0-k5C-32B*     |               0.56 |              0.51 |
+|  30   | o3-mini    |               0.58 |              0.56 |
+|     | DeepSeek-r1     |               0.56 |              0.51 |
+|     | s1     |               0.45 |              0.45 |
 |     | Qwen3     |               0. |              0. |
-|     | t0-k5C-32B     |               0. |              0. |
-|  30   | 03-mini    |               0. |              0. |
-|     | DeepSeek-r1     |               0. |              0. |
-|     | Qwen3     |               0. |              0. |
-|     | t0-k5C-32B     |               0. |              0. |
+|     | t0-k5C-32B     |               0.55 |              0.50 |
+
+* (budget forcing with 256 max thinking tokens, num_stop_skips=3)
 
 ### Conclusion
