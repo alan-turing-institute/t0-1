@@ -1,4 +1,4 @@
-CUDA_VISIBLE_DEVICES=0,1,2,3 uv run vllm serve Qwen/Qwen2.5-32B-Instruct \
+CUDA_VISIBLE_DEVICES=0,1,2,3 vllm serve Qwen/Qwen2.5-32B-Instruct \
 --port 8020 \
 --tensor-parallel-size 4 \
 --max-model-len 131072 \
