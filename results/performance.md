@@ -66,12 +66,12 @@ data as generators:
 |     | DeepSeek-r1     |               0.56 |              0.51 |
 |     | s1     |               0.50 |              0.44 |
 |     | Qwen3     |               0.53 |              0.49 |
-|     | t0-k5C-32B*     |               0.56 |              0.51 |
+|     | t0-k5-32B*     |               0.56 |              0.51 |
 |  30   | o3-mini    |               0.58 |              0.56 |
 |     | DeepSeek-r1     |               0.56 |              0.51 |
 |     | s1     |               0.45 |              0.45 |
 |     | Qwen3     |               0. |              0. |
-|     | t0-k5C-32B     |               0.55 |              0.50 |
+|     | t0-k5-32B     |               0.55 |              0.50 |
 
 * (budget forcing with 256 max thinking tokens, num_stop_skips=3)
 
