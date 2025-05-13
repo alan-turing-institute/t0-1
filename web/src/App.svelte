@@ -15,8 +15,6 @@
 
     // HTTPS proxy
     // const HOST = "https://atit0proxy.fly.dev";
-
-    // Locally running
     const HOST = "http://localhost:8000";
 
     // UI state
@@ -41,30 +39,25 @@
         currentId = NEW_CONVERSATION_ID;
         messages = [];
     }
-    function deleteConversation(id: string) {
-        fetch(`${HOST}/clear_history`, {
+    async function deleteConversation(id: string) {
+        const resp = await fetch(`${HOST}/clear_history`, {
             method: "POST",
             body: JSON.stringify({ thread_id: id }),
             headers: {
                 "Content-Type": "application/json",
             },
-        })
-            .then((response) => {
-                if (!response.ok) {
-                    handleError(
-                        `HTTP ${response.status} error: ${response.statusText}`,
-                    );
-                }
-                allIds = allIds.filter((thread_id) => thread_id !== id);
-                if (allIds.length > 0) {
-                    changeId(allIds[0]);
-                } else {
-                    newConversation();
-                }
-            })
-            .catch((error) => {
-                handleError(error.message);
-            });
+        });
+        if (!resp.ok) {
+            handleError(`HTTP ${resp.status} error: ${resp.statusText}`);
+            return;
+        }
+
+        allIds = allIds.filter((thread_id) => thread_id !== id);
+        if (allIds.length > 0) {
+            changeId(allIds[0]);
+        } else {
+            newConversation();
+        }
     }
 
     // Dark mode management
@@ -107,77 +100,62 @@
         }, 10000);
     }
 
-    function loadThreads(forceUpdateThreadId: boolean) {
-        fetch(`${HOST}/get_thread_ids`, {
+    async function loadThreads(forceUpdateThreadId: boolean) {
+        const resp = await fetch(`${HOST}/get_thread_ids`, {
             method: "GET",
-        })
-            .then((response) => {
-                if (!response.ok) {
-                    handleError(
-                        `HTTP ${response.status} error: ${response.statusText}`,
-                    );
-                }
-                response.json().then((data) => {
-                    allIds = data.thread_ids;
-                    // There are a few situations where we might want to update the
-                    // thread ID, i.e. set the active thread ID to the first one.
-                    // 1. If the forceUpdateThreadId flag is set to true (i.e. during
-                    // initial load)
-                    // 2. If the currentId is not NEW_CONVERSATION_ID, i.e., the user is in
-                    // an active conversation, but the thread ID is not in the list,
-                    // that means that the conversation was deleted by somebody else.
-                    // To keep the UI in sync, we should then reset the thread ID.
-                    let updateThreadId =
-                        forceUpdateThreadId ||
-                        (currentId !== NEW_CONVERSATION_ID &&
-                            !allIds.includes(currentId));
-                    if (updateThreadId) {
-                        if (allIds.length > 0) {
-                            changeId(allIds[0]);
-                        } else {
-                            changeId(NEW_CONVERSATION_ID);
-                        }
-                    }
-                    console.log("loaded thread ids", $state.snapshot(allIds));
-                });
-            })
-            .catch((error) => {
-                handleError(error.message);
-            });
+        });
+        if (!resp.ok) {
+            handleError(`HTTP ${resp.status} error: ${resp.statusText}`);
+            return;
+        }
+
+        const data = await resp.json();
+        allIds = data.thread_ids;
+        // There are a few situations where we might want to update the
+        // thread ID, i.e. set the active thread ID to the first one.
+        // 1. If the forceUpdateThreadId flag is set to true (i.e. during
+        // initial load)
+        // 2. If the currentId is not NEW_CONVERSATION_ID, i.e., the user is in
+        // an active conversation, but the thread ID is not in the list,
+        // that means that the conversation was deleted by somebody else.
+        // To keep the UI in sync, we should then reset the thread ID.
+        let updateThreadId =
+            forceUpdateThreadId ||
+            (currentId !== NEW_CONVERSATION_ID && !allIds.includes(currentId));
+        if (updateThreadId) {
+            if (allIds.length > 0) {
+                changeId(allIds[0]);
+            } else {
+                changeId(NEW_CONVERSATION_ID);
+            }
+        }
+        console.log("loaded thread ids", $state.snapshot(allIds));
     }
 
-    function loadMessages(thread_id: string) {
+    async function loadMessages(thread_id: string) {
         const url = `${HOST}/get_history?thread_id=${thread_id}`;
-        fetch(url, {
+        const resp = await fetch(url, {
             method: "GET",
-        })
-            .then((response) => {
-                if (!response.ok) {
-                    // If 404, no thread found
-                    if (response.status === 404) {
-                        messages = [];
-                        console.log(
-                            "No thread found, messages set to empty array",
-                        );
-                        return;
-                    } else {
-                        handleError(
-                            `HTTP ${response.status} error: ${response.statusText}`,
-                        );
-                    }
-                }
-                response.json().then((data) => {
-                    console.log("received these messages from backend: ", data);
-                    messages = parseChatEntries(data);
-                    console.log(
-                        "frontend messages set to: ",
-                        $state.snapshot(messages),
-                    );
-                });
-            })
-            .catch((error) => {
-                handleError(error.message);
-            });
+        });
+
+        if (!resp.ok) {
+            // If 404, no thread found
+            if (resp.status === 404) {
+                messages = [];
+                console.log("No thread found, messages set to empty array");
+                return;
+            } else {
+                handleError(`HTTP ${resp.status} error: ${resp.statusText}`);
+            }
+        } else {
+            const data = await resp.json();
+            console.log("received these messages from backend: ", data);
+            messages = parseChatEntries(data);
+            console.log(
+                "frontend messages set to: ",
+                $state.snapshot(messages),
+            );
+        }
     }
 
     async function getNewThreadId() {
