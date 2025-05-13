@@ -2,7 +2,6 @@
     import { type ChatEntry, type AIChatEntry, makeAIEntry } from "./types";
     import Loading from "./Loading.svelte";
     import Reasoning from "./Reasoning.svelte";
-    // import Typewriter from "svelte-typewriter";
 
     interface Props {
         history: Array<ChatEntry>;
@@ -15,9 +14,9 @@
     let nextMessageParsed: AIChatEntry[] = $derived(
         nextMessage === "" ? [] : [makeAIEntry(nextMessage)],
     );
-    let nextMessageStillReasoning: boolean = $derived(
+    let nextMessageHasContent: boolean = $derived(
         nextMessageParsed.length > 0 &&
-            nextMessageParsed[0].content.trim() === "",
+            nextMessageParsed[0].content.trim() !== "",
     );
     let historyCombined = $derived([...history, ...nextMessageParsed]);
 
@@ -70,30 +69,30 @@
                 {#if entry.content !== ""}
                     {@html entry.content}
                 {/if}
-                {#if !nextMessageStillReasoning}
+                {#if nextMessageHasContent || !loading}
                     <Reasoning reasoning={entry.reasoning} />
                 {/if}
             {:else if entry.role === "human"}
                 {@html entry.content}
             {:else if entry.role === "tool"}
-                <p>Looked up the following sources:</p>
-                <ul>
-                    {#each entry.sources as source}
-                        <li>
-                            <a
-                                href="https://www.nhs.uk/conditions/{source}"
-                                target="_blank">{source}</a
-                            >
-                        </li>
-                    {/each}
-                </ul>
+                    <p>Looked up the following sources:</p>
+                    <ul>
+                        {#each entry.sources as source}
+                            <li>
+                                <a
+                                    href="https://www.nhs.uk/conditions/{source}"
+                                    target="_blank">{source}</a
+                                >
+                            </li>
+                        {/each}
+                    </ul>
             {/if}
         </div>
     {/each}
-    {#if loading || nextMessageStillReasoning}
-        <Loading />
-    {/if}
 </div>
+{#if loading && !nextMessageHasContent}
+    <Loading />
+{/if}
 
 <style>
     div.chatlog {
@@ -106,6 +105,9 @@
         margin: auto 0 20px 0;
         padding: 0px 10px;
         scroll-behavior: smooth;
+    }
+    div.chatlog > :last-child {
+        margin-bottom: 100vh;
     }
 
     div.tool {
