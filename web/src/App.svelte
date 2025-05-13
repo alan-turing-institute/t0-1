@@ -10,7 +10,6 @@
         type Demographics,
         emptyDemographics,
         demographicsToJson,
-        generateCuteUUID,
     } from "./lib/types";
     import { onMount } from "svelte";
 
@@ -181,15 +180,23 @@
             });
     }
 
-    function queryLLM(query: string) {
+    async function getNewThreadId() {
+        const url = `${HOST}/new_thread_id`;
+        const resp = await fetch(url, { method: "GET" });
+        if (!resp.ok) {
+            handleError(`HTTP ${resp.status} error: ${resp.statusText}`);
+        } else {
+            const data = await resp.json();
+            console.log("received new thread id from backend: ", data);
+            return data.thread_id;
+        }
+    }
+
+    async function queryLLM(query: string) {
         loading = true;
 
         if (currentId === NEW_CONVERSATION_ID) {
-            // Generate new ID
-            let newId = generateCuteUUID();
-            while (allIds.includes(newId)) {
-                newId = generateCuteUUID();
-            }
+            let newId = await getNewThreadId();
             currentId = newId;
             // push to the front as it will be the most recent
             allIds.unshift(currentId);
@@ -203,55 +210,46 @@
         };
         const url = `${HOST}/query`;
 
-        fetch(url, {
+        const resp = await fetch(url, {
             method: "POST",
             body: JSON.stringify(body),
             headers: {
                 "Content-Type": "application/json",
             },
-        })
-            .then((response) => {
-                if (!response.ok) {
-                    // TODO Handle nicely -- 404s and stuff go here
-                    handleError(
-                        `HTTP ${response.status} error: ${response.statusText}`,
-                    );
-                }
-                response.json().then((data) => {
-                    console.log(
-                        "received this data from querying backend: ",
-                        data,
-                    );
-                    // We don't bother parsing the response manually here --
-                    // instead we'll just load the entire conversation from the
-                    // server. This is rather wasteful in terms of bandwidth,
-                    // but it means that there's only one code path for parsing
-                    // the response (i.e. we don't perform some kind of
-                    // incremental parsing and
-                    loadMessages(currentId);
-                    loading = false;
+        });
+        if (!resp.ok) {
+            // TODO Handle nicely -- 404s and stuff go here
+            handleError(`HTTP ${resp.status} error: ${resp.statusText}`);
+        } else {
+            const data = await resp.json();
 
-                    // TODO: Keeping this code here just in case it's needed
-                    // for when we implement streaming.
-                    // Maybe we could just do e.g.
-                    // parseChatMessages(data.response.mesesages)?
-                    //
-                    // const last_message =
-                    //     data.response.messages[
-                    //         data.response.messages.length - 1
-                    //     ]
-                    // if (last_message.type !== "ai") {
-                    //     handleError(
-                    //         "Last message was not AI, something went wrong",
-                    //     );
-                    //     return;
-                    // }
-                    // messages.push(makeAIEntry(last_message.content));
-                });
-            })
-            .catch((error) => {
-                handleError(error.message);
-            });
+            console.log("received this data from querying backend: ", data);
+            // We don't bother parsing the response manually here --
+            // instead we'll just load the entire conversation from the
+            // server. This is rather wasteful in terms of bandwidth,
+            // but it means that there's only one code path for parsing
+            // the response (i.e. we don't perform some kind of
+            // incremental parsing and
+            loadMessages(currentId);
+            loading = false;
+
+            // TODO: Keeping this code here just in case it's needed
+            // for when we implement streaming.
+            // Maybe we could just do e.g.
+            // parseChatMessages(data.response.mesesages)?
+            //
+            // const last_message =
+            //     data.response.messages[
+            //         data.response.messages.length - 1
+            //     ]
+            // if (last_message.type !== "ai") {
+            //     handleError(
+            //         "Last message was not AI, something went wrong",
+            //     );
+            //     return;
+            // }
+            // messages.push(makeAIEntry(last_message.content));
+        }
     }
 
     let backendReady: boolean = $state(false);
