@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { type ChatEntry, makeAIEntry } from "./types";
+    import { type ChatEntry, type AIChatEntry, makeAIEntry } from "./types";
     import Loading from "./Loading.svelte";
     import Reasoning from "./Reasoning.svelte";
     // import Typewriter from "svelte-typewriter";
@@ -12,7 +12,14 @@
 
     let { history, loading, nextMessage }: Props = $props();
 
-    let nextMessageParsed: ChatEntry = $derived(makeAIEntry(nextMessage));
+    let nextMessageParsed: AIChatEntry[] = $derived(
+        nextMessage === "" ? [] : [makeAIEntry(nextMessage)],
+    );
+    let nextMessageStillReasoning: boolean = $derived(
+        nextMessageParsed.length > 0 &&
+            nextMessageParsed[0].content.trim() === "",
+    );
+    let historyCombined = $derived([...history, ...nextMessageParsed]);
 
     // Controls whether the chat log should auto-scroll to the newest entry when it's added
     let autoScroll: boolean = true;
@@ -53,15 +60,15 @@
 </script>
 
 <div class="chatlog" onscroll={setAutoScroll} bind:this={chatLogDiv}>
-    {#each history as entry}
+    {#each historyCombined as entry}
         <div class={entry.role} use:scroll>
             {#if entry.role === "ai"}
-                {@html entry.content}
-                <!-- Disabling typewriter for now as it messes with scroll -->
-                <!-- <Typewriter cursor={false} mode="cascade" interval="8" -->
-                <!--     >{@html entry.content}</Typewriter -->
-                <!-- > -->
-                <Reasoning reasoning={entry.reasoning} />
+                {#if entry.content !== ""}
+                    {@html entry.content}
+                {/if}
+                {#if !nextMessageStillReasoning}
+                    <Reasoning reasoning={entry.reasoning} />
+                {/if}
             {:else if entry.role === "human"}
                 {@html entry.content}
             {:else if entry.role === "tool"}
@@ -79,17 +86,7 @@
             {/if}
         </div>
     {/each}
-    {#if nextMessage !== ""}
-        <div class="ai">
-            {@html nextMessageParsed.content}
-            <!-- Disabling typewriter for now as it messes with scroll -->
-            <!-- <Typewriter cursor={false} mode="cascade" interval="8" -->
-            <!--     >{@html entry.content}</Typewriter -->
-            <!-- > -->
-            <Reasoning reasoning={nextMessageParsed.reasoning} />
-        </div>
-    {/if}
-    {#if loading}
+    {#if loading || nextMessageStillReasoning}
         <Loading />
     {/if}
 </div>

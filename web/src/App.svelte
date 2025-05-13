@@ -210,29 +210,9 @@
                 nextMessage += dc.decode(chunk);
             }
 
-            // const data = await resp.json();
-            // console.log("received this data from querying backend: ", data);
-
             loadMessages(currentId);
             nextMessage = "";
             loading = false;
-
-            // TODO: Keeping this code here just in case it's needed
-            // for when we implement streaming.
-            // Maybe we could just do e.g.
-            // parseChatMessages(data.response.mesesages)?
-            //
-            // const last_message =
-            //     data.response.messages[
-            //         data.response.messages.length - 1
-            //     ]
-            // if (last_message.type !== "ai") {
-            //     handleError(
-            //         "Last message was not AI, something went wrong",
-            //     );
-            //     return;
-            // }
-            // messages.push(makeAIEntry(last_message.content));
         }
     }
 
