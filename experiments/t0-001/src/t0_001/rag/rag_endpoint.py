@@ -1,3 +1,4 @@
+import random
 from pathlib import Path
 
 import uvicorn
@@ -25,13 +26,104 @@ class ClearHistoryRequest(BaseModel):
 
 def create_rag_app(rag: RAG) -> FastAPI:
     app = FastAPI()
+    app.state.active_thread_ids = set()
 
     @app.get("/")
     async def root():
         return {"message": "Hello World"}
 
+    @app.get("/new_thread_id")
+    async def new_thread_id():
+        ADJECTIVES = [
+            "adorable",
+            "bubbly",
+            "cheerful",
+            "dizzy",
+            "fluffy",
+            "happy",
+            "jolly",
+            "kind",
+            "lovely",
+            "mellow",
+            "nifty",
+            "peppy",
+            "plucky",
+            "precious",
+            "quiet",
+            "rosy",
+            "sleepy",
+            "soft",
+            "sparkly",
+            "sunny",
+            "sweet",
+            "tiny",
+            "warm",
+            "zesty",
+            "zany",
+            "glowy",
+            "gentle",
+            "bright",
+            "dreamy",
+            "charming",
+            "fuzzy",
+            "smiley",
+            "tender",
+            "chirpy",
+        ]
+        ANIMALS = [
+            "bunny",
+            "kitten",
+            "puppy",
+            "duckling",
+            "hedgehog",
+            "penguin",
+            "panda",
+            "fawn",
+            "lamb",
+            "koala",
+            "hamster",
+            "otter",
+            "sloth",
+            "mouse",
+            "calf",
+            "seal",
+            "whale",
+            "swan",
+            "cub",
+            "foal",
+            "quokka",
+            "flamingo",
+            "starling",
+            "parakeet",
+            "caterpillar",
+            "guinea",
+            "deerling",
+            "shrew",
+            "snail",
+            "turtle",
+            "wren",
+            "goldfinch",
+            "bluebird",
+            "mole",
+            "cygnet",
+            "gosling",
+        ]
+
+        def _generate():
+            return (
+                f"{random.choice(ADJECTIVES)}"
+                f"-{random.choice(ANIMALS)}"
+                f"-{random.randint(0, 99):02}"
+            )
+
+        while (new_random_thread_id := _generate()) in app.state.active_thread_ids:
+            pass
+        app.state.active_thread_ids.add(new_random_thread_id)
+        return {"thread_id": new_random_thread_id}
+
     @app.post("/query")
     async def query_endpoint(req: QueryRequest):
+        app.state.active_thread_ids.add(req.thread_id)
         response = await rag._aquery(
             req.query, thread_id=req.thread_id, demographics=req.demographics
         )
@@ -43,6 +135,7 @@ def create_rag_app(rag: RAG) -> FastAPI:
 
     @app.post("/query_stream")
     async def query_stream_endpoint(req: QueryRequest):
+        app.state.active_thread_ids.add(req.thread_id)
         return StreamingResponse(
             rag._query_stream(
                 req.query,
@@ -55,6 +148,7 @@ def create_rag_app(rag: RAG) -> FastAPI:
     @app.post("/clear_history")
     async def clear_history_endpoint(req: ClearHistoryRequest):
         rag.clear_history(thread_id=req.thread_id)
+        app.state.active_thread_ids.discard(req.thread_id)
         return {"status": "success", "thread_id": req.thread_id}
 
     @app.get("/get_history")
