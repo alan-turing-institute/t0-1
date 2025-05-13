@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { type ChatEntry } from "./types";
+    import { type ChatEntry, makeAIEntry } from "./types";
     import Loading from "./Loading.svelte";
     import Reasoning from "./Reasoning.svelte";
     // import Typewriter from "svelte-typewriter";
@@ -7,9 +7,12 @@
     interface Props {
         history: Array<ChatEntry>;
         loading: boolean;
+        nextMessage: string;
     }
 
-    let { history, loading }: Props = $props();
+    let { history, loading, nextMessage }: Props = $props();
+
+    let nextMessageParsed: ChatEntry = $derived(makeAIEntry(nextMessage));
 
     // Controls whether the chat log should auto-scroll to the newest entry when it's added
     let autoScroll: boolean = true;
@@ -76,6 +79,16 @@
             {/if}
         </div>
     {/each}
+    {#if nextMessage !== ""}
+        <div class="ai">
+            {@html nextMessageParsed.content}
+            <!-- Disabling typewriter for now as it messes with scroll -->
+            <!-- <Typewriter cursor={false} mode="cascade" interval="8" -->
+            <!--     >{@html entry.content}</Typewriter -->
+            <!-- > -->
+            <Reasoning reasoning={nextMessageParsed.reasoning} />
+        </div>
+    {/if}
     {#if loading}
         <Loading />
     {/if}
@@ -101,7 +114,9 @@
         a {
             color: var(--secondary-fg);
         }
-        a:hover, a:active, a:focus {
+        a:hover,
+        a:active,
+        a:focus {
             color: var(--foreground);
         }
 
