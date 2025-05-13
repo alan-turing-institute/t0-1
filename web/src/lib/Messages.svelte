@@ -21,6 +21,10 @@
     );
     let historyCombined = $derived([...history, ...nextMessageParsed]);
 
+    // $effect(() => {
+    //     console.log(nextMessage);
+    // });
+
     // Controls whether the chat log should auto-scroll to the newest entry when it's added
     let autoScroll: boolean = true;
     let chatLogDiv: HTMLDivElement | null = null;

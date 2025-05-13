@@ -205,14 +205,14 @@
             const dc = new TextDecoder();
 
             for await (const chunk of resp.body) {
-                loading = false;
-                console.log("got chunk: ", chunk);
                 nextMessage += dc.decode(chunk);
             }
 
-            loadMessages(currentId);
-            nextMessage = "";
-            loading = false;
+            setTimeout(() => {
+                loadMessages(currentId);
+                nextMessage = ""
+                loading = false;
+            }, 300);
         }
     }
 
@@ -235,11 +235,11 @@
     onMount(() => {
         startup();
 
-        setInterval(() => {
-            if (backendReady) {
-                loadThreads(false);
-            }
-        }, 5000);
+        // setInterval(() => {
+        //     if (backendReady) {
+        //         loadThreads(false);
+        //     }
+        // }, 5000);
     });
 </script>
 
