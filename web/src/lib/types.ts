@@ -83,7 +83,7 @@ export type Demographics = {
     medicalHistory: string;
 }
 
-export let emptyDemographics = {
+export let emptyDemographics: Demographics = {
     age: 0,
     sex: "unspecified",
     occupation: "",
