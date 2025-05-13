@@ -2,7 +2,7 @@ uv run t0-001 serve-rag \
 --k 5 \
 --db-choice chroma \
 --llm-provider openai_completion \
---llm-model-name TomasLaz/t0-k5-32B \
+--llm-model-name TomasLaz/t0-1.1-k5-32B \
 --budget-forcing \
 --budget-forcing-kwargs '{"max_tokens_thinking": 512, "num_stop_skips": 0}' \
 --extra-body '{"max_tokens": 4096}' \
