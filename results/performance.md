@@ -44,12 +44,12 @@ RAG with retrieval as above and a non--reasoning model as generator vs the same 
 
 | $k$ | LLM            | Condition Accuracy | Severity Accuracy |
 |----:|----------------|-------------------:|------------------:|
-|  NA   | GPT-4o    |               0.49 |              0.56 |
-|     | Qwen (32B)     |               0. |              0. |
-|  5   | GPT-4o    |               0.55 |              0.54 |
-|     | Qwen (32B)     |               0.52 |              0.50 |
-|  30   | GPT-4o    |               0.58 |              0.53 |
-|     | Qwen (32B)     |               0.51 |              0.50 |
+|  NA | GPT-4o         |               0.49 |              0.56 |
+|     | Qwen2.5 (32B)  |               0.40 |              0.45 |
+|  5  | GPT-4o         |               0.55 |              0.54 |
+|     | Qwen2.5 (32B)  |               0.52 |              0.50 |
+|  30 | GPT-4o         |               0.58 |              0.53 |
+|     | Qwen2.5 (32B)  |               0.51 |              0.50 |
 
 ### Conclusion
 
@@ -60,18 +60,18 @@ Same as before but now we are using models post-trained on reasoning
 data as generators:
 
 
-| $k$ | LLM       | Condition Accuracy | Severity Accuracy |
-|----:|-----------|-------------------:|------------------:|
-|  5   | o3-mini    |               0.54 |              0.56 |
-|     | DeepSeek-r1     |               0.56 |              0.51 |
-|     | s1     |               0.50 |              0.44 |
-|     | Qwen3     |               0.53 |              0.49 |
-|     | t0-k5-32B*     |               0.56 |              0.51 |
-|  30   | o3-mini    |               0.58 |              0.56 |
-|     | DeepSeek-r1     |               0.56 |              0.51 |
-|     | s1     |               0.45 |              0.45 |
-|     | Qwen3     |               0.56 |              0.46 |
-|     | t0-k5-32B*     |               0.55 |              0.50 |
+| $k$ | LLM         | Condition Accuracy | Severity Accuracy |
+|----:|-------------|-------------------:|------------------:|
+|  5  | o3-mini     |               0.54 |              0.56 |
+|     | DeepSeek-r1 |               0.56 |              0.51 |
+|     | s1          |               0.50 |              0.44 |
+|     | Qwen3       |               0.53 |              0.49 |
+|     | t0-k5-32B*  |               0.56 |              0.51 |
+|  30 | o3-mini     |               0.58 |              0.56 |
+|     | DeepSeek-r1 |               0.56 |              0.51 |
+|     | s1          |               0.45 |              0.45 |
+|     | Qwen3       |               0.56 |              0.46 |
+|     | t0-k5-32B*  |               0.55 |              0.50 |
 
 * (budget forcing with 256 max thinking tokens, num_stop_skips=3)
 
