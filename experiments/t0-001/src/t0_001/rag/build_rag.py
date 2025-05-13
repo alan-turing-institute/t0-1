@@ -1,5 +1,4 @@
 import logging
-import time
 from pathlib import Path
 from typing import Iterable
 
@@ -1065,7 +1064,6 @@ class RAG:
             config={"configurable": {"thread_id": thread_id}},
             stream_mode=["messages", "custom"],
         ):
-            time.sleep(0.05)
             if message_chunk.response_metadata.get("finish_reason") == "stop":
                 finished = True
             if not finished and metadata.get("langgraph_node") in [
