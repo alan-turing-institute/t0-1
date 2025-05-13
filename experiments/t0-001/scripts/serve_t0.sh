@@ -1,4 +1,4 @@
-CUDA_VISIBLE_DEVICES=4,5,6,7 vllm serve TomasLaz/t0-k5-32B \
+CUDA_VISIBLE_DEVICES=4,5,6,7 vllm serve TomasLaz/t0-1.1-k5-32B \
 --port 8010 \
 --tensor-parallel-size 4 \
 --max-model-len 131072 \
