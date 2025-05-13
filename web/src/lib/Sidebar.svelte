@@ -57,7 +57,7 @@
                     <input
                         id="new"
                         type="radio"
-                        value="new"
+                        value="__new"
                         name="conversation"
                         onchange={() => newConversation()}
                         bind:group={currentId}

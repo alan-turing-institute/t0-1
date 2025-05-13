@@ -25,18 +25,21 @@
     let error: string | null = $state(null);
 
     // Chat persistence and conversation management
-    let currentId: string = $state("new");
+    const NEW_CONVERSATION_ID = "__new";
+    let currentId: string = $state(NEW_CONVERSATION_ID);
     let allIds: Array<string> = $state([]);
     let messages: Array<ChatEntry> = $state([]);
 
     function changeId(id: string) {
         console.log("changing id to", id);
         currentId = id;
-        loadMessages(id);
+        if (id !== NEW_CONVERSATION_ID) {
+            loadMessages(id);
+        }
     }
     function newConversation() {
         console.log("creating new conversation");
-        currentId = "new";
+        currentId = NEW_CONVERSATION_ID;
         messages = [];
     }
     function deleteConversation(id: string) {
@@ -105,29 +108,41 @@
         }, 10000);
     }
 
-    function loadThreads() {
+    function loadThreads(forceUpdateThreadId: boolean) {
         fetch(`${HOST}/get_thread_ids`, {
             method: "GET",
         })
             .then((response) => {
                 if (!response.ok) {
-                    // TODO: This probably means the backend isn't running. We
-                    // should have a more in-your-face-error.
                     handleError(
                         `HTTP ${response.status} error: ${response.statusText}`,
                     );
                 }
                 response.json().then((data) => {
                     allIds = data.thread_ids;
-                    if (allIds.length > 0) {
-                        changeId(allIds[0]);
+                    // There are a few situations where we might want to update the
+                    // thread ID, i.e. set the active thread ID to the first one.
+                    // 1. If the forceUpdateThreadId flag is set to true (i.e. during
+                    // initial load)
+                    // 2. If the currentId is not NEW_CONVERSATION_ID, i.e., the user is in
+                    // an active conversation, but the thread ID is not in the list,
+                    // that means that the conversation was deleted by somebody else.
+                    // To keep the UI in sync, we should then reset the thread ID.
+                    let updateThreadId =
+                        forceUpdateThreadId ||
+                        (currentId !== NEW_CONVERSATION_ID &&
+                            !allIds.includes(currentId));
+                    if (updateThreadId) {
+                        if (allIds.length > 0) {
+                            changeId(allIds[0]);
+                        } else {
+                            changeId(NEW_CONVERSATION_ID);
+                        }
                     }
                     console.log("loaded thread ids", $state.snapshot(allIds));
                 });
             })
             .catch((error) => {
-                // TODO: This probably means the backend isn't running. We
-                // should have a more in-your-face-error.
                 handleError(error.message);
             });
     }
@@ -169,7 +184,7 @@
     function queryLLM(query: string) {
         loading = true;
 
-        if (currentId === "new") {
+        if (currentId === NEW_CONVERSATION_ID) {
             // Generate new ID
             let newId = generateCuteUUID();
             while (allIds.includes(newId)) {
@@ -240,7 +255,7 @@
     }
 
     let backendReady: boolean = $state(false);
-    onMount(() => {
+    function startup() {
         // Check if backend is running
         fetch(`${HOST}`, {
             method: "GET",
@@ -249,24 +264,34 @@
                 response.json().then((_) => {
                     console.log("pinged backend successfully");
                     backendReady = true;
+                    loadThreads(true);
                 });
             }
         });
-        loadThreads();
+    }
+
+    onMount(() => {
+        startup();
+
+        setInterval(() => {
+            if (backendReady) {
+                loadThreads(false);
+            }
+        }, 5000);
     });
 </script>
 
 <div id="wrapper">
-        <Sidebar
-            {currentId}
-            {loading}
-            {allIds}
-            {changeId}
-            {newConversation}
-            {deleteConversation}
-            {darkMode}
-            {toggleTheme}
-        />
+    <Sidebar
+        {currentId}
+        {loading}
+        {allIds}
+        {changeId}
+        {newConversation}
+        {deleteConversation}
+        {darkMode}
+        {toggleTheme}
+    />
     {#if backendReady}
         <main>
             <Error {error} />
@@ -275,8 +300,14 @@
         </main>
     {:else}
         <p id="no-backend">
-            Failed to connect to backend at {HOST}.<br />Please check if the backend is
-            running.
+            <span>Failed to connect to backend at <code>{HOST}</code>.</span>
+            <span>Please check if the backend is running.</span>
+            <span
+                >If you want to change the backend URL, please edit <code
+                    >web/src/App.svelte</code
+                >
+                and change the <code>HOST</code> constant.</span
+            >
         </p>
     {/if}
 </div>
@@ -310,8 +341,11 @@
     }
 
     p#no-backend {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
         margin: auto;
-        padding: 0;
+        padding: 0 30px;
         text-align: center;
         color: var(--foreground);
     }
