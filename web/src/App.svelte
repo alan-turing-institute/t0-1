@@ -12,12 +12,13 @@
         demographicsToJson,
         generateCuteUUID,
     } from "./lib/types";
+    import { onMount } from "svelte";
 
     // HTTPS proxy
-    const HOST = "https://atit0proxy.fly.dev";
+    // const HOST = "https://atit0proxy.fly.dev";
 
     // Locally running
-    // const HOST = "http://localhost:8000";
+    const HOST = "http://localhost:8000";
 
     // UI state
     let loading: boolean = $state(false);
@@ -27,31 +28,6 @@
     let currentId: string = $state("new");
     let allIds: Array<string> = $state([]);
     let messages: Array<ChatEntry> = $state([]);
-
-    fetch(`${HOST}/get_thread_ids`, {
-        method: "GET",
-    })
-        .then((response) => {
-            if (!response.ok) {
-                // TODO: This probably means the backend isn't running. We
-                // should have a more in-your-face-error.
-                handleError(
-                    `HTTP ${response.status} error: ${response.statusText}`,
-                );
-            }
-            response.json().then((data) => {
-                allIds = data.thread_ids;
-                if (allIds.length > 0) {
-                    changeId(allIds[0]);
-                }
-                console.log("loaded thread ids", $state.snapshot(allIds));
-            });
-        })
-        .catch((error) => {
-            // TODO: This probably means the backend isn't running. We
-            // should have a more in-your-face-error.
-            handleError(error.message);
-        });
 
     function changeId(id: string) {
         console.log("changing id to", id);
@@ -113,17 +89,47 @@
     let demographics: Demographics = $state(emptyDemographics);
     function changeDemographics(newDemographics: Demographics) {
         demographics = newDemographics;
-        console.log("updating demographics to ", demographicsToJson(demographics));
+        console.log(
+            "updating demographics to ",
+            demographicsToJson(demographics),
+        );
     }
 
-    // API queries
     function handleError(err: string) {
         console.error("Error:", err);
         error = err;
         loading = false;
+        // TODO: There should be a bounded queue for errors instead of just one
         setTimeout(() => {
             error = null;
         }, 10000);
+    }
+
+    function loadThreads() {
+        fetch(`${HOST}/get_thread_ids`, {
+            method: "GET",
+        })
+            .then((response) => {
+                if (!response.ok) {
+                    // TODO: This probably means the backend isn't running. We
+                    // should have a more in-your-face-error.
+                    handleError(
+                        `HTTP ${response.status} error: ${response.statusText}`,
+                    );
+                }
+                response.json().then((data) => {
+                    allIds = data.thread_ids;
+                    if (allIds.length > 0) {
+                        changeId(allIds[0]);
+                    }
+                    console.log("loaded thread ids", $state.snapshot(allIds));
+                });
+            })
+            .catch((error) => {
+                // TODO: This probably means the backend isn't running. We
+                // should have a more in-your-face-error.
+                handleError(error.message);
+            });
     }
 
     function loadMessages(thread_id: string) {
@@ -149,7 +155,10 @@
                 response.json().then((data) => {
                     console.log("received these messages from backend: ", data);
                     messages = parseChatEntries(data);
-                    console.log("frontend messages set to: ", $state.snapshot(messages));
+                    console.log(
+                        "frontend messages set to: ",
+                        $state.snapshot(messages),
+                    );
                 });
             })
             .catch((error) => {
@@ -194,7 +203,10 @@
                     );
                 }
                 response.json().then((data) => {
-                    console.log("received this data from querying backend: ", data);
+                    console.log(
+                        "received this data from querying backend: ",
+                        data,
+                    );
                     // We don't bother parsing the response manually here --
                     // instead we'll just load the entire conversation from the
                     // server. This is rather wasteful in terms of bandwidth,
@@ -226,24 +238,47 @@
                 handleError(error.message);
             });
     }
+
+    let backendReady: boolean = $state(false);
+    onMount(() => {
+        // Check if backend is running
+        fetch(`${HOST}`, {
+            method: "GET",
+        }).then((response) => {
+            if (response.ok) {
+                response.json().then((_) => {
+                    console.log("pinged backend successfully");
+                    backendReady = true;
+                });
+            }
+        });
+        loadThreads();
+    });
 </script>
 
 <div id="wrapper">
-    <Sidebar
-        {currentId}
-        {loading}
-        {allIds}
-        {changeId}
-        {newConversation}
-        {deleteConversation}
-        {darkMode}
-        {toggleTheme}
-    />
-    <main>
-        <Error {error} />
-        <Messages history={messages} {loading} />
-        <Form {loading} {queryLLM} {changeDemographics} />
-    </main>
+        <Sidebar
+            {currentId}
+            {loading}
+            {allIds}
+            {changeId}
+            {newConversation}
+            {deleteConversation}
+            {darkMode}
+            {toggleTheme}
+        />
+    {#if backendReady}
+        <main>
+            <Error {error} />
+            <Messages history={messages} {loading} />
+            <Form {loading} {queryLLM} {changeDemographics} />
+        </main>
+    {:else}
+        <p id="no-backend">
+            Failed to connect to backend at {HOST}.<br />Please check if the backend is
+            running.
+        </p>
+    {/if}
 </div>
 
 <style>
@@ -272,5 +307,12 @@
         flex-direction: column;
         align-items: stretch;
         justify-content: end;
+    }
+
+    p#no-backend {
+        margin: auto;
+        padding: 0;
+        text-align: center;
+        color: var(--foreground);
     }
 </style>
