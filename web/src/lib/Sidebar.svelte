@@ -79,8 +79,7 @@
 <style>
     div.sidebar {
         height: 100%;
-        min-width: 225px;
-        width: max-content;
+        width: 240px;
         display: flex;
         flex-direction: column;
         gap: 20px;
@@ -105,6 +104,7 @@
     }
 
     div.conversations {
+        width: 100%;
         display: flex;
         flex-direction: column;
         gap: 10px;
@@ -115,22 +115,21 @@
     }
 
     div.conversation-manager {
+        width: 100%;
         display: flex;
         gap: 10px;
-        justify-content: space-between;
         align-items: center;
+        justify-content: space-between;
 
         label,
         input:disabled + label {
             white-space: nowrap;
             text-overflow: ellipsis;
             overflow: hidden;
-            width: 150px;
             font-size: 0.9em;
-            margin: 0 0 0 10px;
+            margin: 0 0 0 5px;
             padding: 0;
             cursor: pointer;
-            flex: 0 0 auto;
             transition: background-size 0.3s;
             background: linear-gradient(
                     to right,
