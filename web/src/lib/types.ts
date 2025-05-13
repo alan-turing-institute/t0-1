@@ -33,7 +33,15 @@ export function makeToolEntry(sources: string[]): ToolChatEntry {
     return { role: "tool", sources };
 }
 function postProcessReasoning(reasoning: string): string {
-    return reasoning.split(".").slice(0, -1).join(".") + ".";
+    const r = reasoning.split(".").slice(0, -1).join(".") + ".";
+    return r.replace(/<\|im_start\|>/g, "").trim();
+}
+export function postProcessAnswer(answer: string): string {
+    return answer
+        .trim()
+        .replace(/-+$/, "")
+        .replace(/<\|im_start\|>/g, "")
+        .trim();
 }
 export function makeAIEntry(message: string): AIChatEntry {
     const components = message.split("<|im_start|>answer");
@@ -41,14 +49,13 @@ export function makeAIEntry(message: string): AIChatEntry {
         const [reasoning2, answer2] = components;
         const [_, reasoning3] = reasoning2.split("<|im_start|>think");
         // cut at the last sentence
-        const reasoning4 = postProcessReasoning(reasoning3);
+        const reasoning = postProcessReasoning(reasoning3);
         // remove stray im_starts
-        const reasoning = reasoning4.replace(/<\|im_start\|>/g, "");
-        const answer = answer2.replace(/<\|im_start\|>/g, "");
+        const answer = postProcessAnswer(answer2);
         return {
             role: "ai",
-            content: mdToHtml(answer.trim()),
-            reasoning: mdToHtml(reasoning.trim()),
+            content: mdToHtml(answer),
+            reasoning: mdToHtml(reasoning),
         };
     } else {
         // check if it is reasoning

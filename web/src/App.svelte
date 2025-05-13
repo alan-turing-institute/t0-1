@@ -27,11 +27,11 @@
     let allIds: Array<string> = $state([]);
     let messages: Array<ChatEntry> = $state([]);
 
-    function changeId(id: string) {
+    async function changeId(id: string) {
         console.log("changing id to", id);
         currentId = id;
         if (id !== NEW_CONVERSATION_ID) {
-            loadMessages(id);
+            messages = await loadMessages(id);
         }
     }
     function newConversation() {
@@ -150,11 +150,11 @@
         } else {
             const data = await resp.json();
             console.log("received these messages from backend: ", data);
-            messages = parseChatEntries(data);
             console.log(
-                "frontend messages set to: ",
+                "parsed as: ",
                 $state.snapshot(messages),
             );
+            return parseChatEntries(data);
         }
     }
 
@@ -208,11 +208,9 @@
                 nextMessage += dc.decode(chunk);
             }
 
-            setTimeout(() => {
-                loadMessages(currentId);
-                nextMessage = ""
-                loading = false;
-            }, 300);
+            messages = await loadMessages(currentId);
+            nextMessage = "";
+            loading = false;
         }
     }
 
