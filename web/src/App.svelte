@@ -14,8 +14,8 @@
     import { onMount } from "svelte";
 
     // HTTPS proxy
-    // const HOST = "https://atit0proxy.fly.dev";
-    const HOST = "http://localhost:8000";
+    const HOST = "https://atit0proxy.fly.dev";
+    // const HOST = "http://localhost:8000";
 
     // UI state
     let loading: boolean = $state(false);
