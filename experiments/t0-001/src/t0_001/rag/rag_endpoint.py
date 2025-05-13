@@ -32,7 +32,7 @@ def create_rag_app(rag: RAG) -> FastAPI:
 
     @app.post("/query")
     async def query_endpoint(req: QueryRequest):
-        response = rag._query(
+        response = await rag._aquery(
             req.query, thread_id=req.thread_id, demographics=req.demographics
         )
         return {
