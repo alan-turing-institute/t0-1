@@ -170,6 +170,7 @@
         }
     }
 
+    let nextMessage: string = $state("");
     async function queryLLM(query: string) {
         loading = true;
 
@@ -186,7 +187,7 @@
             thread_id: currentId,
             demographics: demographicsToJson(demographics),
         };
-        const url = `${HOST}/query`;
+        const url = `${HOST}/query_stream`;
 
         const resp = await fetch(url, {
             method: "POST",
@@ -199,16 +200,21 @@
             // TODO Handle nicely -- 404s and stuff go here
             handleError(`HTTP ${resp.status} error: ${resp.statusText}`);
         } else {
-            const data = await resp.json();
+            console.log(resp);
 
-            console.log("received this data from querying backend: ", data);
-            // We don't bother parsing the response manually here --
-            // instead we'll just load the entire conversation from the
-            // server. This is rather wasteful in terms of bandwidth,
-            // but it means that there's only one code path for parsing
-            // the response (i.e. we don't perform some kind of
-            // incremental parsing and
+            const dc = new TextDecoder();
+
+            for await (const chunk of resp.body) {
+                loading = false;
+                console.log("got chunk: ", chunk);
+                nextMessage += dc.decode(chunk);
+            }
+
+            // const data = await resp.json();
+            // console.log("received this data from querying backend: ", data);
+
             loadMessages(currentId);
+            nextMessage = "";
             loading = false;
 
             // TODO: Keeping this code here just in case it's needed
@@ -271,7 +277,7 @@
     {#if backendReady}
         <main>
             <Error {error} />
-            <Messages history={messages} {loading} />
+            <Messages history={messages} {loading} {nextMessage} />
             <Form {loading} {queryLLM} {changeDemographics} />
         </main>
     {:else}
