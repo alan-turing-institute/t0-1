@@ -469,6 +469,7 @@ def main(
     rerank_llm_model_name: str | None = None,
     rerank_extra_body: dict | str | None = None,
     rerank_k: int = 5,
+    seed: int | None = None,
     max_queries_per_minute: int = 60,
 ):
     rag = build_rag(
@@ -499,6 +500,7 @@ def main(
         rerank_llm_model_name=rerank_llm_model_name,
         rerank_extra_body=rerank_extra_body,
         rerank_k=rerank_k,
+        seed=seed,
     )
 
     asyncio.run(

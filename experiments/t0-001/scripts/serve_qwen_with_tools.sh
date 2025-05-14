@@ -1,5 +1,5 @@
 CUDA_VISIBLE_DEVICES=0,1,2,3 vllm serve Qwen/Qwen2.5-32B-Instruct \
---seed 0 \
+--seed 42 \
 --port 8020 \
 --tensor-parallel-size 4 \
 --max-model-len 131072 \

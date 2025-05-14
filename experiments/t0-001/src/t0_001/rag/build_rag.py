@@ -111,6 +111,7 @@ class RAG:
         rerank_prompt: str | Path | None = None,
         rerank_llm: LLM | None = None,
         rerank_k: int = 5,
+        seed: int | None = None,
     ):
         """
         Initialise the RAG class with the vector store, prompt, and LLM.
@@ -173,6 +174,7 @@ class RAG:
         self.rerank_prompt: PromptTemplate | None = rerank_prompt
         self.rerank_llm: LLM | None = rerank_llm
         self.rerank_k: int = rerank_k
+        self.seed: int | None = seed
         self.memory: InMemorySaver = InMemorySaver()
         self.reset_graph()
 
@@ -339,7 +341,9 @@ class RAG:
         )
 
         try:
-            reranker_response = self.rerank_llm.invoke(messages)
+            reranker_response = self.rerank_llm.invoke(
+                messages, extra_body={"seed": self.seed}
+            )
 
             reranked_docs_titles = [
                 title.strip()
@@ -428,7 +432,7 @@ class RAG:
             writer((AIMessageChunk(answer_init), config["metadata"]))
 
             response = ""
-            for msg in self.llm.stream(prompt):
+            for msg in self.llm.stream(prompt, extra_body={"seed": self.seed}):
                 writer((AIMessageChunk(msg), config["metadata"]))
                 response += msg
             return AIMessage(response)
@@ -452,6 +456,7 @@ class RAG:
             "min_tokens": 0,
             "stop_token_ids": stop_token_ids,
             "skip_special_tokens": False,
+            "seed": self.seed,
         }
 
         i = 0
@@ -499,6 +504,7 @@ class RAG:
             "min_tokens": 0,
             "stop_token_ids": stop_token_ids,
             "skip_special_tokens": False,
+            "seed": self.seed,
         }
 
         answer_init = "\n<|im_start|>answer\n"
@@ -552,7 +558,7 @@ class RAG:
             writer((AIMessageChunk(answer_init), config["metadata"]))
 
             response = ""
-            async for msg in self.llm.astream(prompt):
+            async for msg in self.llm.astream(prompt, extra_body={"seed": self.seed}):
                 writer((AIMessageChunk(msg), config["metadata"]))
                 response += msg
             return AIMessage(response)
@@ -576,6 +582,7 @@ class RAG:
             "min_tokens": 0,
             "stop_token_ids": stop_token_ids,
             "skip_special_tokens": False,
+            "seed": self.seed,
         }
 
         i = 0
@@ -622,6 +629,7 @@ class RAG:
             "min_tokens": 0,
             "stop_token_ids": stop_token_ids,
             "skip_special_tokens": False,
+            "seed": self.seed,
         }
 
         answer_init = "\n<|im_start|>answer\n"
@@ -653,7 +661,8 @@ class RAG:
             [create_retreiver_tool(self.retrieve_as_tool)]
         )
         response = llm_with_retrieve_tool.invoke(
-            [SystemMessage(NHS_RETRIEVER_TOOL_PROMPT)] + state["messages"]
+            [SystemMessage(NHS_RETRIEVER_TOOL_PROMPT)] + state["messages"],
+            extra_body={"seed": self.seed},
         )
 
         return {"messages": [response]}
@@ -804,7 +813,7 @@ class RAG:
         if self.budget_forcing:
             response = self._budget_forcing_invoke(trimmed_messages, config)
         else:
-            response = self.llm.invoke(trimmed_messages)
+            response = self.llm.invoke(trimmed_messages, extra_body={"seed": self.seed})
 
         if self.conversational:
             return {
@@ -900,7 +909,9 @@ class RAG:
         if self.budget_forcing:
             response = await self._budget_forcing_ainvoke(trimmed_messages, config)
         else:
-            response = await self.llm.ainvoke(trimmed_messages)
+            response = await self.llm.ainvoke(
+                trimmed_messages, extra_body={"seed": self.seed}
+            )
 
         if self.conversational:
             return {
@@ -1287,6 +1298,7 @@ def build_rag(
     rerank_llm_model_name: str | None = None,
     rerank_extra_body: dict | str | None = None,
     rerank_k: int = 5,
+    seed: int | None = None,
 ) -> RAG:
     if budget_forcing and llm_provider != "openai_completion":
         raise ValueError(
@@ -1316,7 +1328,7 @@ def build_rag(
     llm = load_llm(
         llm_provider=llm_provider,
         llm_model_name=llm_model_name,
-        extra_body=extra_body,
+        extra_body={"seed": seed} | process_arg_to_dict(extra_body),
     )
 
     if conversational:
@@ -1326,7 +1338,8 @@ def build_rag(
         conversational_agent_llm = load_llm(
             llm_provider=conversational_agent_llm_provider,
             llm_model_name=conversational_agent_llm_model_name,
-            extra_body=conversational_agent_extra_body,
+            extra_body={"seed": seed}
+            | process_arg_to_dict(conversational_agent_extra_body),
         )
     else:
         conversational_agent_llm = None
@@ -1350,7 +1363,7 @@ def build_rag(
         rerank_llm = load_llm(
             llm_provider=rerank_llm_provider,
             llm_model_name=rerank_llm_model_name,
-            extra_body=rerank_extra_body,
+            extra_body={"seed": seed} | process_arg_to_dict(rerank_extra_body),
         )
     else:
         rerank_llm = None
@@ -1377,6 +1390,7 @@ def build_rag(
         rerank_prompt=rerank_prompt_template,
         rerank_llm=rerank_llm,
         rerank_k=rerank_k,
+        seed=seed,
     )
 
     return rag
