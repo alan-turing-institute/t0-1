@@ -20,49 +20,28 @@
     );
     let historyCombined = $derived([...history, ...nextMessageParsed]);
 
-    // $effect(() => {
-    //     console.log(nextMessage);
-    // });
-
     // Controls whether the chat log should auto-scroll to the newest entry when it's added
-    let autoScroll: boolean = true;
     let chatLogDiv: HTMLDivElement | null = null;
 
-    function setAutoScroll(event: Event) {
-        const target = event.target as HTMLDivElement;
-        const scrollTop = target.scrollTop;
-        const scrollHeight = target.scrollHeight;
-        const clientHeight = target.clientHeight;
-
-        // If the user has scrolled up, disable auto-scroll
-        if (scrollTop + clientHeight < scrollHeight) {
-            autoScroll = false;
-        } else {
-            autoScroll = true;
-        }
-    }
-
     function scroll(node: HTMLDivElement) {
-        // If it's a new message from the user, force the scroll
-        // to happen.
-        if (node.classList.contains("human")) {
-            autoScroll = true;
+        // find the last human message and scroll to the top of that -
+        // this mimics chatgpt behaviour
+        const messageNodes = node.parentElement.children;
+        const lastHumanMessage = Array.from(messageNodes)
+            .reverse()
+            .find((child) => {
+                return child.classList.contains("human");
+            });
+        if (!node.classList.contains("human")) {
+            // disable smooth scrolling
+            chatLogDiv!.style.scrollBehavior = "auto";
         }
-        if (autoScroll) {
-            // find the last human message and scroll to the top of that -
-            // this mimics chatgpt behaviour
-            const messageNodes = node.parentElement.children;
-            const lastHumanMessage = Array.from(messageNodes)
-                .reverse()
-                .find((child) => {
-                    return child.classList.contains("human");
-                });
-            lastHumanMessage.scrollIntoView(true);
-        }
+        lastHumanMessage.scrollIntoView(true);
+        chatLogDiv!.style.scrollBehavior = "smooth";
     }
 </script>
 
-<div class="chatlog" onscroll={setAutoScroll} bind:this={chatLogDiv}>
+<div class="chatlog" bind:this={chatLogDiv}>
     {#each historyCombined as entry}
         <div class={entry.role} use:scroll>
             {#if entry.role === "ai"}
@@ -75,24 +54,22 @@
             {:else if entry.role === "human"}
                 {@html entry.content}
             {:else if entry.role === "tool"}
-                    <p>Looked up the following sources:</p>
-                    <ul>
-                        {#each entry.sources as source}
-                            <li>
-                                <a
-                                    href="https://www.nhs.uk/conditions/{source}"
-                                    target="_blank">{source}</a
-                                >
-                            </li>
-                        {/each}
-                    </ul>
+                <p>Looked up the following sources:</p>
+                <ul>
+                    {#each entry.sources as source}
+                        <li>
+                            <a
+                                href="https://www.nhs.uk/conditions/{source}"
+                                target="_blank">{source}</a
+                            >
+                        </li>
+                    {/each}
+                </ul>
             {/if}
         </div>
     {/each}
 </div>
-{#if loading && !nextMessageHasContent}
-    <Loading />
-{/if}
+<Loading show={loading && !nextMessageHasContent} />
 
 <style>
     div.chatlog {
@@ -106,6 +83,7 @@
         padding: 0px 10px;
         scroll-behavior: smooth;
     }
+
     div.chatlog > :last-child {
         margin-bottom: 100vh;
     }

@@ -1,4 +1,12 @@
-<div id="loading">Thinking</div>
+<script lang="ts">
+    interface Props {
+        show: boolean;
+    }
+
+    let { show }: Props = $props();
+</script>
+
+<div id="loading" class={show ? "" : "hide"}>Thinking</div>
 
 <style>
     div#loading {
@@ -8,6 +16,10 @@
         color: var(--secondary-fg);
         font-size: 0.9em;
         padding: 10px;
+    }
+
+    div#loading.hide {
+        visibility: hidden;
     }
 
     div#loading::after {
