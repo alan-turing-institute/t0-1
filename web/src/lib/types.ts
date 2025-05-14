@@ -87,6 +87,7 @@ export function parseChatEntries(json: object): ChatEntry[] {
                     return [];
                 } else {
                     let e = [makeAIEntry(entry.content), ...nextToolMessage];
+                    nextToolMessage = [];
                     return e;
                 }
             }
