@@ -200,6 +200,7 @@ def main(
     rerank_k: int = 5,
     host: str = "0.0.0.0",
     port: int = 8000,
+    seed: int | None = None,
 ):
     rag = build_rag(
         conditions_file=conditions_file,
@@ -224,6 +225,7 @@ def main(
         rerank_llm_model_name=rerank_llm_model_name,
         rerank_extra_body=rerank_extra_body,
         rerank_k=rerank_k,
+        seed=seed,
     )
     app = create_rag_app(rag)
     uvicorn.run(app, host=host, port=port)

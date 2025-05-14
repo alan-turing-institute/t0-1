@@ -152,5 +152,28 @@ def process_arg_to_dict(json_cli: dict | str | None) -> dict:
         except Exception as e:
             logging.error(f"json_cli is not a valid json: {json_cli}")
             raise e
-    
+
     return json_cli
+
+
+def set_seed(seed: int) -> None:
+    """
+    Helper function for reproducible behavior to set the seed in
+    `random`, `numpy`, and `torch`.
+
+    Parameters
+    ----------
+    seed : int
+        Seed number.
+    """
+    import random
+
+    import numpy as np
+    import torch
+
+    random.seed(seed)
+    os.environ["PYTHONHASHSEED"] = str(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    torch.backends.cudnn.deterministic = True

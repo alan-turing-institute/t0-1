@@ -49,6 +49,7 @@ HELP_TEXT = {
     "rerank_k": "Number of results to return from the reranking LLM.",
     "max_queries_per_minute": "Number of queries per minute to send to the model. Used to help avoid rate limits.",
     "logging_level": "Logging level. 10 = DEBUG, 20 = INFO, 30 = WARNING, 40 = ERROR, 50 = CRITICAL.",
+    "seed": "Random seed.",
 }
 
 
@@ -446,6 +447,10 @@ def serve_rag(
         int,
         typer.Option(help=HELP_TEXT["logging_level"]),
     ] = DEFAULTS["logging_level"],
+    seed: Annotated[
+        int,
+        typer.Option(help=HELP_TEXT["seed"]),
+    ] = DEFAULTS["seed"],
 ):
     """
     Run the RAG server.
@@ -456,6 +461,9 @@ def serve_rag(
 
     from t0_001.query_vector_store.build_retriever import RetrieverConfig
     from t0_001.rag.rag_endpoint import main
+    from t0_001.utils import set_seed
+
+    set_seed(seed)
 
     main(
         conditions_file=conditions_file,
@@ -491,6 +499,7 @@ def serve_rag(
         rerank_k=rerank_k,
         host=host,
         port=port,
+        seed=seed,
     )
 
 
@@ -670,6 +679,10 @@ def evaluate_rag(
         int,
         typer.Option(help=HELP_TEXT["logging_level"]),
     ] = DEFAULTS["logging_level"],
+    seed: Annotated[
+        int,
+        typer.Option(help=HELP_TEXT["seed"]),
+    ] = DEFAULTS["seed"],
 ):
     """
     Evaluate the RAG.
@@ -682,6 +695,9 @@ def evaluate_rag(
     logging.info("Evaluating RAG...")
 
     from t0_001.rag.evaluate import RetrieverConfig, main
+    from t0_001.utils import set_seed
+
+    set_seed(seed)
 
     main(
         input_file=input_file,
@@ -722,6 +738,7 @@ def evaluate_rag(
         rerank_llm_model_name=rerank_llm_model_name,
         rerank_extra_body=rerank_extra_body,
         rerank_k=rerank_k,
+        seed=seed,
     )
 
 
@@ -882,6 +899,10 @@ def rag_chat(
         int,
         typer.Option(help=HELP_TEXT["logging_level"]),
     ] = DEFAULTS["logging_level"],
+    seed: Annotated[
+        int,
+        typer.Option(help=HELP_TEXT["seed"]),
+    ] = DEFAULTS["seed"],
 ):
     """
     Interact with the RAG model in a command line interface.
@@ -894,6 +915,9 @@ def rag_chat(
 
     from t0_001.query_vector_store.build_retriever import RetrieverConfig
     from t0_001.rag.chat_interact import run_chat_interact
+    from t0_001.utils import set_seed
+
+    set_seed(seed)
 
     run(
         run_chat_interact(
@@ -928,5 +952,6 @@ def rag_chat(
             rerank_llm_model_name=rerank_llm_model_name,
             rerank_extra_body=rerank_extra_body,
             rerank_k=rerank_k,
+            seed=seed,
         )
     )
