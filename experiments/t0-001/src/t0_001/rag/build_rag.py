@@ -1058,6 +1058,7 @@ class RAG:
             input = {"question": question, "demographics": demographics}
 
         finished = False
+
         for stream_mode, (message_chunk, metadata) in self.graph.stream(
             input=input,
             config={"configurable": {"thread_id": thread_id}},
@@ -1065,7 +1066,10 @@ class RAG:
         ):
             if message_chunk.response_metadata.get("finish_reason") == "stop":
                 finished = True
-            if not finished and metadata.get("langgraph_node") == "generate":
+            if not finished and metadata.get("langgraph_node") in [
+                "generate",
+                "query_or_respond",
+            ]:
                 # if the message is from the generate node, yield the content
                 yield message_chunk.content
 

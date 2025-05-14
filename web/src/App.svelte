@@ -10,13 +10,11 @@
         type Demographics,
         emptyDemographics,
         demographicsToJson,
-        generateCuteUUID,
     } from "./lib/types";
+    import { onMount } from "svelte";
 
     // HTTPS proxy
     const HOST = "https://atit0proxy.fly.dev";
-
-    // Locally running
     // const HOST = "http://localhost:8000";
 
     // UI state
@@ -24,69 +22,42 @@
     let error: string | null = $state(null);
 
     // Chat persistence and conversation management
-    let currentId: string = $state("new");
+    const NEW_CONVERSATION_ID = "__new";
+    let currentId: string = $state(NEW_CONVERSATION_ID);
     let allIds: Array<string> = $state([]);
     let messages: Array<ChatEntry> = $state([]);
 
-    fetch(`${HOST}/get_thread_ids`, {
-        method: "GET",
-    })
-        .then((response) => {
-            if (!response.ok) {
-                // TODO: This probably means the backend isn't running. We
-                // should have a more in-your-face-error.
-                handleError(
-                    `HTTP ${response.status} error: ${response.statusText}`,
-                );
-            }
-            response.json().then((data) => {
-                allIds = data.thread_ids;
-                if (allIds.length > 0) {
-                    changeId(allIds[0]);
-                }
-                console.log("loaded thread ids", $state.snapshot(allIds));
-            });
-        })
-        .catch((error) => {
-            // TODO: This probably means the backend isn't running. We
-            // should have a more in-your-face-error.
-            handleError(error.message);
-        });
-
-    function changeId(id: string) {
+    async function changeId(id: string) {
         console.log("changing id to", id);
         currentId = id;
-        loadMessages(id);
+        if (id !== NEW_CONVERSATION_ID) {
+            messages = await loadMessages(id);
+        }
     }
     function newConversation() {
         console.log("creating new conversation");
-        currentId = "new";
+        currentId = NEW_CONVERSATION_ID;
         messages = [];
     }
-    function deleteConversation(id: string) {
-        fetch(`${HOST}/clear_history`, {
+    async function deleteConversation(id: string) {
+        const resp = await fetch(`${HOST}/clear_history`, {
             method: "POST",
             body: JSON.stringify({ thread_id: id }),
             headers: {
                 "Content-Type": "application/json",
             },
-        })
-            .then((response) => {
-                if (!response.ok) {
-                    handleError(
-                        `HTTP ${response.status} error: ${response.statusText}`,
-                    );
-                }
-                allIds = allIds.filter((thread_id) => thread_id !== id);
-                if (allIds.length > 0) {
-                    changeId(allIds[0]);
-                } else {
-                    newConversation();
-                }
-            })
-            .catch((error) => {
-                handleError(error.message);
-            });
+        });
+        if (!resp.ok) {
+            handleError(`HTTP ${resp.status} error: ${resp.statusText}`);
+            return;
+        }
+
+        allIds = allIds.filter((thread_id) => thread_id !== id);
+        if (allIds.length > 0) {
+            changeId(allIds[0]);
+        } else {
+            newConversation();
+        }
     }
 
     // Dark mode management
@@ -113,59 +84,98 @@
     let demographics: Demographics = $state(emptyDemographics);
     function changeDemographics(newDemographics: Demographics) {
         demographics = newDemographics;
-        console.log("updating demographics to ", demographicsToJson(demographics));
+        console.log(
+            "updating demographics to ",
+            demographicsToJson(demographics),
+        );
     }
 
-    // API queries
     function handleError(err: string) {
         console.error("Error:", err);
         error = err;
         loading = false;
+        // TODO: There should be a bounded queue for errors instead of just one
         setTimeout(() => {
             error = null;
         }, 10000);
     }
 
-    function loadMessages(thread_id: string) {
-        const url = `${HOST}/get_history?thread_id=${thread_id}`;
-        fetch(url, {
+    async function loadThreads(forceUpdateThreadId: boolean) {
+        const resp = await fetch(`${HOST}/get_thread_ids`, {
             method: "GET",
-        })
-            .then((response) => {
-                if (!response.ok) {
-                    // If 404, no thread found
-                    if (response.status === 404) {
-                        messages = [];
-                        console.log(
-                            "No thread found, messages set to empty array",
-                        );
-                        return;
-                    } else {
-                        handleError(
-                            `HTTP ${response.status} error: ${response.statusText}`,
-                        );
-                    }
-                }
-                response.json().then((data) => {
-                    console.log("received these messages from backend: ", data);
-                    messages = parseChatEntries(data);
-                    console.log("frontend messages set to: ", $state.snapshot(messages));
-                });
-            })
-            .catch((error) => {
-                handleError(error.message);
-            });
+        });
+        if (!resp.ok) {
+            handleError(`HTTP ${resp.status} error: ${resp.statusText}`);
+            return;
+        }
+
+        const data = await resp.json();
+        allIds = data.thread_ids;
+        // There are a few situations where we might want to update the
+        // thread ID, i.e. set the active thread ID to the first one.
+        // 1. If the forceUpdateThreadId flag is set to true (i.e. during
+        // initial load)
+        // 2. If the currentId is not NEW_CONVERSATION_ID, i.e., the user is in
+        // an active conversation, but the thread ID is not in the list,
+        // that means that the conversation was deleted by somebody else.
+        // To keep the UI in sync, we should then reset the thread ID.
+        let updateThreadId =
+            forceUpdateThreadId ||
+            (currentId !== NEW_CONVERSATION_ID && !allIds.includes(currentId));
+        if (updateThreadId) {
+            if (allIds.length > 0) {
+                changeId(allIds[0]);
+            } else {
+                changeId(NEW_CONVERSATION_ID);
+            }
+        }
+        console.log("loaded thread ids", $state.snapshot(allIds));
     }
 
-    function queryLLM(query: string) {
+    async function loadMessages(thread_id: string) {
+        const url = `${HOST}/get_history?thread_id=${thread_id}`;
+        const resp = await fetch(url, {
+            method: "GET",
+        });
+
+        if (!resp.ok) {
+            // If 404, no thread found
+            if (resp.status === 404) {
+                messages = [];
+                console.log("No thread found, messages set to empty array");
+                return;
+            } else {
+                handleError(`HTTP ${resp.status} error: ${resp.statusText}`);
+            }
+        } else {
+            const data = await resp.json();
+            console.log("received these messages from backend: ", data);
+            console.log(
+                "parsed as: ",
+                $state.snapshot(messages),
+            );
+            return parseChatEntries(data);
+        }
+    }
+
+    async function getNewThreadId() {
+        const url = `${HOST}/new_thread_id`;
+        const resp = await fetch(url, { method: "GET" });
+        if (!resp.ok) {
+            handleError(`HTTP ${resp.status} error: ${resp.statusText}`);
+        } else {
+            const data = await resp.json();
+            console.log("received new thread id from backend: ", data);
+            return data.thread_id;
+        }
+    }
+
+    let nextMessage: string = $state("");
+    async function queryLLM(query: string) {
         loading = true;
 
-        if (currentId === "new") {
-            // Generate new ID
-            let newId = generateCuteUUID();
-            while (allIds.includes(newId)) {
-                newId = generateCuteUUID();
-            }
+        if (currentId === NEW_CONVERSATION_ID) {
+            let newId = await getNewThreadId();
             currentId = newId;
             // push to the front as it will be the most recent
             allIds.unshift(currentId);
@@ -177,55 +187,58 @@
             thread_id: currentId,
             demographics: demographicsToJson(demographics),
         };
-        const url = `${HOST}/query`;
+        const url = `${HOST}/query_stream`;
 
-        fetch(url, {
+        const resp = await fetch(url, {
             method: "POST",
             body: JSON.stringify(body),
             headers: {
                 "Content-Type": "application/json",
             },
-        })
-            .then((response) => {
-                if (!response.ok) {
-                    // TODO Handle nicely -- 404s and stuff go here
-                    handleError(
-                        `HTTP ${response.status} error: ${response.statusText}`,
-                    );
-                }
-                response.json().then((data) => {
-                    console.log("received this data from querying backend: ", data);
-                    // We don't bother parsing the response manually here --
-                    // instead we'll just load the entire conversation from the
-                    // server. This is rather wasteful in terms of bandwidth,
-                    // but it means that there's only one code path for parsing
-                    // the response (i.e. we don't perform some kind of
-                    // incremental parsing and
-                    loadMessages(currentId);
-                    loading = false;
+        });
+        if (!resp.ok) {
+            // TODO Handle nicely -- 404s and stuff go here
+            handleError(`HTTP ${resp.status} error: ${resp.statusText}`);
+        } else {
+            console.log(resp);
 
-                    // TODO: Keeping this code here just in case it's needed
-                    // for when we implement streaming.
-                    // Maybe we could just do e.g.
-                    // parseChatMessages(data.response.mesesages)?
-                    //
-                    // const last_message =
-                    //     data.response.messages[
-                    //         data.response.messages.length - 1
-                    //     ]
-                    // if (last_message.type !== "ai") {
-                    //     handleError(
-                    //         "Last message was not AI, something went wrong",
-                    //     );
-                    //     return;
-                    // }
-                    // messages.push(makeAIEntry(last_message.content));
-                });
-            })
-            .catch((error) => {
-                handleError(error.message);
-            });
+            const dc = new TextDecoder();
+
+            for await (const chunk of resp.body) {
+                nextMessage += dc.decode(chunk);
+            }
+
+            messages = await loadMessages(currentId);
+            nextMessage = "";
+            loading = false;
+        }
     }
+
+    let backendReady: boolean = $state(false);
+    function startup() {
+        // Check if backend is running
+        fetch(`${HOST}`, {
+            method: "GET",
+        }).then((response) => {
+            if (response.ok) {
+                response.json().then((_) => {
+                    console.log("pinged backend successfully");
+                    backendReady = true;
+                    loadThreads(true);
+                });
+            }
+        });
+    }
+
+    onMount(() => {
+        startup();
+
+        // setInterval(() => {
+        //     if (backendReady) {
+        //         loadThreads(false);
+        //     }
+        // }, 5000);
+    });
 </script>
 
 <div id="wrapper">
@@ -239,11 +252,24 @@
         {darkMode}
         {toggleTheme}
     />
-    <main>
-        <Error {error} />
-        <Messages history={messages} {loading} />
-        <Form {loading} {queryLLM} {changeDemographics} />
-    </main>
+    {#if backendReady}
+        <main>
+            <Error {error} />
+            <Messages history={messages} {loading} {nextMessage} />
+            <Form {loading} {queryLLM} {changeDemographics} />
+        </main>
+    {:else}
+        <p id="no-backend">
+            <span>Failed to connect to backend at <code>{HOST}</code>.</span>
+            <span>Please check if the backend is running.</span>
+            <span
+                >If you want to change the backend URL, please edit <code
+                    >web/src/App.svelte</code
+                >
+                and change the <code>HOST</code> constant.</span
+            >
+        </p>
+    {/if}
 </div>
 
 <style>
@@ -272,5 +298,15 @@
         flex-direction: column;
         align-items: stretch;
         justify-content: end;
+    }
+
+    p#no-backend {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin: auto;
+        padding: 0 30px;
+        text-align: center;
+        color: var(--foreground);
     }
 </style>
