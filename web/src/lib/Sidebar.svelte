@@ -25,7 +25,7 @@
 </script>
 
 <div class="sidebar">
-    <div class="sidebar-inner">
+    <div class="sidebar-tophalf">
         <h1>t0 online</h1>
         <div class="sidebar-buttons">
             <span><i>Select conversation:</i></span>
@@ -53,24 +53,19 @@
                         </button>
                     </div>
                 {/each}
-                <div class="conversation-manager">
-                    <input
-                        id="new"
-                        type="radio"
-                        value="__new"
-                        name="conversation"
-                        onchange={() => newConversation()}
-                        bind:group={currentId}
-                        disabled={loading}
-                        hidden
-                    />
-                    <label for={"new"}>(new)</label>
-                </div>
             </div>
         </div>
     </div>
     <div id="button-wrapper">
-        <button id="darkmode" onclick={(_e) => toggleTheme()}
+        <button
+            class="sidebar-bottom {currentId === "__new" ? "bold" : ""}"
+            id="newconv"
+            onclick={(_e) => newConversation()}>new conversation</button
+        >
+        <button
+            class="sidebar-bottom"
+            id="darkmode"
+            onclick={(_e) => toggleTheme()}
             >switch to {darkMode ? "light" : "dark"} mode</button
         >
     </div>
@@ -86,9 +81,14 @@
         padding: 40px 20px;
         align-items: stretch;
         justify-content: space-between;
-        margin-bottom: auto;
         flex: 0 0 auto;
         background-color: var(--sidebar-bg);
+    }
+
+    div.sidebar-tophalf {
+        flex: 1 1 auto;
+        display: flex;
+        flex-direction: column;
     }
 
     h1 {
@@ -100,6 +100,8 @@
         display: flex;
         flex-direction: column;
         gap: 20px;
+        min-height: 100px;
+        max-height: calc(100vh - 270px);
         align-items: stretch;
     }
 
@@ -109,7 +111,6 @@
         flex-direction: column;
         gap: 10px;
         align-items: stretch;
-        max-height: 70vh;
         padding-right: 10px;
         overflow-y: auto;
     }
@@ -182,17 +183,30 @@
     }
 
     div#button-wrapper {
+        flex: 0 0 auto;
         width: 100%;
         display: flex;
-    }
-    button#darkmode {
-        font: inherit;
-        height: min-content;
-        background-color: transparent;
-        border: none;
-        text-decoration: underline;
-        color: var(--foreground);
-        cursor: pointer;
-        margin: 0 auto;
+        flex-direction: column;
+        gap: 20px;
+
+        button.sidebar-bottom.bold {
+            font-weight: bold;
+        }
+
+        button.sidebar-bottom {
+            font: inherit;
+            height: min-content;
+            background-color: transparent;
+            border: none;
+            text-decoration: underline;
+            color: var(--foreground);
+            cursor: pointer;
+            margin: 0 auto;
+            transition: font-weight 0.3s;
+        }
+
+        button.sidebar-bottom:hover {
+            font-weight: bold;
+        }
     }
 </style>
