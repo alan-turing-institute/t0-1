@@ -29,6 +29,7 @@ async def run_chat_interact(
     rerank_llm_model_name: str | None = None,
     rerank_extra_body: dict | str | None = None,
     rerank_k: int = 5,
+    seed: int | None = None,
 ):
     rag = build_rag(
         conditions_file=conditions_file,
@@ -53,6 +54,7 @@ async def run_chat_interact(
         rerank_llm_model_name=rerank_llm_model_name,
         rerank_extra_body=rerank_extra_body,
         rerank_k=rerank_k,
+        seed=seed,
     )
     thread_id = "command_line_chat"
     mode = "query-with-sources"

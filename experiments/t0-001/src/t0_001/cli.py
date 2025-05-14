@@ -499,6 +499,7 @@ def serve_rag(
         rerank_k=rerank_k,
         host=host,
         port=port,
+        seed=seed,
     )
 
 
@@ -697,6 +698,7 @@ def evaluate_rag(
     from t0_001.utils import set_seed
 
     set_seed(seed)
+
     main(
         input_file=input_file,
         output_file=output_file,
@@ -736,6 +738,7 @@ def evaluate_rag(
         rerank_llm_model_name=rerank_llm_model_name,
         rerank_extra_body=rerank_extra_body,
         rerank_k=rerank_k,
+        seed=seed,
     )
 
 
@@ -915,6 +918,7 @@ def rag_chat(
     from t0_001.utils import set_seed
 
     set_seed(seed)
+
     run(
         run_chat_interact(
             conditions_file=conditions_file,
@@ -948,5 +952,6 @@ def rag_chat(
             rerank_llm_model_name=rerank_llm_model_name,
             rerank_extra_body=rerank_extra_body,
             rerank_k=rerank_k,
+            seed=seed,
         )
     )
