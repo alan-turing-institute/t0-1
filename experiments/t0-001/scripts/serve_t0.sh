@@ -1,4 +1,7 @@
 CUDA_VISIBLE_DEVICES=4,5,6,7 vllm serve TomasLaz/t0-1.1-k5-32B \
+--seed 42 \
+--generation-config vllm \
+--override-generation-config "$(cat ./scripts/generation_config.json)" \
 --port 8010 \
 --tensor-parallel-size 4 \
 --max-model-len 131072 \
