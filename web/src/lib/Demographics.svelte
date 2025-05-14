@@ -15,6 +15,11 @@
 
     let showForm = $state(false);
     let demographics: Demographics = $state(emptyDemographics);
+
+    function onclick(event: MouseEvent) {
+        event.preventDefault();
+        showForm = !showForm;
+    }
 </script>
 
 <div id="demographics-wrapper">
@@ -61,7 +66,7 @@
         </div>
     {/if}
     <div id="toggle">
-        <button id="toggle" onclick={() => (showForm = !showForm)}>
+        <button id="toggle" {onclick}>
             {showForm ? "⏷ hide" : "⏶ modify"} demographics
         </button>
     </div>

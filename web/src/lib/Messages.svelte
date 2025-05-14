@@ -1,15 +1,28 @@
 <script lang="ts">
-    import { type ChatEntry } from "./types";
+    import { type ChatEntry, type AIChatEntry, makeAIEntry } from "./types";
     import Loading from "./Loading.svelte";
     import Reasoning from "./Reasoning.svelte";
-    // import Typewriter from "svelte-typewriter";
 
     interface Props {
         history: Array<ChatEntry>;
         loading: boolean;
+        nextMessage: string;
     }
 
-    let { history, loading }: Props = $props();
+    let { history, loading, nextMessage }: Props = $props();
+
+    let nextMessageParsed: AIChatEntry[] = $derived(
+        nextMessage === "" ? [] : [makeAIEntry(nextMessage)],
+    );
+    let nextMessageHasContent: boolean = $derived(
+        nextMessageParsed.length > 0 &&
+            nextMessageParsed[0].content.trim() !== "",
+    );
+    let historyCombined = $derived([...history, ...nextMessageParsed]);
+
+    // $effect(() => {
+    //     console.log(nextMessage);
+    // });
 
     // Controls whether the chat log should auto-scroll to the newest entry when it's added
     let autoScroll: boolean = true;
@@ -50,36 +63,36 @@
 </script>
 
 <div class="chatlog" onscroll={setAutoScroll} bind:this={chatLogDiv}>
-    {#each history as entry}
+    {#each historyCombined as entry}
         <div class={entry.role} use:scroll>
             {#if entry.role === "ai"}
-                {@html entry.content}
-                <!-- Disabling typewriter for now as it messes with scroll -->
-                <!-- <Typewriter cursor={false} mode="cascade" interval="8" -->
-                <!--     >{@html entry.content}</Typewriter -->
-                <!-- > -->
-                <Reasoning reasoning={entry.reasoning} />
+                {#if entry.content !== ""}
+                    {@html entry.content}
+                {/if}
+                {#if nextMessageHasContent || !loading}
+                    <Reasoning reasoning={entry.reasoning} />
+                {/if}
             {:else if entry.role === "human"}
                 {@html entry.content}
             {:else if entry.role === "tool"}
-                <p>Looked up the following sources:</p>
-                <ul>
-                    {#each entry.sources as source}
-                        <li>
-                            <a
-                                href="https://www.nhs.uk/conditions/{source}"
-                                target="_blank">{source}</a
-                            >
-                        </li>
-                    {/each}
-                </ul>
+                    <p>Looked up the following sources:</p>
+                    <ul>
+                        {#each entry.sources as source}
+                            <li>
+                                <a
+                                    href="https://www.nhs.uk/conditions/{source}"
+                                    target="_blank">{source}</a
+                                >
+                            </li>
+                        {/each}
+                    </ul>
             {/if}
         </div>
     {/each}
-    {#if loading}
-        <Loading />
-    {/if}
 </div>
+{#if loading && !nextMessageHasContent}
+    <Loading />
+{/if}
 
 <style>
     div.chatlog {
@@ -93,6 +106,9 @@
         padding: 0px 10px;
         scroll-behavior: smooth;
     }
+    div.chatlog > :last-child {
+        margin-bottom: 100vh;
+    }
 
     div.tool {
         font-size: 0.8em;
@@ -101,7 +117,9 @@
         a {
             color: var(--secondary-fg);
         }
-        a:hover, a:active, a:focus {
+        a:hover,
+        a:active,
+        a:focus {
             color: var(--foreground);
         }
 

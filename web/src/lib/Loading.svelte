@@ -7,6 +7,7 @@
         margin-right: auto;
         color: var(--secondary-fg);
         font-size: 0.9em;
+        padding: 10px;
     }
 
     div#loading::after {

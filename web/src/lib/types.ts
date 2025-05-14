@@ -1,21 +1,21 @@
 import showdown from "showdown";
 import sanitizeHtml from 'sanitize-html';
 
-type HumanChatEntry = {
+export type HumanChatEntry = {
     role: "human";
     content: string;
 }
-type AIChatEntry = {
+export type AIChatEntry = {
     role: "ai";
     content: string;
     reasoning: string | null;
 }
-type ToolChatEntry = {
+export type ToolChatEntry = {
     role: "tool";
     sources: string[];
 }
 
-export type ChatEntry = HumanChatEntry | AIChatEntry | ToolChatEntry;
+export type ChatEntry = HumanChatEntry | AIChatEntry;
 
 const converter = new showdown.Converter({
     disableForced4SpacesIndentedSublists:
@@ -26,29 +26,55 @@ function mdToHtml(md: string): string {
     return sanitizeHtml(converter.makeHtml(md));
 }
 
-export function makeHumanEntry(message: string): ChatEntry {
+export function makeHumanEntry(message: string): HumanChatEntry {
     return { role: "human", content: mdToHtml(message) };
 }
-export function makeAIEntry(message: string): ChatEntry {
+export function makeToolEntry(sources: string[]): ToolChatEntry {
+    return { role: "tool", sources };
+}
+function postProcessReasoning(reasoning: string): string {
+    const r = reasoning.split(".").slice(0, -1).join(".") + ".";
+    return r.replace(/<\|im_start\|>/g, "").trim();
+}
+export function postProcessAnswer(answer: string): string {
+    return answer
+        .trim()
+        .replace(/-+$/, "")
+        .replace(/<\|im_start\|>/g, "")
+        .trim();
+}
+export function makeAIEntry(message: string): AIChatEntry {
     const components = message.split("<|im_start|>answer");
     if (components.length == 2) {
         const [reasoning2, answer2] = components;
         const [_, reasoning3] = reasoning2.split("<|im_start|>think");
         // cut at the last sentence
-        const reasoning4 = reasoning3.split(".").slice(0, -1).join(".") + ".";
+        const reasoning = postProcessReasoning(reasoning3);
         // remove stray im_starts
-        const reasoning = reasoning4.replace(/<\|im_start\|>/g, "");
-        const answer = answer2.replace(/<\|im_start\|>/g, "");
-        return { role: "ai", content: mdToHtml(answer.trim()), reasoning: mdToHtml(reasoning.trim()) };
+        const answer = postProcessAnswer(answer2);
+        return {
+            role: "ai",
+            content: mdToHtml(answer),
+            reasoning: mdToHtml(reasoning),
+        };
     } else {
-        return { role: "ai", content: mdToHtml(message), reasoning: null };
+        // check if it is reasoning
+        const maybeComponents = message.split("<|im_start|>think");
+        if (maybeComponents.length == 2) {
+            const reasoning = postProcessReasoning(maybeComponents[1]);
+            return {
+                role: "ai", content: "", reasoning: mdToHtml(reasoning),
+            };
+        } else {
+            return {
+                role: "ai", content: mdToHtml(message), reasoning: null,
+            };
+        }
     }
 }
-export function makeToolEntry(sources: string[]): ChatEntry {
-    return { role: "tool", sources: sources };
-}
-
 export function parseChatEntries(json: object): ChatEntry[] {
+    let nextToolMessage: ToolChatEntry[] = [];
+
     if (json.messages === undefined) {
         return [];
     } else {
@@ -60,12 +86,14 @@ export function parseChatEntries(json: object): ChatEntry[] {
                 if (entry.tool_calls.length > 0) {
                     return [];
                 } else {
-                    return [makeAIEntry(entry.content)];
+                    let e = [makeAIEntry(entry.content), ...nextToolMessage];
+                    return e;
                 }
             }
             else if (entry.type === "tool") {
-                return [makeToolEntry(entry.artifact.context.map((ctx: any) =>
-                    ctx.metadata.source))];
+                const sources = entry.artifact.context.map((ctx: any) => ctx.metadata.source);
+                nextToolMessage = [makeToolEntry(sources)];
+                return [];
             }
             else {
                 console.warn("Unknown entry type ^^^ ", entry);
@@ -83,7 +111,7 @@ export type Demographics = {
     medicalHistory: string;
 }
 
-export let emptyDemographics = {
+export let emptyDemographics: Demographics = {
     age: 0,
     sex: "unspecified",
     occupation: "",
@@ -101,28 +129,4 @@ export function demographicsToJson(demo: Demographics) {
     if (demo.supportSystem !== "") json = { ...json, supportSystem: demo.supportSystem };
     if (demo.medicalHistory !== "") json = { ...json, medicalHistory: demo.medicalHistory };
     return JSON.stringify(json);
-}
-
-export function generateCuteUUID() {
-    const adjectives = [
-        "adorable", "bubbly", "cheerful", "cuddly", "dizzy", "fluffy", "happy",
-        "jolly", "kind", "lovely", "mellow", "nifty", "peppy", "plucky",
-        "precious", "quiet", "rosy", "sleepy", "snuggly", "soft", "sparkly",
-        "sunny", "sweet", "ticklish", "tiny", "warm", "wiggly", "zesty", "zany",
-        "glowy", "gentle", "bright", "dreamy", "honeyed", "charming", "fuzzy",
-        "smiley", "tender", "twinkly", "winsome", "chirpy"
-    ];
-    const animals = [
-        "bunny", "kitten", "puppy", "duckling", "hedgehog", "penguin", "panda",
-        "fawn", "lamb", "koala", "hamster", "otter", "sloth", "mouse", "calf",
-        "seal", "whale", "swan", "cub", "foal", "quokka", "flamingo",
-        "starling", "parakeet", "peep", "caterpillar", "guinea", "deerling",
-        "shrew", "snail", "turtle", "lovebird", "wren", "goldfinch", "bluebird",
-        "mole", "cygnet"
-    ];
-    const adjective = adjectives[Math.floor(Math.random() * adjectives.length)];
-    const animal = animals[Math.floor(Math.random() * animals.length)];
-    const number = Math.floor(Math.random() * 99);
-    const numberString = number < 10 ? `0${number}` : `${number}`;
-    return `${adjective}-${animal}-${numberString}`;
 }
