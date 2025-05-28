@@ -30,4 +30,4 @@ repos:
     rev: v2.3.0
     hooks:
     - id: codespell
-      args: ["--skip", "experiments/t0-001/data/,nhs-use-case*,*.jsonl,*.json,*.txt"]
+      args: ["--skip", "data/,nhs-use-case*,*.jsonl,*.json,*.txt"]
