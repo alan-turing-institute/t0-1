@@ -1,37 +1,11 @@
 # t0
 
-## Directory structure
-
-This repository contains subfolders for different parts of the `t0` project:
-```
-experiments/         -- Fine-tuning and evaluation
-  |
-  +-- t0-000/        -- s1 replication work
-  +-- t0-001/        -- Retrieval + Reasoning demonstration work
-
-use-cases/           -- Documentation and code for generating use cases
-  |
-  +-- nhs-conditions/
-
-planning/            -- Sprint planning
-```
-
-## Environment set-up
-
-Each subfolder should have it's own environment.
-
-Install `uv` for Python dependency management.
-
-Copy the `.env.example` to `.env` and populate the environment variables within the `.env` file.
-
-# 001
-
 ## Setup
 
 Clone the repository:
 ```bash
 git clone git@github.com:alan-turing-institute/t0.git
-cd t0/experiments/t0-001
+cd t0
 ```
 
 Create a virtual environment, activate it and install required dependencies (in editable mode) using [uv](https://github.com/astral-sh/uv):
@@ -40,6 +14,14 @@ uv venv --python=3.12
 source .venv/bin/activate
 uv pip install -e ".[rag,dev]"
 ```
+
+## Data
+
+The data used in this project is scraped from the NHS website using [this script](scripts/Makefile) and running `make download`. Once you have downloaded the data, we can either process the html directly, or we can use [pandoc](https://pandoc.org/) to convert them into plain txt files - you can do this by running `make all`. We recommend using the txt files as they are easier to process and work with.
+
+Next, you can generate a JSONL file using [this script](scripts/convert_txt_conditions_to_dataset.py) and store it in a directory called `data/nhs-conditions`. In this JSONL file each line has a JSON object with fields `"condition_title"` and `"condition_content"`.
+
+The convention is to run scripts and commands from the [scripts](scripts) directory and use relative paths to the `data/nhs-conditions` directory. For the command line interfaces (CLIs) described below, the `--conditions-file` argument is defaulted to `"./data/nhs-conditions/conditions.jsonl"`.
 
 ## Serving the RAG model
 
@@ -57,13 +39,7 @@ assuming you are running the vLLM server on `localhost` and the ports are `8010`
 
 Note the above aren't proper environment variables with illegal characters, but they can be read with `dotenv` and used in the scripts.
 
-## Data
-
-The data used in this project is scraped from the NHS website using [this script](scripts/Makefile) and running `make download`. Once you have downloaded the data, we can either process the html directly, or we can use [pandoc](https://pandoc.org/) to convert them into plain txt files - you can do this by running `make all`. We recommend using the txt files as they are easier to process and work with.
-
-Next, you can generate a JSONL file using [this script](scripts/convert_txt_conditions_to_dataset.py) and store it in a directory called `data/nhs-conditions`. In this JSONL file each line has a JSON object with fields `"condition_title"` and `"condition_content"`.
-
-The convention is to run scripts and commands from the `experiments/t0-001` directory and use relative paths to the `data/nhs-conditions` directory. For the command line interfaces (CLIs) described below, the `--conditions-file` argument is defaulted to `"./data/nhs-conditions/conditions.jsonl"`.
+Some more information on the commands that these scripts use are detailed below in the [Command Line Interfaces (CLIs)](#command-line-interfaces-clis) section.
 
 ## Command Line Interfaces (CLIs)
 
@@ -317,7 +293,6 @@ To set the environment variables for using the Azure endpoints, create an `.env`
 Endpoints can be of the form:
 - `https://<your-resouce-name>.openai.azure.com/openai/deployments/<your-deployment-name>`, where your-resource-name is your globally unique AOAI resource name, and your-deployment-name is your AI Model deployment name.
 - OR `https://<your-resource-name>.openai.azure.com/`, where your-resource-name is your globally unique AOAI resource name. In this case, `openai/deployments/<model>` will be appended afterwards using the model name you provide.
-
 
 ### Azure AI Foundry Endpoints
 
