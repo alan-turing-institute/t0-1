@@ -1,4 +1,4 @@
-uv run t0-001 evaluate-rag ./data/synthetic_queries/5147cd8_gpt-4o_1000_synthetic_queries.jsonl \
+uv run t0 evaluate-rag ./data/synthetic_queries/5147cd8_gpt-4o_1000_synthetic_queries.jsonl \
 --k 30 \
 --db-choice chroma \
 --llm-provider openai_completion \

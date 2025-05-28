@@ -1,4 +1,4 @@
-t0-001 serve-rag \
+t0 serve-rag \
 --k 10 \
 --db-choice chroma \
 --llm-provider azure_openai \
