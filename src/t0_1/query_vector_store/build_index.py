@@ -9,7 +9,8 @@ from langchain_core.vectorstores import VectorStore
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_text_splitters import SentenceTransformersTokenTextSplitter
 from langchain_text_splitters.base import TextSplitter
-from t0_001.query_vector_store.utils import (
+
+from t0_1.query_vector_store.utils import (
     load_conditions_jsonl,
     remove_saved_directory,
 )

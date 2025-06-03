@@ -4,8 +4,9 @@ from typing import Annotated
 
 import requests
 import typer
-from t0_001.defaults import CONDITIONS_FILE, DEFAULTS, DBChoice, LLMProvider
-from t0_001.utils import load_env_file
+
+from t0_1.defaults import CONDITIONS_FILE, DEFAULTS, DBChoice, LLMProvider
+from t0_1.utils import load_env_file
 
 cli = typer.Typer(context_settings={"help_option_names": ["-h", "--help"]})
 
@@ -107,7 +108,7 @@ def serve_vector_store(
     if serve:
         logging.info("Starting query vector store server...")
 
-    from t0_001.query_vector_store.index_endpoint import VectorStoreConfig, main
+    from t0_1.query_vector_store.index_endpoint import VectorStoreConfig, main
 
     main(
         conditions_file=conditions_file,
@@ -212,7 +213,7 @@ def evaluate_vector_store(
 
     logging.info("Evaluating vector store...")
 
-    from t0_001.query_vector_store.evaluate import VectorStoreConfig, main
+    from t0_1.query_vector_store.evaluate import VectorStoreConfig, main
 
     main(
         input_file=input_file,
@@ -284,8 +285,8 @@ def serve_retriever(
     set_up_logging_config(level=logging_level)
     logging.info("Starting retriever server...")
 
-    from t0_001.query_vector_store.build_retriever import RetrieverConfig
-    from t0_001.query_vector_store.retriever_endpoint import main
+    from t0_1.query_vector_store.build_retriever import RetrieverConfig
+    from t0_1.query_vector_store.retriever_endpoint import main
 
     main(
         conditions_file=conditions_file,
@@ -459,9 +460,9 @@ def serve_rag(
     load_env_file(env_file)
     logging.info("Starting RAG server...")
 
-    from t0_001.query_vector_store.build_retriever import RetrieverConfig
-    from t0_001.rag.rag_endpoint import main
-    from t0_001.utils import set_seed
+    from t0_1.query_vector_store.build_retriever import RetrieverConfig
+    from t0_1.rag.rag_endpoint import main
+    from t0_1.utils import set_seed
 
     set_seed(seed)
 
@@ -525,7 +526,7 @@ def query_rag(
     logging.info(f"Query: {query}")
 
     if extra_body:
-        from t0_001.utils import process_arg_to_dict
+        from t0_1.utils import process_arg_to_dict
 
         extra_body = process_arg_to_dict(extra_body)
     else:
@@ -694,8 +695,8 @@ def evaluate_rag(
 
     logging.info("Evaluating RAG...")
 
-    from t0_001.rag.evaluate import RetrieverConfig, main
-    from t0_001.utils import set_seed
+    from t0_1.rag.evaluate import RetrieverConfig, main
+    from t0_1.utils import set_seed
 
     set_seed(seed)
 
@@ -772,7 +773,7 @@ def generate_synth_queries(
     load_env_file(env_file)
     logging.info("Generating synthetic queries...")
 
-    from t0_001.synth_data_generation.generate_jsonl_snyth_queries import (
+    from t0_1.synth_data_generation.generate_jsonl_snyth_queries import (
         generate_synthetic_queries,
     )
 
@@ -913,9 +914,9 @@ def rag_chat(
 
     from asyncio import run
 
-    from t0_001.query_vector_store.build_retriever import RetrieverConfig
-    from t0_001.rag.chat_interact import run_chat_interact
-    from t0_001.utils import set_seed
+    from t0_1.query_vector_store.build_retriever import RetrieverConfig
+    from t0_1.rag.chat_interact import run_chat_interact
+    from t0_1.utils import set_seed
 
     set_seed(seed)
 

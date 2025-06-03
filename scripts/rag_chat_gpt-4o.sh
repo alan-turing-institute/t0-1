@@ -1,4 +1,4 @@
-t0 rag-chat \
+t0-1 rag-chat \
   --k 30 \
   --db-choice chroma \
   --llm-provider huggingface \

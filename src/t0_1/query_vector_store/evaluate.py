@@ -3,13 +3,14 @@ import logging
 from pathlib import Path
 
 from langchain_core.vectorstores import VectorStore
-from t0_001.query_vector_store.build_index import (
+from tqdm import tqdm
+
+from t0_1.query_vector_store.build_index import (
     DEFAULT_VECTOR_STORE_CONFIG,
     VectorStoreConfig,
     get_vector_store,
 )
-from t0_001.utils import read_jsonl, timestamp_file_name
-from tqdm import tqdm
+from t0_1.utils import read_jsonl, timestamp_file_name
 
 
 def evaluate_query_store(

@@ -4,7 +4,7 @@
 
 Clone the repository:
 ```bash
-git clone git@github.com:alan-turing-institute/t0.git
+git clone git@github.com:alan-turing-institute/t0-1.git
 cd t0
 ```
 
@@ -27,7 +27,7 @@ The convention is to run scripts and commands from the [scripts](scripts) direct
 
 We can serve an endpoint for the model using three scripts:
 - [scripts/serve_rag_conversational.sh](scripts/serve_rag_conversational.sh): This sets up an endpoint for the RAG model and serves it using FastAPI
-- [scripts/serve_t0.sh](scripts/serve_t0.sh): This sets up a vLLM endpoint for **t0-1.1-k5-32B**
+- [scripts/serve_t0_1.sh](scripts/serve_t0_1.sh): This sets up a vLLM endpoint for **t0-1.1-k5-32B**
 - [scripts/serve_qwen_with_tools.sh](scripts/serve_qwen_with_tools.sh): This sets up a vLLM endpoint for **Qwen2.5-32B-Instruct** with tool calling
 
 Note that for serving the RAG model, you need to set up the environment variables for the Azure endpoints. You can do this by creating a `.env` file in the current directory with the following content:
@@ -53,19 +53,19 @@ For `t0`, we have several command line interfaces (CLIs) (implemented using `typ
 - [Evaluating RAG](#evaluating-RAG)
 - [Generating synthetic queries](#generating-synthetic-queries)
 
-Note that with using `uv`, it is useful to run scripts with `uv run`, e.g. `uv run t0 rag-chat ...`.
+Note that with using `uv`, it is useful to run scripts with `uv run`, e.g. `uv run t0-1 rag-chat ...`.
 
 ### Serving and querying from the query vector store
 
 **Commands**:
-- Serving: `t0 serve-vector-store`
-- Querying: `t0 query-vector-store`
+- Serving: `t0-1 serve-vector-store`
+- Querying: `t0-1 query-vector-store`
 
 #### Serving the vector store
 
-For serving the vector store, you can use the `t0 serve-vector-store` command. This will start a FastAPI server that serves the vector store. There are options to specify the host and port, by default it will run on `0.0.0.0:8000`.
+For serving the vector store, you can use the `t0-1 serve-vector-store` command. This will start a FastAPI server that serves the vector store. There are options to specify the host and port, by default it will run on `0.0.0.0:8000`.
 
-There are several options for the `t0 serve-vector-store` command:
+There are several options for the `t0-1 serve-vector-store` command:
 - `--conditions-file`: The folder containing the data. Default is `"./data/nhs-conditions/conditions.jsonl"`.
 - `--main-only`: If set, only the main element of the HTML file is extracted.
 - `--embedding-model-name`: The name of the embedding model to use.
@@ -78,22 +78,22 @@ Note for loading a `faiss` vector store: you must use the `--trust-source` optio
 
 Lastly, you can decide to not serve and just build the vector store by using the `--no-serve` option. This will build the vector store and save it to the provided path, but will not start the FastAPI server.
 
-All of these options have default arguments (see `t0 serve-vector-store --help`), so you can just run the command as is. But to save and load the vector store, you need to provide the `--persist-directory` option:
+All of these options have default arguments (see `t0-1 serve-vector-store --help`), so you can just run the command as is. But to save and load the vector store, you need to provide the `--persist-directory` option:
 ```bash
-uv run t0 serve-vector-store --persist-directory ./nhs-use-case-db
+uv run t0-1 serve-vector-store --persist-directory ./nhs-use-case-db
 ```
 
 #### Querying the vector store
 
-Once you have served the FastAPI to the vector store, you can query it with the `t0 query-vector-store` command. There are options to specify the host and port, by default it will run on `0.0.0.0:8000`.
+Once you have served the FastAPI to the vector store, you can query it with the `t0-1 query-vector-store` command. There are options to specify the host and port, by default it will run on `0.0.0.0:8000`.
 
-There are several options for the `t0 query-vector-store` command:
+There are several options for the `t0-1 query-vector-store` command:
 - `--k`: The number of results to return. Default is 4.
 - `--with-score`: If True, return the score of the similarity search.
 
 An example command to query the vector store is:
 ```bash
-uv run t0 query-vector-store \
+uv run t0-1 query-vector-store \
   "What should I do if I have lost a lot of weight over the last 3 to 6 months?" \
   --k 5 \
   --with-score
@@ -124,14 +124,14 @@ Retrievers in Langchain are used to retrieve documents - these could be from a v
 The implemented retriever is one that uses a vector store and retrieves **full documents** as opposed to just the chunks. The chunks / sub-documents are returned in the metadata of the retrieved documents.
 
 **Commands**:
-- Serving: `t0 serve-retriever`
-- Querying: `t0 query-retriever`
+- Serving: `t0-1 serve-retriever`
+- Querying: `t0-1 query-retriever`
 
 #### Serving the retriever
 
-For serving the retriever, you can use the `t0 serve-retriever` command. This will start a FastAPI server that serves the vector store. There are options to specify the host and port, by default it will run on `0.0.0.0:8000`.
+For serving the retriever, you can use the `t0-1 serve-retriever` command. This will start a FastAPI server that serves the vector store. There are options to specify the host and port, by default it will run on `0.0.0.0:8000`.
 
-There are several options for the `t0 serve-retriever` command. Most are the similar to the `serve-vector-store` command with a few additional ones:
+There are several options for the `t0-1 serve-retriever` command. Most are the similar to the `serve-vector-store` command with a few additional ones:
 - `--search-type`: Type of search to perform for the retriever. By default, we perform a similarity search, but others are available such as `"mmr"` for maximal marginal relevance reranking of similarity search.
 - `--k`: The number of results to return. Note that this is required for setting up the retriever whereas for the vector store, this can be specified when querying.
 
@@ -139,32 +139,32 @@ As with a vector store, you can save and load a vector store by using the `--per
 
 You can also decide to not serve and just build the vector store by using the `--no-serve` option. This will build the vector store and save it to the provided path, but will not start the FastAPI server.
 
-All of these options have default arguments (see `t0 serve-retriever --help`), so you can just run the command as is. But to save and load the vector store, you need to provide the `--persist-directory` and `--local-file-store` options:
+All of these options have default arguments (see `t0-1 serve-retriever --help`), so you can just run the command as is. But to save and load the vector store, you need to provide the `--persist-directory` and `--local-file-store` options:
 ```bash
-uv run t0 serve-retriever \
+uv run t0-1 serve-retriever \
   --persist-directory ./nhs-use-case-db \
   --local-file-store ./nhs-use-case-fs
 ```
 
 #### Querying the retriever
 
-Once you have served the FastAPI to the retriever, you can query it with the `t0 query-retriever` command. There are options to specify the host and port, by default it will run on `0.0.0.0:8000`.
+Once you have served the FastAPI to the retriever, you can query it with the `t0-1 query-retriever` command. There are options to specify the host and port, by default it will run on `0.0.0.0:8000`.
 
 An example command to query the RAG model is:
 ```bash
-uv run t0 query-retriever \
+uv run t0-1 query-retriever \
   "What should I do if I have lost a lot of weight over the last 3 to 6 months?"
 ```
 
 ### Serving and querying from a RAG model
 
 **Commands**:
-- Serving: `t0 serve-rag`
-- Querying: `t0 query-rag`
+- Serving: `t0-1 serve-rag`
+- Querying: `t0-1 query-rag`
 
 #### Serving the RAG model
 
-For serving the RAG model, you can use the `t0 serve-rag` command. This will start a FastAPI server that serves the RAG model. There are options to specify the host and port, by default it will run on `0.0.0.0:8000`.
+For serving the RAG model, you can use the `t0-1 serve-rag` command. This will start a FastAPI server that serves the RAG model. There are options to specify the host and port, by default it will run on `0.0.0.0:8000`.
 
 Many options are similar to the [vector store](#serving-the-vector-store) and [retriever](#serving-the-retriever) serving commands which are described above. The main difference is that you can specify the LLM to use with the `--llm-provider` and `--llm-model-name` options.
 - If `--llm-provider` is set to `huggingface`, the model name should be a Hugging Face model name (e.g., `Qwen/Qwen2.5-1.5B-Instruct`) - this is the default configuration.
@@ -177,16 +177,16 @@ Many options are similar to the [vector store](#serving-the-vector-store) and [r
 
 **Note**: for environment variables, you can set them in a `.env` file. By default, the command loads in a `.env` file in the current directory. You can also set this to a different file using the `--env-file` option.
 
-All of these options have default arguments (see `t0 serve-rag --help`), so you can just run the command as is. But to save and load the vector store, you need to provide the `--persist-directory` and `--local-file-store` options:
+All of these options have default arguments (see `t0-1 serve-rag --help`), so you can just run the command as is. But to save and load the vector store, you need to provide the `--persist-directory` and `--local-file-store` options:
 ```bash
-uv run t0 serve-rag \
+uv run t0-1 serve-rag \
   --persist-directory ./nhs-use-case-db \
   --local-file-store ./nhs-use-case-fs
 ```
 
 For using an Azure OpenAI endpoint, you can run something like:
 ```bash
-uv run t0 serve-rag \
+uv run t0-1 serve-rag \
   --persist-directory ./nhs-use-case-db \
   --local-file-store ./nhs-use-case-fs \
   --llm-provider azure-openai \
@@ -200,7 +200,7 @@ AZURE_OPENAI_ENDPOINT_gpt-4o=<your-endpoint>
 
 For using an Azure AI Foundry endpoint, you can run something like:
 ```bash
-uv run t0 serve-rag \
+uv run t0-1 serve-rag \
   --persist-directory ./nhs-use-case-db \
   --local-file-store ./nhs-use-case-fs \
   --llm-provider azure \
@@ -214,23 +214,23 @@ AZURE_API_ENDPOINT_deepseek-r1=<your-endpoint>
 
 #### Querying the RAG model
 
-Once you have served the FastAPI to the RAG model, you can query it with the `t0 query-rag` command. There are options to specify the host and port, by default it will run on `0.0.0.0:8000`.
+Once you have served the FastAPI to the RAG model, you can query it with the `t0-1 query-rag` command. There are options to specify the host and port, by default it will run on `0.0.0.0:8000`.
 
 An example command to query the RAG model is:
 ```bash
-uv run t0 query-rag \
+uv run t0-1 query-rag \
   "What should I do if I have lost a lot of weight over the last 3 to 6 months?"
 ```
 
 ### Initialising a RAG chat interaction
 
-For spinning up a local RAG chat interaction, you can use the `t0 rag-chat` command. Most of the options are similar to those discussed above in the `t0 serve-vector-store` and `t0 serve-rag` commands - use `t0 rag-chat --help` to see all the options.
+For spinning up a local RAG chat interaction, you can use the `t0-1 rag-chat` command. Most of the options are similar to those discussed above in the `t0-1 serve-vector-store` and `t0-1 serve-rag` commands - use `t0-1 rag-chat --help` to see all the options.
 
 See [Serving the RAG model](#serving-the-rag-model) for the options to specify the LLM to use with the `--llm-provider` and `--llm-model-name` options and using environment variables.
 
 You should be able to just spin it up with default options (below we are using the `--persist-directory` option to load the vector store if it exists, or create it if it doesn't):
 ```bash
-uv run t0 rag-chat \
+uv run t0-1 rag-chat \
   --persist-directory ./nhs-use-case-db
 ```
 

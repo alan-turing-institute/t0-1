@@ -179,12 +179,7 @@ cython_debug/
 # Project-related ignores.
 data/*
 !data/.gitkeep
-src/fine_tuned_model/*
-src/fine_tuned_model/*
-src/fp32_fine_tuned_model/*
 use-cases/nhs-conditions/nhs-use-case/conditions/*
-experiments/t0-000/src/fine_tuned_model/*
-experiments/t0-000/src/fp32_fine_tuned_model/*
 nhs-use-case/
 *playground.ipynb
 nhs-use-case/
@@ -198,15 +193,14 @@ data/evaluation_results_*
 scripts/gpt-4o_*
 *nhs_use_case_db_notebook
 data/nhs-conditions*
+
 # persistent data
 lfs/
 db/
 results/evaluation_*
 eval_outputs/*
-experiments/t0-000/src/new_dataset_cut/*
 *cache-*
 data/evaluation/*
-experiments/t0-000/src/new_dataset_dict/*
 *.arrow
 dataset.hf/*
 new_dataset_cut/*

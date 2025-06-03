@@ -6,14 +6,15 @@ import re
 
 import git
 import tqdm
-from t0_001.synth_data_generation.azure import (
+
+from t0_1.synth_data_generation.azure import (
     AZURE_OPENAI_ENDPOINTS,
     get_azure_openai_endpoint,
     get_azure_openai_key,
     get_response_from_azure_model,
     set_up_azure_client,
 )
-from t0_001.synth_data_generation.ollama import get_response_from_ollama_model
+from t0_1.synth_data_generation.ollama import get_response_from_ollama_model
 
 
 def fill_template(template, data):

@@ -1,7 +1,7 @@
 [project]
-name = "t0"
+name = "t0_1"
 version = "0.1.0"
-description = "t0"
+description = "t0.1: Initial demonstration for t0 project"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
@@ -45,7 +45,7 @@ dev = [
 ]
 
 [project.scripts]
-t0 = "t0.cli:cli"
+t0-1 = "t0_1.cli:cli"
 
 [build-system]
 requires = ["hatchling"]

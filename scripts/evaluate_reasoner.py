@@ -4,14 +4,15 @@ import json
 import os
 
 from dotenv import load_dotenv
-from t0_001.llm.client import get_azure_client
-from t0_001.llm.reasoner import (
+from tqdm import tqdm
+
+from t0_1.llm.client import get_azure_client
+from t0_1.llm.reasoner import (
     CONDITION,
     SEVERITY_LEVEL,
     UNSURE,
     generate_recommendation,
 )
-from tqdm import tqdm
 
 
 def parse_args():

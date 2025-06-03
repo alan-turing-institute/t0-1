@@ -3,7 +3,8 @@ import logging
 from azure.ai.inference import ChatCompletionsClient
 from azure.ai.inference.models import UserMessage
 from azure.core.credentials import AzureKeyCredential
-from t0_001.utils import get_environment_variable
+
+from t0_1.utils import get_environment_variable
 
 AZURE_OPENAI_ENDPOINTS = {
     "gpt-4o",
