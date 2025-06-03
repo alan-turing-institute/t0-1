@@ -1,4 +1,4 @@
-uv run t0 evaluate-rag ./data/synthetic_queries/5147cd8_gpt-4o_1000_synthetic_queries.jsonl \
+uv run t0-1 evaluate-rag ./data/synthetic_queries/5147cd8_gpt-4o_1000_synthetic_queries.jsonl \
 --db-choice chroma \
 --llm-provider azure_openai \
 --llm-model-name gpt-4o \

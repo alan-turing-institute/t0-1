@@ -101,9 +101,9 @@ uv run t0-1 query-vector-store \
 
 #### Evaluating the vector store
 
-For evaluating the vector store, you can use the `t0 evaluate-vector-store` command. This takes as input a JSONL file where each row has has a query and a target document (i.e. the name of the document or source of the chunk). In the evaluation, we query the vector database by performing a similarity search to obtain the top `k` relevant documents and assign a positive score if the retrieved documents are from the target document. In other words, we check if it's able to retrieve a chunk from that document.
+For evaluating the vector store, you can use the `t0-1 evaluate-vector-store` command. This takes as input a JSONL file where each row has has a query and a target document (i.e. the name of the document or source of the chunk). In the evaluation, we query the vector database by performing a similarity search to obtain the top `k` relevant documents and assign a positive score if the retrieved documents are from the target document. In other words, we check if it's able to retrieve a chunk from that document.
 
-There are some options for the `t0 evaluate-vector-store` command:
+There are some options for the `t0-1 evaluate-vector-store` command:
 - `--output-file`: Path to the output file.
 - `--query-field`: The field name in the JSONL corresponding to the query. Default is `"symptoms_description"`.
 - `--target-document-field`: The field name in the JSONL corresponding to the target document name. Default is `"conditions_title"`.
@@ -112,7 +112,7 @@ The other options are same as for [serving the vector store](#serving-the-vector
 
 An example command to evaluate the vector store is:
 ```bash
-uv run t0 evaluate-vector-store <path-to-input-jsonl> \
+uv run t0-1 evaluate-vector-store <path-to-input-jsonl> \
   --output-file ./eval-vector-store-defaults-k10.jsonl \
   --k 10
 ```
@@ -251,11 +251,11 @@ Model: Switched to query-with-context mode.
 
 ### Evaluating RAG
 
-For evaluating RAG, you can use the `t0 evaluate-rag` command. This takes as input a JSONL file where each row has has a query and a target document (i.e. the name of the document or source of the chunk). In the evaluation, we query the vector database by performing a similarity search to obtain the top `k` relevant documents (note that we retrieve full documents rather than chunks) and ask the model to predict the condition and severity of the query.
+For evaluating RAG, you can use the `t0-1 evaluate-rag` command. This takes as input a JSONL file where each row has has a query and a target document (i.e. the name of the document or source of the chunk). In the evaluation, we query the vector database by performing a similarity search to obtain the top `k` relevant documents (note that we retrieve full documents rather than chunks) and ask the model to predict the condition and severity of the query.
 
-You can run this evaluation with the `t0 evaluate-rag` command:
+You can run this evaluation with the `t0-1 evaluate-rag` command:
 ```bash
-uv run t0 evaluate-rag data/synthetic_queries/gpt-4o_100_synthetic_queries.jsonl \
+uv run t0-1 evaluate-rag data/synthetic_queries/gpt-4o_100_synthetic_queries.jsonl \
   --k 10 \
   --llm-provider azure_openai \
   --llm-model-name gpt-4o \
@@ -267,7 +267,7 @@ We use tool use to force the model as a form of structured output to get the mod
 
 Note for serving Deepseek-R1 on Azure AI Foundry, tool use is not currently supported, so we slightly adjust the system and prompt template so that it produces an output that we can easily parse. To evaluate Deepseek-R1, you need to use the `--deepseek-r1` option:
 ```bash
-uv run t0 evaluate-rag data/synthetic_queries/gpt-4o_100_synthetic_queries.jsonl \
+uv run t0-1 evaluate-rag data/synthetic_queries/gpt-4o_100_synthetic_queries.jsonl \
   --k 10 \
   --llm-provider azure \
   --llm-model-name deepseek-r1 \
@@ -278,15 +278,15 @@ uv run t0 evaluate-rag data/synthetic_queries/gpt-4o_100_synthetic_queries.jsonl
 
 ### Generating synthetic queries
 
-For generating synthetic queries from NHS 111 patients, you can use the `t0 generate-synth-queries` command. This will generate synthetic queries based on the conditions in the `nhs-use-case` folder and save them to a JSONL file.
+For generating synthetic queries from NHS 111 patients, you can use the `t0-1 generate-synth-queries` command. This will generate synthetic queries based on the conditions in the `nhs-use-case` folder and save them to a JSONL file.
 
-The main options for the `t0 generate-synth-queries` command are:
+The main options for the `t0-1 generate-synth-queries` command are:
 - `--n-queries`: The number of queries to generate. Default is 10.
 - `--model`: The model to use for generating the queries. This should be the name of the model to use (e.g., `gpt-4o`, `gemma3:1b`, etc.). For Azure OpenAI models, Azure endpoints are used and you will need to set the environment variables for ``AZURE_OPENAI_API_KEY` and `AZURE_OPENAI_ENDPOINT` (or `AZURE_OPENAI_ENDPOINT_{model}` where `model` is your model name.). Otherwise the model will be called via Ollama.
 - `--overwrite`: Flag for overwriting existing output files. This is useful if you want to regenerate the queries.
 - `--env-file`: Path to the environment file. This is used to load the environment variables for the Azure endpoints. By default it loads a `.env` file in the current directory.
 
-Use `t0 generate-synth-queries --help` to see all the options.
+Use `t0-1 generate-synth-queries --help` to see all the options.
 
 To set the environment variables for using the Azure endpoints, create an `.env` file as described above.
 
