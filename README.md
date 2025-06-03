@@ -27,8 +27,8 @@ The convention is to run scripts and commands from the [scripts](scripts) direct
 
 We can serve an endpoint for the model using three scripts:
 - [scripts/serve_rag_conversational.sh](scripts/serve_rag_conversational.sh): This sets up an endpoint for the RAG model and serves it using FastAPI
-- [scripts/serve_t0_1.sh](scripts/serve_t0_1.sh): This sets up a vLLM endpoint for **t0-1.1-k5-32B**
-- [scripts/serve_qwen_with_tools.sh](scripts/serve_qwen_with_tools.sh): This sets up a vLLM endpoint for **Qwen2.5-32B-Instruct** with tool calling
+- [scripts/serve_t0_1.sh](scripts/serve_t0_1.sh): This sets up a vLLM endpoint for [**t0-1.1-k5-32B**](https://huggingface.co/TomasLaz/t0-1.1-k5-32B)2
+- [scripts/serve_qwen_with_tools.sh](scripts/serve_qwen_with_tools.sh): This sets up a vLLM endpoint for [**Qwen2.5-32B-Instruct**](https://huggingface.co/Qwen/Qwen2.5-32B-Instruct) with tool calling
 
 Note that for serving the RAG model, you need to set up the environment variables for the Azure endpoints. You can do this by creating a `.env` file in the current directory with the following content:
 ```bash
@@ -43,7 +43,7 @@ Some more information on the commands that these scripts use are detailed below 
 
 ## Command Line Interfaces (CLIs)
 
-For `t0`, we have several command line interfaces (CLIs) (implemented using `typer`) to facilitate different tasks. You can run `t0 --help` to see the available commands.
+For `t0-1`, we have several command line interfaces (CLIs) (implemented using `typer`) to facilitate different tasks. You can run `t0-1 --help` to see the available commands.
 
 - [Serving and querying from the query vector store](#serving-and-querying-from-the-query-vector-store)
 - [Evaluating the query vector store](#evaluating-the-query-vector-store)
