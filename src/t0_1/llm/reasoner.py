@@ -1,6 +1,6 @@
 import json
 
-from t0_001.llm.client import chat
+from t0_1.llm.client import chat
 
 CONDITION = "condition"
 SEVERITY_LEVEL = "severity_level"

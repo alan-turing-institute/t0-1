@@ -2,7 +2,8 @@ import uvicorn
 from fastapi import FastAPI
 from langchain_core.documents import Document
 from langchain_core.vectorstores import VectorStore
-from t0_001.query_vector_store.build_index import (
+
+from t0_1.query_vector_store.build_index import (
     DEFAULT_VECTOR_STORE_CONFIG,
     VectorStoreConfig,
     get_vector_store,

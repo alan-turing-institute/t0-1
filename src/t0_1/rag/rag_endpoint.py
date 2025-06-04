@@ -6,7 +6,8 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
-from t0_001.rag.build_rag import (
+
+from t0_1.rag.build_rag import (
     DEFAULT_RETRIEVER_CONFIG,
     RAG,
     RetrieverConfig,

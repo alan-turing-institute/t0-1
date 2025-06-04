@@ -1,4 +1,4 @@
-uv run t0-001 rag-chat \
+uv run t0-1 rag-chat \
 --k 5 \
 --db-choice chroma \
 --llm-provider openai_completion \

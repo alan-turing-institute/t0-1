@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from t0_001.rag.build_rag import DEFAULT_RETRIEVER_CONFIG, RetrieverConfig, build_rag
+from t0_1.rag.build_rag import DEFAULT_RETRIEVER_CONFIG, RetrieverConfig, build_rag
 
 INPUT_PROMPT: str = ">>> "
 EXIT_STRS: set[str] = {"exit", "exit()", "quit()", "bye"}
