@@ -25,7 +25,7 @@ condition is constrained to be one of the $k$ retrieved documents.
 
 | Embedding Method             | Eval Set |  p@1 |  p@5 | p@10 | p@30 | p@50 | p@100 |
 |------------------------------|----------|-----:|-----:|-----:|-----:|-----:|------:|
-| mpnet-base-v2 / Chroma       | Large    | 0.51 | 0.75 | 0.83 | 0.93 | 0.96 |  0.98 |
+| mpnet-base-v2 / Chroma       | Large    | 0.51 | 0.76 | 0.83 | 0.93 | 0.96 |  0.98 |
 | mpnet-base-v2 / FAISS        | Large    | 0.51 | 0.76 | 0.83 | 0.93 | 0.96 |  0.98 |
 
 ### Conclusion
