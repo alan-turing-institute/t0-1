@@ -58,6 +58,7 @@ def get_huggingface_chat_model(
 def get_azure_openai_chat_model(
     model_name: str,
     api_version: str = "2025-01-01-preview",
+    extra_body: dict | str | None = None,
 ) -> BaseChatModel:
     """
     Get an Azure OpenAI chat model based on the specified model name and API version.
@@ -73,6 +74,9 @@ def get_azure_openai_chat_model(
         The name of the model to load.
     api_version : str, optional
         The API version to use. Default is "2025-01-01-preview".
+    extra_body : dict | str | None, optional
+        Additional body parameters to pass to the chat completions API.
+        If a string is provided, it will be converted to a dictionary.
 
     Returns
     -------
@@ -93,6 +97,7 @@ def get_azure_openai_chat_model(
         api_key=azure_openai_api_key,
         azure_endpoint=azure_openai_endpoint,
         api_version=api_version,
+        extra_body=process_arg_to_dict(extra_body),
     )
 
     return llm
@@ -100,6 +105,7 @@ def get_azure_openai_chat_model(
 
 def get_azure_endpoint_chat_model(
     model_name: str,
+    extra_body: dict | str | None = None,
 ) -> BaseChatModel:
     """
     Get an Azure endpoint chat model based on the specified model name.
@@ -113,6 +119,9 @@ def get_azure_endpoint_chat_model(
     ----------
     model_name : str
         The name of the model to load.
+    extra_body : dict | str | None, optional
+        Additional body parameters to pass to the chat completions API.
+        If a string is provided, it will be converted to a dictionary.
 
     Returns
     -------
@@ -127,8 +136,7 @@ def get_azure_endpoint_chat_model(
     endpoint_url = get_environment_variable("AZURE_ENDPOINT", model_name)
 
     llm = AzureAIChatCompletionsModel(
-        endpoint=endpoint_url,
-        credential=api_key,
+        endpoint=endpoint_url, credential=api_key, **process_arg_to_dict(extra_body)
     )
 
     return llm

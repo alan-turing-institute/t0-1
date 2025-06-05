@@ -464,7 +464,8 @@ def serve_rag(
     from t0_1.rag.rag_endpoint import main
     from t0_1.utils import set_seed
 
-    set_seed(seed)
+    if seed:
+        set_seed(seed)
 
     main(
         conditions_file=conditions_file,
@@ -698,7 +699,8 @@ def evaluate_rag(
     from t0_1.rag.evaluate import RetrieverConfig, main
     from t0_1.utils import set_seed
 
-    set_seed(seed)
+    if seed:
+        set_seed(seed)
 
     main(
         input_file=input_file,
@@ -918,7 +920,8 @@ def rag_chat(
     from t0_1.rag.chat_interact import run_chat_interact
     from t0_1.utils import set_seed
 
-    set_seed(seed)
+    if seed:
+        set_seed(seed)
 
     run(
         run_chat_interact(
