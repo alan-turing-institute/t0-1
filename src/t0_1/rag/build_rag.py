@@ -342,9 +342,7 @@ class RAG:
         )
 
         try:
-            reranker_response = self.rerank_llm.invoke(
-                messages, extra_body={"seed": self.seed}
-            )
+            reranker_response = self.rerank_llm.invoke(messages)
 
             reranked_docs_titles = [
                 title.strip()
@@ -433,7 +431,7 @@ class RAG:
             writer((AIMessageChunk(answer_init), config["metadata"]))
 
             response = ""
-            for msg in self.llm.stream(prompt, extra_body={"seed": self.seed}):
+            for msg in self.llm.stream(prompt):
                 writer((AIMessageChunk(msg), config["metadata"]))
                 response += msg
             return AIMessage(response)
@@ -559,7 +557,7 @@ class RAG:
             writer((AIMessageChunk(answer_init), config["metadata"]))
 
             response = ""
-            async for msg in self.llm.astream(prompt, extra_body={"seed": self.seed}):
+            async for msg in self.llm.astream(prompt):
                 writer((AIMessageChunk(msg), config["metadata"]))
                 response += msg
             return AIMessage(response)
@@ -663,7 +661,6 @@ class RAG:
         )
         response = llm_with_retrieve_tool.invoke(
             [SystemMessage(NHS_RETRIEVER_TOOL_PROMPT)] + state["messages"],
-            extra_body={"seed": self.seed},
         )
 
         return {"messages": [response]}
@@ -814,7 +811,7 @@ class RAG:
         if self.budget_forcing:
             response = self._budget_forcing_invoke(trimmed_messages, config)
         else:
-            response = self.llm.invoke(trimmed_messages, extra_body={"seed": self.seed})
+            response = self.llm.invoke(trimmed_messages)
 
         if self.conversational:
             return {
@@ -910,9 +907,7 @@ class RAG:
         if self.budget_forcing:
             response = await self._budget_forcing_ainvoke(trimmed_messages, config)
         else:
-            response = await self.llm.ainvoke(
-                trimmed_messages, extra_body={"seed": self.seed}
-            )
+            response = await self.llm.ainvoke(trimmed_messages)
 
         if self.conversational:
             return {
@@ -1250,11 +1245,15 @@ def load_llm(
     elif llm_provider == "azure_openai":
         from t0_1.rag.chat_model import get_azure_openai_chat_model
 
-        llm = get_azure_openai_chat_model(model_name=llm_model_name)
+        llm = get_azure_openai_chat_model(
+            model_name=llm_model_name, extra_body=extra_body
+        )
     elif llm_provider == "azure":
         from t0_1.rag.chat_model import get_azure_endpoint_chat_model
 
-        llm = get_azure_endpoint_chat_model(model_name=llm_model_name)
+        llm = get_azure_endpoint_chat_model(
+            model_name=llm_model_name, extra_body=extra_body
+        )
     elif llm_provider == "openai":
         from t0_1.rag.chat_model import get_openai_chat_model
 
