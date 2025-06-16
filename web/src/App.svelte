@@ -14,7 +14,8 @@
     import { onMount } from "svelte";
 
     // HTTPS proxy
-    const HOST = "https://atit0proxy.fly.dev";
+    const HOST = "https://t0-reverse-proxy.azurewebsites.net";
+    // Or run locally:
     // const HOST = "http://localhost:8000";
 
     // UI state
