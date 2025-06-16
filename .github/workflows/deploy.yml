@@ -26,7 +26,7 @@ jobs:
         working-directory: web
 
       - name: Build website
-        run: pnpm build --base /t0
+        run: pnpm build --base /t0-1
         working-directory: web
 
       - name: Deploy website
