@@ -29,6 +29,8 @@ The convention is to run scripts and commands from the [scripts](scripts) direct
 
 ## Serving the RAG model
 
+More through instructions on serving the RAG model can be found in the [serve_t0.md](serve_t0.md) file.
+
 We can serve an endpoint for the model using three scripts:
 - [scripts/serve_rag_conversational.sh](scripts/serve_rag_conversational.sh): This sets up an endpoint for the RAG model and serves it using FastAPI
 - [scripts/serve_t0_1.sh](scripts/serve_t0_1.sh): This sets up a vLLM endpoint for [**t0-1.1-k5-32B**](https://huggingface.co/TomasLaz/t0-1.1-k5-32B)
