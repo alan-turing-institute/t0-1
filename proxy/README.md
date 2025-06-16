@@ -46,7 +46,9 @@ Inbound traffic to the t0 VM is restricted, so to allow the proxy to function, y
 To get the IP address of the proxy, run:
 
 ```
-curl https://t0-reverse-proxy.azurewebsites.net/__ip
+curl https://t0-reverse-proxy.azurewebsites.net/__ip/
 ```
+
+**Note:** the trailing slash is needed
 
 As of 16 June 2025, the last public IP of the proxy was `20.26.49.55`; this was already added to the allowed addresses for the t0-2 VM.
