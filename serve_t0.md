@@ -1,0 +1,52 @@
+# Serving t0
+
+Note this is a longer version of the [Serving the rag model section of the README](https://github.com/alan-turing-institute/t0-1/tree/main?tab=readme-ov-file#serving-the-rag-model).
+
+To serve the t0 RAG model, you should turn on the [`t0-2`](https://portal.azure.com/#@turing.ac.uk/resource/subscriptions/5ae9b3e6-8784-437f-8725-9c05f55ba9b5/resourceGroups/s1-reproducing/providers/Microsoft.Compute/virtualMachines/t0-2/overview)[^1] and run three scripts:
+- [scripts/serve_rag_conversational.sh](https://github.com/alan-turing-institute/t0-1/tree/main/scripts/serve_rag_conversational.sh): This sets up an endpoint for the RAG model and serves it using FastAPI
+- [scripts/serve_t0_1.sh](https://github.com/alan-turing-institute/t0-1/tree/main/scripts/serve_t0_1.sh): This sets up a vLLM endpoint for [**t0-1.1-k5-32B**](https://huggingface.co/TomasLaz/t0-1.1-k5-32B)
+- [scripts/serve_qwen_with_tools.sh](https://github.com/alan-turing-institute/t0-1/tree/main/scripts/serve_qwen_with_tools.sh): This sets up a vLLM endpoint for [**Qwen2.5-32B-Instruct**](https://huggingface.co/Qwen/Qwen2.5-32B-Instruct) with tool calling
+
+[^1]: For now, you need to use the `t0-2` machine because we have configured our front end to interact with an endpoint served from `t0-2`.
+
+Before running, you will need to set up your environment and also set some environment variables.
+
+1. Set up environment
+    - Make sure you have [`uv`](https://docs.astral.sh/uv/getting-started/installation/) installed[^2]
+    - Clone the repository and move to directory
+        ```bash
+        git clone git@github.com:alan-turing-institute/t0-1.git
+        cd t0-1
+        ```
+    - Create a virtual environment, activate it and install required dependencies (in editable mode) using [uv](https://github.com/astral-sh/uv):
+        ```bash
+        uv venv --python=3.12
+        source .venv/bin/activate
+        uv pip install -e ".[rag,dev]"
+        ```
+    - Once created, you should just be able to enter the environment by running `source .venv/bin/activate` from your local `t0-1` directory
+
+2. Download the NHS conditions data - see the [Data section of the README](https://github.com/alan-turing-institute/t0-1/tree/main?tab=readme-ov-file#data). If you're a member of the Turing, you can download the data from the t0 sharepoint[^3]. Once downloaded, save it in `t0-1/data/nhs-conditions/v4/qwen_summarised_conditions.jsonl`
+
+3. Set up `.env` file
+    - You will need to create a `.env` file in your local `t0-1` directory. Create one and add the following lines to the file[^4]:
+        ```
+        OPENAI_API_KEY="-"
+        OPENAI_BASE_URL_TomasLaz/t0-1.1-k5-32B="http://localhost:8010/v1/"
+        OPENAI_BASE_URL_Qwen/Qwen2.5-32B-Instruct="http://localhost:8020/v1/"
+        ```
+
+4. Run all three scripts linked above. It is easiest to run these in different `screen` or `tmux` sessions[^5]:
+    - For each script (`scripts/serve_t0_1.sh`, `scripts/serve_qwen_with_tools.sh`, `scripts/serve_rag_conversational.sh`)
+        - `screen` to start a new terminal session
+        - Make sure you're in your local `t0-1` directory
+        - Activate your environment with `source .venv/bin/activate`
+        - Run the script with `source <script_name>`
+
+5. Once all scripts are running (note that the `serve_t0_1.sh` and `serve_qwen_with_tools.sh` may take a while, especially if it's your first time running them as they will be downloaded first), you should be able to interact with the model on the frontend.
+    - If you have the different terminal screen sessions up, you will see logs of the incoming requests
+
+[^2]: I recommend going with either the standalone installer or using other package managers like `brew` over doing a pip install.
+[^3]: Ask a t0 team member to direct you to the file. At time of writing, the file is in the `t0` Documents folder and the file is in `Documents/nhs-use-case/v4/qwen_summarised_conditions.jsonl`.
+[^4]: You might think these environment variables don't look like valid environment variables, and you'd be correct. But for reading `.env` files in Python with `dotenv`, these essentially just get read as key-values in a dictionary, and they're fine for that. The ports here (8010 and 8020) are set in the `serve_t0.sh` and `serve_qwen_with_tools.sh` files respectively. We are using `vllm` to serve the models which is an OpenAI-compatible server. The API key set here could be anything, it just needs to be set to _something_.
+[^5]: Alternatively, you could just open three terminals and ssh into `t0-2` three times, but it's not as nice and the scripts would end if you lost connection for whatever reason. In practice, I actually do this, but run `screen` for each script. That way, I can see all terminals at the same time and monitor the requests as they come in.
