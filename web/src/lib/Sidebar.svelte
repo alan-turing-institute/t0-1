@@ -26,7 +26,7 @@
 
 <div class="sidebar">
     <div class="sidebar-tophalf">
-        <h1>t0 online</h1>
+        <h1>t0.1 online</h1>
         <div class="sidebar-buttons">
             <span><i>Select conversation:</i></span>
             <div class="conversations">
