@@ -1,7 +1,6 @@
 CUDA_VISIBLE_DEVICES=0,1,2,3 vllm serve Qwen/Qwen2.5-32B-Instruct \
 --seed 42 \
 --generation-config vllm \
---override-generation-config "$(cat ./scripts/generation_config.json)" \
 --port 8020 \
 --tensor-parallel-size 4 \
 --max-model-len 131072 \
