@@ -4,7 +4,7 @@ Note this is a longer version of the [Serving the rag model section of the READM
 
 To serve the t0 RAG model, you should turn on the
 [`t0-2`](https://portal.azure.com/#@turing.ac.uk/resource/subscriptions/5ae9b3e6-8784-437f-8725-9c05f55ba9b5/resourceGroups/s1-reproducing/providers/Microsoft.Compute/virtualMachines/t0-2/overview)[^1]
-by clicking "Start". 
+virtual machine on Azure by clicking "Start". 
 
 In a minute, you will need to run three scripts (but don't do this yet):
 - [scripts/serve_rag_conversational.sh](https://github.com/alan-turing-institute/t0-1/tree/main/scripts/serve_rag_conversational.sh): This sets up an endpoint for the RAG model and serves it using FastAPI
