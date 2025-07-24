@@ -1,6 +1,6 @@
 # t0-1: A demonstration of Retrieval-Augmented Reasoning with Lean Language Models
 
-`t0` is a research initiative at the Alan Turing Institute focused on developing lean yet highly capable language models (LLMs) optimised for government-specific applications.
+`t0` is a research initiative at the Alan Turing Institute focused on developing lean yet highly capable language models (LLMs). 
 
 In this repo, we provide an exemplary application of Retrieval-Augmented Reasoning on a domain-specific body of knowledge (in particular, taken from [NHS A to Z condition webpages](https://www.nhs.uk/conditions/)).
 
