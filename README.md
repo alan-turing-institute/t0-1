@@ -33,12 +33,12 @@ More through instructions on serving the RAG model can be found in the [serve_t0
 
 We can serve an endpoint for the model using three scripts:
 - [scripts/serve_rag_conversational.sh](scripts/serve_rag_conversational.sh): This sets up an endpoint for the RAG model and serves it using FastAPI
-- [scripts/serve_t0_1.sh](scripts/serve_t0_1.sh): This sets up a vLLM endpoint for [**t0-1.1-k5-32B**](https://huggingface.co/TomasLaz/t0-1.1-k5-32B)
+- [scripts/serve_t0_1.sh](scripts/serve_t0_1.sh): This sets up a vLLM endpoint for [**t0-1.1-k5-32B**](https://huggingface.co/alan-turing-institute/t0-1.1-k5-32B)
 - [scripts/serve_qwen_with_tools.sh](scripts/serve_qwen_with_tools.sh): This sets up a vLLM endpoint for [**Qwen2.5-32B-Instruct**](https://huggingface.co/Qwen/Qwen2.5-32B-Instruct) with tool calling
 
 Note that for serving the RAG model, you need to set up the environment variables for the Azure endpoints. You can do this by creating a `.env` file in the current directory with the following content:
 ```bash
-OPENAI_BASE_URL_TomasLaz/t0-1.1-k5-32B="http://localhost:8010/v1/"
+OPENAI_BASE_URL_alan-turing-institute/t0-1.1-k5-32B="http://localhost:8010/v1/"
 OPENAI_BASE_URL_Qwen/Qwen2.5-32B-Instruct="http://localhost:8020/v1/"
 ```
 assuming you are running the vLLM server on `localhost` and the ports are `8010` and `8020` respectively as set in the above scripts.
