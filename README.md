@@ -4,6 +4,8 @@
 
 In this repo, we provide an exemplary application of Retrieval-Augmented Reasoning on a domain-specific body of knowledge (in particular, taken from [NHS A to Z condition webpages](https://www.nhs.uk/conditions/)).
 
+You can read more about this project in our [report](https://arxiv.org/abs/2508.11386) (also see [citation](#citation) below).
+
 ## Setup
 
 Clone the repository:
@@ -319,3 +321,14 @@ To test the endpoints, you can run the `scripts/test_Azure_models.py` script, bu
 | DeepSeek-V3   | 2.00                      |
 | DeepSeek-R1   | 2.36                      |
 | o1            | 26.25                     |
+
+# Citation
+
+```
+@article{chan2025retrieval,
+  title={Retrieval-augmented reasoning with lean language models},
+  author={Chan, Ryan Sze-Yin and Nanni, Federico and Lazauskas, Tomas and Wood, Rosie and Yong, Penelope and Tarassenko, Lionel and Girolami, Mark and Geddes, James and Duncan, Andrew},
+  journal={arXiv preprint arXiv:2508.11386},
+  year={2025}
+}
+```
