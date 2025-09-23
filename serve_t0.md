@@ -13,13 +13,63 @@ In a minute, you will need to run three scripts (but don't do this yet):
 
 [^1]: For now, you need to use the `t0-2` machine because we have configured our front end to interact with an endpoint served from `t0-2`.
 
+## Pre-requisites
+
 Before running, you will need to set your public ssh key on the
 server, set up your environment, and also set some environment
 variables.
 
+### 1. Add your SSH key to the server
+
+
 1. ssh key. In the menu on the left, go to "Help" then "Reset
    password." Choose a new username, choose to add your existing
    public key, do that. 
+
+
+**Via the Azure WebUI**
+
+1. Navigate to the `t0` Azure subscription
+2. Navigate to the `t0-2` VM (In the left-hand menu, select "Resources", then select the `t-02` Virtual Machine from the main panel)
+3. Start the VM if necessary
+4. In the left-hand menu for the `t0-2` Virtual Machine screen, selection "Help" and then "Reset password".
+5. In the Reset password page: 
+    * For the "Mode" option, select "Add SSH public key"
+    * In "Username" add your preferred username
+    * Select "SSH public key source" and related options to suit your needs
+    * Press "Update"
+6. Stop the VM if necessary
+
+
+**Via the Azure CLI**
+
+1. Login
+```
+az login
+```
+
+
+2. Ensure that your default subscription is `t0` (id `5ae9b3e6-8784-437f-8725-9c05f55ba9b5`). Either manually inspect the output of this command
+```
+az account show
+```
+Or more comprehensively:
+```
+az account show | jq -r '.id' | xargs test "5ae9b3e6-8784-437f-8725-9c05f55ba9b5" = && echo "default subscription is 't0' 🎉" || echo "⛔️ incorrect default subscription"
+```
+
+3. Now add your SSH public key to the `t0-2` VM:
+
+<your-user-name> = your preferred username
+
+`t0-2` is the resource name
+`s1-reproducing` is the resource group
+
+```
+az vm user update -u <your-user-name> --ssh-key-value "$(< ~/.ssh/your_prefered_key_pair.pub)" -n t0-2 -g s1-reproducing
+```
+
+### 2. 
    
 2. Log in: Go back to overview, find the machine's public ip, and log
    in to the server. 
@@ -34,8 +84,21 @@ variables.
 	  (You will need to create a new GitHub access token and use it
         instead of a password to `git clone`. It's under your profile,
         Settings, Developer Settings.)
-		
-    - Create a virtual environment, activate it and install required dependencies (in editable mode) using [uv](https://github.com/astral-sh/uv):
+
+> [!NOTE]
+> Does this just mean use `ssh` auth rather than `https` auth?
+> Or if is really means a an access token, does it mean:
+> * Fine-grained personal access tokens
+ https://github.com/settings/personal-access-tokens
+ > * Personal access tokens (classic)
+ https://github.com/settings/tokens
+> 
+> Or is this another way to achieve the same thing as SSH Agent Forwarding:
+> https://docs.github.com/en/authentication/connecting-to-github-with-ssh/using-ssh-agent-forwarding
+
+
+(Some repetition of instructions here)
+- Create a virtual environment, activate it and install required dependencies (in editable mode) using [uv](https://github.com/astral-sh/uv):
         ```bash
         uv venv --python=3.12
         source .venv/bin/activate
@@ -43,9 +106,9 @@ variables.
         ```
     - Once created, you should just be able to enter the environment by running `source .venv/bin/activate` from your local `t0-1` directory
 
-2. Download the NHS conditions data - see the [Data section of the README](https://github.com/alan-turing-institute/t0-1/tree/main?tab=readme-ov-file#data). If you're a member of the Turing, you can download the data from the t0 sharepoint[^3]. Once downloaded, save it in `t0-1/data/nhs-conditions/v4/qwen_summarised_conditions.jsonl`
+1. Download the NHS conditions data - see the [Data section of the README](https://github.com/alan-turing-institute/t0-1/tree/main?tab=readme-ov-file#data). If you're a member of the Turing, you can download the data from the t0 sharepoint[^3]. Once downloaded, save it in `t0-1/data/nhs-conditions/v4/qwen_summarised_conditions.jsonl`
 
-3. Set up `.env` file
+2. Set up `.env` file
     - You will need to create a `.env` file in your local `t0-1` directory. Create one and add the following lines to the file[^4]:
         ```
         OPENAI_API_KEY="-"
@@ -53,14 +116,14 @@ variables.
         OPENAI_BASE_URL_Qwen/Qwen2.5-32B-Instruct="http://localhost:8020/v1/"
         ```
 
-4. Run all three scripts linked above. It is easiest to run these in different `screen` or `tmux` sessions[^5]:
+3. Run all three scripts linked above. It is easiest to run these in different `screen` or `tmux` sessions[^5]:
     - For each script (`scripts/serve_t0_1.sh`, `scripts/serve_qwen_with_tools.sh`, `scripts/serve_rag_conversational.sh`)
         - `screen` to start a new terminal session
         - Make sure you're in your local `t0-1` directory
         - Activate your environment with `source .venv/bin/activate`
         - Run the script with `source <script_name>`
 
-5. Once all scripts are running (note that the `serve_t0_1.sh` and `serve_qwen_with_tools.sh` may take a while, especially if it's your first time running them as they will be downloaded first), you should be able to interact with the model on the frontend.
+4. Once all scripts are running (note that the `serve_t0_1.sh` and `serve_qwen_with_tools.sh` may take a while, especially if it's your first time running them as they will be downloaded first), you should be able to interact with the model on the frontend.
     - If you have the different terminal screen sessions up, you will see logs of the incoming requests
 
 [^2]: I recommend going with either the standalone installer (from the

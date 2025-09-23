@@ -21,6 +21,11 @@ source .venv/bin/activate
 uv pip install -e ".[rag,dev]"
 ```
 
+## Scripts & commands
+
+> [!NOTE]
+> APS: add details here (before the 'data' section)
+
 ## Data
 
 The data used in this project is scraped from the NHS website using [this script](scripts/Makefile) and running `make download`. Once you have downloaded the data, we can either process the html directly, or we can use [pandoc](https://pandoc.org/) to convert them into plain txt files - you can do this by running `make all`. We recommend using the txt files as they are easier to process and work with.
@@ -28,6 +33,13 @@ The data used in this project is scraped from the NHS website using [this script
 Next, you can generate a JSONL file using [this script](scripts/convert_txt_conditions_to_dataset.py) and store it in a directory called `data/nhs-conditions`. In this JSONL file each line has a JSON object with fields `"condition_title"` and `"condition_content"`.
 
 The convention is to run scripts and commands from the [scripts](scripts) directory and use relative paths to the `data/nhs-conditions` directory. For the command line interfaces (CLIs) described below, the `--conditions-file` argument is defaulted to `"./data/nhs-conditions/conditions.jsonl"`.
+
+> [!NOTE]
+> APS: Questions
+>  - is `data/nhs-conditions` relative to `scripts` dir or repo root?
+>  - is this the default dir in the makefile
+>  - should the empty dir be included in the repo with a .gitignore file?
+
 
 ## Serving the RAG model
 
@@ -46,6 +58,11 @@ OPENAI_BASE_URL_Qwen/Qwen2.5-32B-Instruct="http://localhost:8020/v1/"
 assuming you are running the vLLM server on `localhost` and the ports are `8010` and `8020` respectively as set in the above scripts.
 
 Note the above aren't proper environment variables with illegal characters, but they can be read with `dotenv` and used in the scripts.
+
+> [!NOTE]
+> APS - Question:
+> What's the general pattern here? What happens when we want another model?
+> Is there a reference to say what characters are and aren't legal in this context, even if they're not legal as environment variables?
 
 Some more information on the commands that these scripts use are detailed below in the [Command Line Interfaces (CLIs)](#command-line-interfaces-clis) section.
 
@@ -80,11 +97,20 @@ There are several options for the `t0-1 serve-vector-store` command:
 - `--chunk-overlap`: The character overlap between chunks.
 - `--db-choice`: The choice of database to use (either `chroma` or `faiss`).
 
+> [!NOTE]
+> APS:
+> 1. Just a comment. It seems that the name "conditions" in the `--conditions-file` argument and its default value are the only names that are specific to the NHS-111 application so far. Up until now all of the names have been generic. Is it worth attempting a PR to make this more generic?
+> 2. Question: `--main-only` - Is this the `id` of the relevant `div` block? If so it seems odd to have it as an arg to this command? Or does it mean something vector-store specific that I'm ought to know but don't?
+> 3. Question: `--chunk-overlap` is there a default value? it is reasonable? Is it necessary to review this and choose something application specific?
+
 It is possible to save and load a vector store by using the `--persist-directory` option. By default, we try to load the vector store from the provided path. If it does not exist, we will create a new vector store and save it to the provided path. You can use the `--force-create` option to force the creation of a new vector store, even if it already exists.
 
 Note for loading a `faiss` vector store: you must use the `--trust-source` option to load a `faiss` vector store - without it, you will not be able to load the vector store.
 
 Lastly, you can decide to not serve and just build the vector store by using the `--no-serve` option. This will build the vector store and save it to the provided path, but will not start the FastAPI server.
+
+> [!NOTE]
+> APS: Oh, is this a computationally intensive task?
 
 All of these options have default arguments (see `t0-1 serve-vector-store --help`), so you can just run the command as is. But to save and load the vector store, you need to provide the `--persist-directory` option:
 ```bash
