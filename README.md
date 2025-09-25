@@ -30,6 +30,12 @@ uv pip install -e ".[rag,dev]"
 
 The data used in this project is scraped from the NHS website using [this script](scripts/Makefile) and running `make download`. Once you have downloaded the data, we can either process the html directly, or we can use [pandoc](https://pandoc.org/) to convert them into plain txt files - you can do this by running `make all`. We recommend using the txt files as they are easier to process and work with.
 
+Move the downloads into the required directory:
+```
+mkdir -p data/nhs-conditions
+mv conditions data/nhs-conditions/
+```
+
 Next, you can generate a JSONL file using [this script](scripts/convert_txt_conditions_to_dataset.py) and store it in a directory called `data/nhs-conditions`. In this JSONL file each line has a JSON object with fields `"condition_title"` and `"condition_content"`.
 
 The convention is to run scripts and commands from the [scripts](scripts) directory and use relative paths to the `data/nhs-conditions` directory. For the command line interfaces (CLIs) described below, the `--conditions-file` argument is defaulted to `"./data/nhs-conditions/conditions.jsonl"`.

@@ -2,35 +2,32 @@
 
 Note this is a longer version of the [Serving the rag model section of the README](https://github.com/alan-turing-institute/t0-1/tree/main?tab=readme-ov-file#serving-the-rag-model).
 
-To serve the t0 RAG model, you should turn on the
-[`t0-2`](https://portal.azure.com/#@turing.ac.uk/resource/subscriptions/5ae9b3e6-8784-437f-8725-9c05f55ba9b5/resourceGroups/s1-reproducing/providers/Microsoft.Compute/virtualMachines/t0-2/overview)[^1]
-virtual machine on Azure by clicking "Start". 
 
-In a minute, you will need to run three scripts (but don't do this yet):
-- [scripts/serve_rag_conversational.sh](https://github.com/alan-turing-institute/t0-1/tree/main/scripts/serve_rag_conversational.sh): This sets up an endpoint for the RAG model and serves it using FastAPI
-- [scripts/serve_t0_1.sh](https://github.com/alan-turing-institute/t0-1/tree/main/scripts/serve_t0_1.sh): This sets up a vLLM endpoint for [**t0-1.1-k5-32B**](https://huggingface.co/TomasLaz/t0-1.1-k5-32B)
-- [scripts/serve_qwen_with_tools.sh](https://github.com/alan-turing-institute/t0-1/tree/main/scripts/serve_qwen_with_tools.sh): This sets up a vLLM endpoint for [**Qwen2.5-32B-Instruct**](https://huggingface.co/Qwen/Qwen2.5-32B-Instruct) with tool calling
+> [!WARNING]
+> The instructions below will start an expensive VM running on Azure. You will continue to be billed for the VM until you deallocate the VM (just shutting down is not sufficient). To shutdown and deallocate the VM, use the following commands:
+> ```
+> az vm stop --resource-group s1-reproducing --name t0-2
+> az vm deallocate --resource-group s1-reproducing --name t0-2
+> ```
 
+
+TODO: find a good place for this comment
 [^1]: For now, you need to use the `t0-2` machine because we have configured our front end to interact with an endpoint served from `t0-2`.
 
 ## Pre-requisites
 
-Before running, you will need to set your public ssh key on the
-server, set up your environment, and also set some environment
-variables.
+Before running, you will need to set your public ssh key on the server, set up your environment, and also set some environment variables.
 
-### 1. Add your SSH key to the server
+### Add your SSH key to the server
 
 
-1. ssh key. In the menu on the left, go to "Help" then "Reset
-   password." Choose a new username, choose to add your existing
-   public key, do that. 
+1. ssh key. In the menu on the left, go to "Help" then "Reset password." Choose a new username, choose to add your existing public key, do that. 
 
 
 **Via the Azure WebUI**
 
 1. Navigate to the `t0` Azure subscription
-2. Navigate to the `t0-2` VM (In the left-hand menu, select "Resources", then select the `t-02` Virtual Machine from the main panel)
+2. Navigate to the `t0-2 `VM ([link](https://portal.azure.com/#@turing.ac.uk/resource/subscriptions/5ae9b3e6-8784-437f-8725-9c05f55ba9b5/resourceGroups/s1-reproducing/providers/Microsoft.Compute/virtualMachines/t0-2/overview)). (In the left-hand menu, select "Resources", then select the `t-02` Virtual Machine from the main panel)
 3. Start the VM if necessary
 4. In the left-hand menu for the `t0-2` Virtual Machine screen, selection "Help" and then "Reset password".
 5. In the Reset password page: 
@@ -43,11 +40,10 @@ variables.
 
 **Via the Azure CLI**
 
-1. Login
+1. Login to Azure from the command line tool:
 ```
 az login
 ```
-
 
 2. Ensure that your default subscription is `t0` (id `5ae9b3e6-8784-437f-8725-9c05f55ba9b5`). Either manually inspect the output of this command
 ```
@@ -58,65 +54,169 @@ Or more comprehensively:
 az account show | jq -r '.id' | xargs test "5ae9b3e6-8784-437f-8725-9c05f55ba9b5" = && echo "default subscription is 't0' 🎉" || echo "⛔️ incorrect default subscription"
 ```
 
-3. Now add your SSH public key to the `t0-2` VM:
-
-<your-user-name> = your preferred username
-
-`t0-2` is the resource name
-`s1-reproducing` is the resource group
+3. Ensure that the VM is started:
 
 ```
+az vm start --resource-group s1-reproducing --name t0-2
+```
+   
+5. Now add your SSH public key to the `t0-2` VM:
+
+Use the command below to upload your SSH public, substituting values for `your-user-name` and `your_preferee_key_pair`:
+* `<your-user-name>` = your preferred username
+* `<~/.ssh/your_prefered_key_pair.pub>` = the path to public key you which to upload. This should be a key you can use to access GitHub.
+* `t0-2` is the resource name
+* `s1-reproducing` is the resource group
+
+EITHER:
+A. Confirm that you can access GitHub using your preferred key pair (See GitHub docs for debugging):
+
+```
+# Note: specify the key-pair WITHOUT the `.pub` suffix here
+ssh -T git@github.com -i ~/.ssh/your_prefered_key_pair -o IdentitiesOnly=yes
+```
+
+B. Then upload that key to the server.
+
+```
+# Note: specify the key-pair WITH the `.pub` siffix here
 az vm user update -u <your-user-name> --ssh-key-value "$(< ~/.ssh/your_prefered_key_pair.pub)" -n t0-2 -g s1-reproducing
 ```
 
-### 2. 
-   
-2. Log in: Go back to overview, find the machine's public ip, and log
+OR:
+
+Directly load your public directly from GitHub:
+
+* `<your-user-name>` = your preferred username on the server
+* `<your-github-username>` = the path to public key you which to upload. This should be a key you can use to access GitHub.
+
+
+https://github.com/andrewphilipsmith.keys
+
+echo your keys are "$(curl --silent https://github.com/andrewphilipsmith.keys)"
+
+```
+az vm user update -u a.smith --ssh-key-value "$(curl --silent https://github.com/andrewphilipsmith.keys)" -n t0-2 -g s1-reproducing
+
+az vm user update -u <your-user-name> --ssh-key-value "$(curl --silent https://github.com/<your-github-username>.keys)" -n t0-2 -g s1-reproducing
+
+```
+
+
+
+### 2. Find the server's IP address
+
+(BTW, it's 20.117.204.190)
+
+**Via the Azure WebUI**
+
+* Details to be completed.
+
+
+**Via the Azure CLI**
+
+3.  Log in: Go back to overview, find the machine's public ip, and log
    in to the server. 
 
-1. Set up environment
+1. Get the public IP address of the machine:
+```
+az network public-ip list --resource-group s1-reproducing | jq --raw-output '.[] | select (.name == "t0-2-ip").ipAddress'
+```
+
+
+### Configure the server environment
+
+These steps are only possible via the command line.
+
+1. SSH into the machine:
+   
+* `<your-user-name>` = your preferred username
+* `<ipaddress>` = the public IP address from the command above
+
+```
+ssh <your-user-name>@<ipaddress>
+```
+
+2. Setup SSH Agent Forwarding
+
+Follow the instructions in GitHub's [Using SSH agent forwarding](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/using-ssh-agent-forwarding) page. Confirm this is working correctly by connecting to the server via SSH and running this command:
+
+```
+ssh -T git@github.com
+```
+
+3. Set up the environment on the server
+
     - Make sure you have [`uv`](https://docs.astral.sh/uv/getting-started/installation/) installed[^2]
-    - Clone the repository and move to directory
-        ```bash
-        git clone git@github.com:alan-turing-institute/t0-1.git
-        cd t0-1
-        ```
-	  (You will need to create a new GitHub access token and use it
-        instead of a password to `git clone`. It's under your profile,
-        Settings, Developer Settings.)
+```
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
 
 > [!NOTE]
-> Does this just mean use `ssh` auth rather than `https` auth?
-> Or if is really means a an access token, does it mean:
-> * Fine-grained personal access tokens
- https://github.com/settings/personal-access-tokens
- > * Personal access tokens (classic)
- https://github.com/settings/tokens
-> 
-> Or is this another way to achieve the same thing as SSH Agent Forwarding:
-> https://docs.github.com/en/authentication/connecting-to-github-with-ssh/using-ssh-agent-forwarding
+> This is the default method of installing `uv`. For a full explanation, including alternative installation methods see [the UV documentation](https://docs.astral.sh/uv/getting-started/installation/).
+  
+4. Clone the repository and move to directory
+```bash
+git clone git@github.com:alan-turing-institute/t0-1.git
+cd t0-1
+```
 
 
-(Some repetition of instructions here)
-- Create a virtual environment, activate it and install required dependencies (in editable mode) using [uv](https://github.com/astral-sh/uv):
-        ```bash
-        uv venv --python=3.12
-        source .venv/bin/activate
-        uv pip install -e ".[rag,dev]"
-        ```
-    - Once created, you should just be able to enter the environment by running `source .venv/bin/activate` from your local `t0-1` directory
+5. Install the t0-1 pack in a local virtual environment:
+   These commands create a local virtual environment, activate it and then install required dependencies (in editable mode) using [uv](https://github.com/astral-sh/uv):
+```bash
+uv venv --python=3.12
+source .venv/bin/activate
+uv pip install -e ".[rag,dev]"
+```
 
-1. Download the NHS conditions data - see the [Data section of the README](https://github.com/alan-turing-institute/t0-1/tree/main?tab=readme-ov-file#data). If you're a member of the Turing, you can download the data from the t0 sharepoint[^3]. Once downloaded, save it in `t0-1/data/nhs-conditions/v4/qwen_summarised_conditions.jsonl`
+6. Download the NHS conditions data - see the [Data section of the README](https://github.com/alan-turing-institute/t0-1/tree/main?tab=readme-ov-file#data). If you're a member of the Turing, you can download the data from the t0 sharepoint[^3]. Once downloaded, save it in `t0-1/data/nhs-conditions/v4/qwen_summarised_conditions.jsonl`
 
-2. Set up `.env` file
-    - You will need to create a `.env` file in your local `t0-1` directory. Create one and add the following lines to the file[^4]:
-        ```
-        OPENAI_API_KEY="-"
-        OPENAI_BASE_URL_TomasLaz/t0-1.1-k5-32B="http://localhost:8010/v1/"
-        OPENAI_BASE_URL_Qwen/Qwen2.5-32B-Instruct="http://localhost:8020/v1/"
-        ```
+```
+ssh a.smith@20.117.204.190 'mkdir -p ~/t0-1/data/nhs-conditions/v4'
+scp data/nhs-conditions/conditions.jsonl a.smith@20.117.204.190:~/t0-1/data/nhs-conditions/v4/qwen_summarised_conditions.jsonl
+```
 
-3. Run all three scripts linked above. It is easiest to run these in different `screen` or `tmux` sessions[^5]:
+
+7. Set up an `.env` file
+
+The easiest way to create this is to copy the default file
+
+```
+cp .env.default .env
+```
+
+ Alternatively, you can manually create the file using `touch .env` and then open the file in an editor and add the following lines to the file[^4]:
+
+```
+OPENAI_API_KEY="-"
+OPENAI_BASE_URL_TomasLaz/t0-1.1-k5-32B="http://localhost:8010/v1/"
+OPENAI_BASE_URL_Qwen/Qwen2.5-32B-Instruct="http://localhost:8020/v1/"
+```
+
+
+## Serving the models
+
+### Default options
+
+The simplest way to serve the models is to use the `launch-all-in-tmux.sh` script:
+
+```
+cd scripts
+./launch-all-in-tmux.sh
+```
+
+This will create a new `tmux` session, with each of the three core scripts running in a separate panes.
+
+### Details
+
+There are three core long-running scripts, all of which must be running simultaneously:
+
+- [scripts/serve_rag_conversational.sh](https://github.com/alan-turing-institute/t0-1/tree/main/scripts/serve_rag_conversational.sh): This sets up an endpoint for the RAG model and serves it using FastAPI
+- [scripts/serve_t0_1.sh](https://github.com/alan-turing-institute/t0-1/tree/main/scripts/serve_t0_1.sh): This sets up a vLLM endpoint for [**t0-1.1-k5-32B**](https://huggingface.co/TomasLaz/t0-1.1-k5-32B)
+- [scripts/serve_qwen_with_tools.sh](https://github.com/alan-turing-institute/t0-1/tree/main/scripts/serve_qwen_with_tools.sh): This sets up a vLLM endpoint for [**Qwen2.5-32B-Instruct**](https://huggingface.co/Qwen/Qwen2.5-32B-Instruct) with tool calling
+
+Run all three scripts linked above simultaneously. It is easiest to run these in different `screen` or `tmux` sessions[^5]:
     - For each script (`scripts/serve_t0_1.sh`, `scripts/serve_qwen_with_tools.sh`, `scripts/serve_rag_conversational.sh`)
         - `screen` to start a new terminal session
         - Make sure you're in your local `t0-1` directory
