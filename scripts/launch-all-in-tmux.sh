@@ -20,17 +20,14 @@ if ! tmux has-session -t t0-1 2>/dev/null; then
     # Start the scripts in each pane
     tmux select-pane -t $PANE0
     tmux send-keys "cd $REPO_ROOT_DIR" C-m
-    tmux send-keys 'source .env' C-m
     tmux send-keys 'source .venv/bin/activate' C-m
     tmux send-keys 'source ./scripts/serve_rag_conversational.sh' C-m
     tmux select-pane -t $PANE1
     tmux send-keys "cd $REPO_ROOT_DIR" C-m
-    tmux send-keys 'source .env' C-m
     tmux send-keys 'source .venv/bin/activate' C-m
     tmux send-keys 'source ./scripts/serve_t0_1.sh' C-m
     tmux select-pane -t $PANE2
     tmux send-keys "cd $REPO_ROOT_DIR" C-m
-    tmux send-keys 'source .env' C-m
     tmux send-keys 'source .venv/bin/activate' C-m
     tmux send-keys 'source ./scripts/serve_qwen_with_tools.sh' C-m
 fi

@@ -167,8 +167,13 @@ cd t0-1
 ```bash
 uv venv --python=3.12
 source .venv/bin/activate
-uv pip install -e ".[rag,dev]"
+uv sync --all-extras
 ```
+
+> [!NOTE]
+> Using `uv sync --all-extras` will install the exact versions of dependencies that were used when `t0` was last deployed.
+> For developers, it may be more appropriate to install the dependencies by resolving the latest compatible versions using `uv pip install -e ".[rag,dev]"`.
+
 
 6. Download the NHS conditions data - see the [Data section of the README](https://github.com/alan-turing-institute/t0-1/tree/main?tab=readme-ov-file#data). If you're a member of the Turing, you can download the data from the t0 sharepoint[^3]. Once downloaded, save it in `t0-1/data/nhs-conditions/v4/qwen_summarised_conditions.jsonl`
 
@@ -202,8 +207,7 @@ OPENAI_BASE_URL_Qwen/Qwen2.5-32B-Instruct="http://localhost:8020/v1/"
 The simplest way to serve the models is to use the `launch-all-in-tmux.sh` script:
 
 ```
-cd scripts
-./launch-all-in-tmux.sh
+./scripts/launch-all-in-tmux.sh
 ```
 
 This will create a new `tmux` session, with each of the three core scripts running in a separate panes.
