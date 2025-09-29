@@ -211,3 +211,7 @@ web/node_modules/
 !web/src/lib
 web/.vite
 /scripts/data/nhs-conditions
+/scripts/v4-summarised-db
+/scripts/v4-summarised-lfs
+/v4-summarised-db
+/v4-summarised-lfs

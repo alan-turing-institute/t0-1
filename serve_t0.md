@@ -10,9 +10,8 @@ Note this is a longer version of the [Serving the rag model section of the READM
 > az vm deallocate --resource-group s1-reproducing --name t0-2
 > ```
 
-
-TODO: find a good place for this comment
-[^1]: For now, you need to use the `t0-2` machine because we have configured our front end to interact with an endpoint served from `t0-2`.
+> [!NOTE]
+> These instructions describe how to setup and run the `t0` models on a specific existing VM. (Hostname `t0-2` within the `t0` Azure subscription). The web front-end is preconfigured to work with this VM. The instructions do not cover how to provision a VM from scratch or how to update the web front-end to work with a new VM. 
 
 ## Pre-requisites
 
@@ -20,9 +19,7 @@ Before running, you will need to set your public ssh key on the server, set up y
 
 ### Add your SSH key to the server
 
-
 1. ssh key. In the menu on the left, go to "Help" then "Reset password." Choose a new username, choose to add your existing public key, do that. 
-
 
 **Via the Azure WebUI**
 
@@ -36,7 +33,6 @@ Before running, you will need to set your public ssh key on the server, set up y
     * Select "SSH public key source" and related options to suit your needs
     * Press "Update"
 6. Stop the VM if necessary
-
 
 **Via the Azure CLI**
 
@@ -73,7 +69,7 @@ A. Confirm that you can access GitHub using your preferred key pair (See GitHub 
 
 ```
 # Note: specify the key-pair WITHOUT the `.pub` suffix here
-ssh -T git@github.com -i ~/.ssh/your_prefered_key_pair -o IdentitiesOnly=yes
+username@your-laptop:~$ ssh -T git@github.com -i ~/.ssh/your_prefered_key_pair -o IdentitiesOnly=yes
 ```
 
 B. Then upload that key to the server.
@@ -96,17 +92,14 @@ https://github.com/andrewphilipsmith.keys
 echo your keys are "$(curl --silent https://github.com/andrewphilipsmith.keys)"
 
 ```
-az vm user update -u a.smith --ssh-key-value "$(curl --silent https://github.com/andrewphilipsmith.keys)" -n t0-2 -g s1-reproducing
-
 az vm user update -u <your-user-name> --ssh-key-value "$(curl --silent https://github.com/<your-github-username>.keys)" -n t0-2 -g s1-reproducing
-
 ```
 
 
 
-### 2. Find the server's IP address
+### 2. Confirm the server's IP address
 
-(BTW, it's 20.117.204.190)
+The VM's public IP address should be 20.117.204.190. Confirm this, as the subsequent instructions assume it to be correct.
 
 **Via the Azure WebUI**
 
@@ -142,12 +135,11 @@ ssh <your-user-name>@<ipaddress>
 Follow the instructions in GitHub's [Using SSH agent forwarding](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/using-ssh-agent-forwarding) page. Confirm this is working correctly by connecting to the server via SSH and running this command:
 
 ```
-ssh -T git@github.com
+a.smith@t0-2:~$ ssh -T git@github.com
 ```
 
-3. Set up the environment on the server
-
-    - Make sure you have [`uv`](https://docs.astral.sh/uv/getting-started/installation/) installed[^2]
+3. Make sure you have [`uv`](https://docs.astral.sh/uv/getting-started/installation/) installed:
+   
 ```
 curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
@@ -161,7 +153,6 @@ git clone git@github.com:alan-turing-institute/t0-1.git
 cd t0-1
 ```
 
-
 5. Install the t0-1 pack in a local virtual environment:
    These commands create a local virtual environment, activate it and then install required dependencies (in editable mode) using [uv](https://github.com/astral-sh/uv):
 ```bash
@@ -174,16 +165,21 @@ uv sync --all-extras
 > Using `uv sync --all-extras` will install the exact versions of dependencies that were used when `t0` was last deployed.
 > For developers, it may be more appropriate to install the dependencies by resolving the latest compatible versions using `uv pip install -e ".[rag,dev]"`.
 
+6. Obtain the NHS conditions data - see the [Data section of the README](https://github.com/alan-turing-institute/t0-1/tree/main?tab=readme-ov-file#data) for details. There are three options for this:
+   
+* Run the `make download all` command directly on the server (fewest steps)
+* Run the `make download all` command locally on your laptop and then upload the resulting file to the server (minimising time required on the expensive VM).
+* If you're a member of the Turing, you can ask a t0 team member to direct you to the file. At time of writing, the file is on SharePoint, in the `t0` Documents folder, at this path `Documents/nhs-use-case/v4/qwen_summarised_conditions.jsonl`.
 
-6. Download the NHS conditions data - see the [Data section of the README](https://github.com/alan-turing-institute/t0-1/tree/main?tab=readme-ov-file#data). If you're a member of the Turing, you can download the data from the t0 sharepoint[^3]. Once downloaded, save it in `t0-1/data/nhs-conditions/v4/qwen_summarised_conditions.jsonl`
+7. Copy the datafile to the correct location on the server. It should be in `~/t0-1/data/nhs-conditions/v4/qwen_summarised_conditions.jsonl`
 
+To copy a local copy of the datafile to the server, use the following command (substituting suitable values for `<username>` and `<local/path/to/conditions.jsonl>`):
 ```
-ssh a.smith@20.117.204.190 'mkdir -p ~/t0-1/data/nhs-conditions/v4'
-scp data/nhs-conditions/conditions.jsonl a.smith@20.117.204.190:~/t0-1/data/nhs-conditions/v4/qwen_summarised_conditions.jsonl
+ssh <username>@20.117.204.190 'mkdir -p ~/t0-1/data/nhs-conditions/v4' && \
+scp <local/path/to/conditions.jsonl> <username>@20.117.204.190:~/t0-1/data/nhs-conditions/v4/qwen_summarised_conditions.jsonl
 ```
 
-
-7. Set up an `.env` file
+8. Set up an `.env` file
 
 The easiest way to create this is to copy the default file
 
@@ -199,6 +195,10 @@ OPENAI_BASE_URL_TomasLaz/t0-1.1-k5-32B="http://localhost:8010/v1/"
 OPENAI_BASE_URL_Qwen/Qwen2.5-32B-Instruct="http://localhost:8020/v1/"
 ```
 
+> [!NOTE]
+> These are not valid shell environment variables. However, they are permitted when reading a `.env` file in Python with `dotenv`. The `dotenv` standard treats these as just as a key-value pair in a dictionary, and the keys are accepted in this context. <br>
+> The ports here (8010 and 8020) are set in the `serve_t0.sh` and `serve_qwen_with_tools.sh` files respectively. We are using `vllm` to serve the models, which is an OpenAI-compatible server. The API key value can be any non-empty, non-null string. It is not used to authenticate against OpenAI's API.
+
 
 ## Serving the models
 
@@ -210,7 +210,7 @@ The simplest way to serve the models is to use the `launch-all-in-tmux.sh` scrip
 ./scripts/launch-all-in-tmux.sh
 ```
 
-This will create a new `tmux` session, with each of the three core scripts running in a separate panes.
+This will create a new `tmux` session, with each of the three core scripts running in a separate pane.
 
 ### Details
 
@@ -220,18 +220,19 @@ There are three core long-running scripts, all of which must be running simultan
 - [scripts/serve_t0_1.sh](https://github.com/alan-turing-institute/t0-1/tree/main/scripts/serve_t0_1.sh): This sets up a vLLM endpoint for [**t0-1.1-k5-32B**](https://huggingface.co/TomasLaz/t0-1.1-k5-32B)
 - [scripts/serve_qwen_with_tools.sh](https://github.com/alan-turing-institute/t0-1/tree/main/scripts/serve_qwen_with_tools.sh): This sets up a vLLM endpoint for [**Qwen2.5-32B-Instruct**](https://huggingface.co/Qwen/Qwen2.5-32B-Instruct) with tool calling
 
-Run all three scripts linked above simultaneously. It is easiest to run these in different `screen` or `tmux` sessions[^5]:
-    - For each script (`scripts/serve_t0_1.sh`, `scripts/serve_qwen_with_tools.sh`, `scripts/serve_rag_conversational.sh`)
-        - `screen` to start a new terminal session
-        - Make sure you're in your local `t0-1` directory
-        - Activate your environment with `source .venv/bin/activate`
-        - Run the script with `source <script_name>`
+Run all three scripts must be running simultaneously. It is helpful for monitoring and debugging purposes to be able to see the logging output from each. The `launch-all-in-tmux.sh` achieves this using `tmux`; however, there are other ways to achieve the same goal.
 
-4. Once all scripts are running (note that the `serve_t0_1.sh` and `serve_qwen_with_tools.sh` may take a while, especially if it's your first time running them as they will be downloaded first), you should be able to interact with the model on the frontend.
-    - If you have the different terminal screen sessions up, you will see logs of the incoming requests
+For each script:
+- Ensure you're in the repo's local `t0-1` directory
+- Activate your environment with `source .venv/bin/activate`
+- Run the script with `source ./scripts/<script_name>`
 
-[^2]: I recommend going with either the standalone installer (from the
-    uv homepage) or using other package managers like `brew` over doing a pip install.
-[^3]: Ask a t0 team member to direct you to the file. At time of writing, the file is in the `t0` Documents folder and the file is in `Documents/nhs-use-case/v4/qwen_summarised_conditions.jsonl`.
-[^4]: You might think these environment variables don't look like valid environment variables, and you'd be correct. But for reading `.env` files in Python with `dotenv`, these essentially just get read as key-values in a dictionary, and they're fine for that. The ports here (8010 and 8020) are set in the `serve_t0.sh` and `serve_qwen_with_tools.sh` files respectively. We are using `vllm` to serve the models which is an OpenAI-compatible server. The API key set here could be anything, it just needs to be set to _something_.
-[^5]: Alternatively, you could just open three terminals and ssh into `t0-2` three times, but it's not as nice and the scripts would end if you lost connection for whatever reason. In practice, I actually do this, but run `screen` for each script. That way, I can see all terminals at the same time and monitor the requests as they come in.
+# Viewing the Web Interface
+
+The web interface is available at:
+https://alan-turing-institute.github.io/t0-1/
+
+If you see the error message below, then the VM has not been set up correctly:
+```
+Failed to connect to backend at `https://t0-reverse-proxy.azurewebsites.net`. Please check if the backend is running. If you want to change the backend URL, please edit `web/src/App.svelte` and change the `HOST` constant.
+```
