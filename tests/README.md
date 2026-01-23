@@ -5,7 +5,8 @@ Tests for the Qwen to Gemma format conversion and SFT training setup.
 ## Running Tests
 
 ```bash
-uv run --extra dev pytest tests/ -v
+uv sync --extra dev
+uv run pytest
 ```
 
 ## Test Files
