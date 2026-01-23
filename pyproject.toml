@@ -44,7 +44,7 @@ rag = [
 dev = [
     "pre-commit>=4.2.0",
     "pytest>=8.3.4",
-    "trl>=0.19.1",
+    "trl>=0.19.1,<0.20.0",
 ]
 
 [project.scripts]
