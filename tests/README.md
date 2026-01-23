@@ -7,20 +7,22 @@ This directory contains tests for the t0 project.
 To run all tests using `uv`:
 
 ```bash
-uv run pytest tests/
+uv run --extra dev pytest tests/
 ```
 
 To run tests with verbose output:
 
 ```bash
-uv run pytest tests/ -v
+uv run --extra dev pytest tests/ -v
 ```
 
 To run a specific test file:
 
 ```bash
-uv run pytest tests/test_convert_to_gemma_format.py -v
+uv run --extra dev pytest tests/test_convert_to_gemma_format.py -v
 ```
+
+**Note:** The `--extra dev` flag is required because some tests depend on `trl` which is in the dev dependencies.
 
 ## Test Coverage
 
@@ -85,6 +87,47 @@ Integration tests that verify conversion correctness on actual dataset files. Th
    - Index order preservation verification
 
 **Note:** These tests automatically skip if the dataset files don't exist. Run the conversion script first to generate the datasets.
+
+### test_sft.py
+
+Tests for the `train/s1_31a10f2/train/sft.py` training script, verifying consistency between the SFT training setup and the Gemma format conversion.
+
+**Test Classes:**
+
+1. **TestTemplateCorrectness** - Verifies template strings match expected format (4 tests)
+   - Response template matches conversion output
+   - Instruction template matches conversion output
+   - Format structure is correct for DataCollator
+   - No BOS token in converted text (tokenizer adds it)
+
+2. **TestModelNameParsing** - Model name detection logic (3 tests)
+   - Gemma model names detected correctly
+   - Qwen model names detected correctly
+   - Llama model names detected correctly
+
+3. **TestTokenizerConfiguration** - Tokenizer setup verification (3 tests, requires `trl`)
+   - Gemma pad token is set
+   - Qwen pad token is `<|fim_pad|>`
+   - Gemma tokenizer adds BOS automatically
+
+4. **TestDataCollatorIntegration** - DataCollator with converted data (5 tests, requires `trl`)
+   - Response template tokenizes correctly
+   - Converted text contains response template tokens
+   - Collator masks instruction tokens (labels=-100)
+   - Collator preserves response tokens
+   - Response includes thinking and answer content
+
+5. **TestBosTokenHandling** - BOS token handling between conversion and training (2 tests, requires `trl`)
+   - No duplicate BOS tokens after tokenization
+   - BOS is first token in sequence
+
+6. **TestEndToEndIntegration** - Full pipeline validation (1 test, requires `trl`)
+   - Complete Qwen → Gemma conversion → tokenization → collation pipeline
+
+7. **TestErrorHandling** - Error handling for unsupported models (1 test)
+   - Unsupported model names are detected
+
+**Note:** Tests marked "requires `trl`" will be skipped if `trl` is not installed. Install dev dependencies with `uv sync --extra dev`.
 
 ## Adding New Tests
 
