@@ -222,8 +222,9 @@ class TestDatasetConversion:
             sample_text = converted["train"][idx]["text"]
 
             # Check for required Gemma format tokens
+            # Note: <bos> is NOT in the text - the tokenizer adds it automatically
             assert sample_text.startswith(
-                "<bos><start_of_turn>user\n"
+                "<start_of_turn>user\n"
             ), f"Sample {idx}: Missing proper Gemma start tokens"
 
             assert (
@@ -412,7 +413,8 @@ class TestDatasetStructure:
         """Verify all converted samples contain required Gemma format tokens."""
         original, converted = datasets
 
-        required_tokens = ["<bos>", "<start_of_turn>", "<end_of_turn>"]
+        # Note: <bos> is NOT in the text - the tokenizer adds it automatically
+        required_tokens = ["<start_of_turn>", "<end_of_turn>"]
 
         for idx in range(len(converted["train"])):
             converted_text = converted["train"][idx]["text"]

@@ -66,8 +66,8 @@ def convert_to_gemma_format(components: dict) -> str:
     """
     Convert parsed components to Gemma chat template format.
 
-    Gemma format:
-    <bos><start_of_turn>user
+    Gemma format (without <bos> - tokenizer adds it automatically):
+    <start_of_turn>user
     [System message prepended if present]
 
     [User message]<end_of_turn>
@@ -95,8 +95,10 @@ def convert_to_gemma_format(components: dict) -> str:
     model_turn = '\n\n'.join(model_content)
 
     # Assemble complete Gemma format
+    # Note: <bos> is NOT included here - the tokenizer adds it automatically
+    # (Gemma tokenizer has add_bos_token=True by default)
     gemma_text = (
-        f"<bos><start_of_turn>user\n"
+        f"<start_of_turn>user\n"
         f"{user_turn}<end_of_turn>\n"
         f"<start_of_turn>model\n"
         f"{model_turn}<end_of_turn>"

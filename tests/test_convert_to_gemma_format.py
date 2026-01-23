@@ -130,7 +130,7 @@ class TestConvertToGemmaFormat:
 
         result = convert_to_gemma_format(components)
 
-        assert result.startswith("<bos><start_of_turn>user\n")
+        assert result.startswith("<start_of_turn>user\n")
         assert "You are helpful." in result
         assert "What is AI?" in result
         assert "<end_of_turn>\n<start_of_turn>model\n" in result
@@ -149,7 +149,7 @@ class TestConvertToGemmaFormat:
 
         result = convert_to_gemma_format(components)
 
-        assert "<bos><start_of_turn>user\n" in result
+        assert "<start_of_turn>user\n" in result
         assert "Hello<end_of_turn>" in result
         assert "[Thinking: Greeting detected]" in result
         assert "[Answer: Hi!]" in result
@@ -204,7 +204,7 @@ class TestConvertToGemmaFormat:
         result = convert_to_gemma_format(components)
 
         # Should still have proper structure
-        assert result.startswith("<bos><start_of_turn>user\n")
+        assert result.startswith("<start_of_turn>user\n")
         assert "<end_of_turn>" in result
         assert "<start_of_turn>model\n" in result
         assert result.endswith("<end_of_turn>")
@@ -252,7 +252,7 @@ What is 5 * 6?<|im_end|>
         gemma_text = convert_to_gemma_format(components)
 
         # Verify conversion
-        assert gemma_text.startswith("<bos><start_of_turn>user\n")
+        assert gemma_text.startswith("<start_of_turn>user\n")
         assert "You are a math tutor." in gemma_text
         assert "What is 5 * 6?" in gemma_text
         assert "[Thinking: 5 times 6 equals 30.]" in gemma_text
