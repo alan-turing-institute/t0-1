@@ -21,9 +21,6 @@ Tests the conversion of Qwen-formatted training data to Gemma format.
 
 ### test_sft.py
 
-Tests template consistency between conversion script and SFT training.
+Tests that DataCollatorForCompletionOnlyLM works correctly with Gemma format.
 
-- `test_response_template_in_converted_output` - Verifies `<start_of_turn>model\n` appears in converted text
-- `test_instruction_template_in_converted_output` - Verifies `<start_of_turn>user` appears in converted text
-- `test_no_bos_token_in_converted_text` - Verifies no `<bos>` in text (tokenizer adds it automatically)
 - `test_collator_masks_instruction_tokens` - Verifies DataCollator correctly masks instruction tokens (requires `trl`)
