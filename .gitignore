@@ -212,3 +212,8 @@ web/package-lock.json
 web/node_modules/
 !web/src/lib
 web/.vite
+v4-summarised-db/*
+v4-summarised-lfs/*
+*.json*
+*.png
+fine_tuned_model/*
