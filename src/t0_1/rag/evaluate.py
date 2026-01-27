@@ -61,8 +61,11 @@ def parse_deepseek_r1(string: str) -> tuple[str]:
     """
     import re
 
-    # split the string into two parts: before and after the reasoning
-    string_after_think_end = string.split("</think>")[-1]
+    # If no <think> tags present (native reasoning model), parse entire string
+    if "</think>" in string:
+        string_after_think_end = string.split("</think>")[-1]
+    else:
+        string_after_think_end = string
 
     # extract the condition and severity level using regex
     match = re.search(r"\(([^,]+), ([^)]+)\)", string_after_think_end)
@@ -250,6 +253,9 @@ async def process_query(
                 else response["messages"][0].content
             ),
             "rag_answer": response["messages"][-1].content,
+            "rag_reasoning_content": response["messages"][-1].additional_kwargs.get(
+                "reasoning_content"
+            ),
             "rag_tool_calls": response["messages"][-1].additional_kwargs.get(
                 "tool_calls"
             ),

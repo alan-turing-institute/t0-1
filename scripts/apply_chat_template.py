@@ -1,4 +1,4 @@
-"""Tokenize reasoning traces and answers for use with the s1k pipeline.
+"""Apply chat templates to reasoning traces and answers for use with the s1k pipeline.
 
 Adapted from: https://github.com/simplescaling/s1/blob/main/data/tokenization.py
 """
@@ -27,6 +27,7 @@ DEFAULT_NUM_PROC = multiprocessing.cpu_count() - 1
 # TODO: Standardise upstream export of prompts, reasoning traces and answers.
 PROMPT = "rag_message"
 RESPONSE = "rag_answer"
+SYSTEM_PROMPT = "system_prompt"
 
 
 def stringify_all_values(obj):
@@ -91,39 +92,86 @@ def preprocess(text):
     return text
 
 
+def _format_thinking_content(reasoning_trace: str, answer: str, model_name: str) -> str:
+    """Format the assistant's thinking and answer content for a given model family."""
+    model_lower = model_name.lower()
+    if "qwen" in model_lower:
+        return (
+            "<|im_start|>think\n"
+            + reasoning_trace
+            + "\n<|im_start|>answer\n"
+            + answer
+        )
+    elif "gemma" in model_lower:
+        return "<think>\n" + reasoning_trace + "\n</think>\n" + answer
+    else:
+        # Default: use generic <think> tags (works for most models)
+        return "<think>\n" + reasoning_trace + "\n</think>\n" + answer
+
+
 def process_cot_example(
     example: Dict,
     tokenizer,
+    model_name: str,
 ):
-    system_prompt = example[PROMPT][0]
-    user_prompt = example[PROMPT][1]
-    model_output = example[RESPONSE]
-    # Extract Deepseek-R1 reasoning trace and output.
-    regex_match = re.match(r"<think>(.*?)</think>\s*(.*)", model_output, re.DOTALL)
+    # Handle both list format (old) and separate fields (new)
+    if isinstance(example[PROMPT], list):
+        # Old format: rag_message is [system_prompt, user_prompt]
+        system_prompt = example[PROMPT][0]
+        user_prompt = example[PROMPT][1]
+    else:
+        # New format: system_prompt is separate, rag_message is just user prompt
+        system_prompt = example.get(SYSTEM_PROMPT, "")
+        user_prompt = example[PROMPT]
 
-    if not regex_match:
-        condition = example["conditions_title"]
-        logger.warning(
-            f"Failed to extract reasoning trace and output for example of {condition=}."
-        )
-        return
-    reasoning_trace = regex_match.group(1).strip()
-    answer = regex_match.group(2).strip()
+    model_output = example[RESPONSE]
+
+    # Prefer native reasoning_content if available (e.g. gpt-oss-120b)
+    reasoning_content = example.get("rag_reasoning_content")
+    if reasoning_content and reasoning_content != "None":
+        reasoning_trace = reasoning_content.strip()
+        answer = model_output.strip()
+        if not answer:
+            condition = example.get("conditions_title", "unknown")
+            logger.warning(
+                f"Skipping example with empty answer for {condition=} (native reasoning)."
+            )
+            return
+        if not reasoning_trace:
+            condition = example.get("conditions_title", "unknown")
+            logger.warning(
+                f"Skipping example with empty reasoning for {condition=} (native reasoning)."
+            )
+            return
+    else:
+        # Fallback: parse <think> tags from content (DeepSeek-R1, older data)
+        regex_match = re.match(r"<think>(.*?)</think>\s*(.*)", model_output, re.DOTALL)
+
+        if not regex_match:
+            condition = example["conditions_title"]
+            logger.warning(
+                f"Failed to extract reasoning trace and output for example of {condition=}."
+            )
+            return
+        reasoning_trace = regex_match.group(1).strip()
+        answer = regex_match.group(2).strip()
+
+    assistant_content = _format_thinking_content(reasoning_trace, answer, model_name)
+
+    messages = [
+        {"role": "user", "content": user_prompt},
+        {"role": "assistant", "content": assistant_content},
+    ]
+    if system_prompt:
+        messages.insert(0, {"role": "system", "content": system_prompt})
 
     text = tokenizer.apply_chat_template(
-        [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt},
-            {
-                "role": "assistant",
-                "content": "<|im_start|>think\n"
-                + reasoning_trace.strip()
-                + "\n<|im_start|>answer\n"
-                + answer.strip(),
-            },
-        ],
+        messages,
         tokenize=False,
     )
+    # Strip leading <bos> — the training tokenizer adds it automatically
+    if text.startswith("<bos>"):
+        text = text[len("<bos>"):]
     return dict(text=text)
 
 
@@ -136,7 +184,7 @@ def process_for_sft(
     # TODO: Fixed mixed types to enable direct load: load_dataset('json', data_files=input_path)["train"]
     dataset = load_hf_dataset(input_path)["train"]
     tokenizer = AutoTokenizer.from_pretrained(model_name)
-    process_example_map = partial(process_cot_example, tokenizer=tokenizer)
+    process_example_map = partial(process_cot_example, tokenizer=tokenizer, model_name=model_name)
     dataset = dataset.map(
         process_example_map,
         num_proc=num_proc,
@@ -154,7 +202,7 @@ def process_for_sft(
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Tokenize SFT data")
+    parser = argparse.ArgumentParser(description="Apply chat templates to SFT data")
     parser.add_argument(
         "--input-path",
         type=str,
@@ -164,13 +212,19 @@ def parse_args():
         "--output-path",
         type=str,
         required=True,
-        help="Path to upload the tokenized data. Can be a Hugging Face Hub path (e.g., hf://<path>) or a local path.",
+        help="Path to upload the processed data. Can be a Hugging Face Hub path (e.g., hf://<path>) or a local path.",
+    )
+    parser.add_argument(
+        "--model-name",
+        type=str,
+        default="Qwen/Qwen2.5-32B-Instruct",
+        help="Model name or path for the tokenizer and chat template (default: Qwen/Qwen2.5-32B-Instruct)",
     )
     parser.add_argument(
         "--num_proc",
         type=int,
         default=DEFAULT_NUM_PROC,
-        help="Number of processes to use for tokenization",
+        help="Number of processes to use",
     )
     return parser.parse_args()
 
@@ -181,6 +235,7 @@ def main():
     process_for_sft(
         input_path=args.input_path,
         output_path=args.output_path,
+        model_name=args.model_name,
         num_proc=args.num_proc,
     )
 
