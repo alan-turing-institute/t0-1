@@ -5,6 +5,9 @@ WORKDIR /
 RUN git clone https://github.com/alan-turing-institute/t0-1.git
 WORKDIR /t0-1
 
+# checkout spark branch
+RUN git checkout spark
+
 # expose ports
 EXPOSE 8010
 EXPOSE 8020
