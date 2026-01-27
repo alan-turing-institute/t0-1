@@ -12,6 +12,10 @@
 # uv add --group deploy ansible  
 
 # /Users/a.smith/.local/bin/ansible
+#
+# See this comment if there are problems with the `az` CLI
+# https://github.com/Azure/azure-cli/issues/31419#issuecomment-2858720156
+
 
 - name: Initialize Ansible Controller VM
   hosts: localhost
@@ -68,8 +72,14 @@
       name: myNIC
       virtual_network: myVnet
       subnet: mySubnet
-      public_ip_name: myPublicIP
+      ip_configurations:
+        - name: ipconfig1
+          public_ip_address_name: myPublicIP
+          primary: true
       security_group: myNetworkSecurityGroup
+  - name: debug cloud_init_users.yaml
+    debug:
+      msg: "{{ lookup('file', 'cloud_init_users.yaml') }}"
   - name: Create VM
     azure_rm_virtualmachine:
       resource_group: "{{ resource_group }}"
@@ -79,7 +89,8 @@
       ssh_password_enabled: false
       ssh_public_keys:
         - path: /home/azureuser/.ssh/authorized_keys
-          key_data: "<key_data>"
+          key_data: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICIT1k20OJ0jzRc2U2yHaDExbqGThEm0bWBRAeXeAJjq a.smith_t0_root
+      custom_data: "{{ lookup('file', 'cloud_init_users.yaml') }}"
       network_interfaces: myNIC
       image:
         offer: 0001-com-ubuntu-server-jammy

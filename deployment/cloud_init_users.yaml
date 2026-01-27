@@ -1,0 +1,15 @@
+users:
+  - default
+  - name: ansible
+    gecos: 'Ansible'
+    groups: sudo
+    shell: /bin/bash
+    lock_passwd: True
+    sudo: "ALL=(ALL) NOPASSWD:ALL"
+  - name: andy
+    gecos: 'Andy Smith'
+    groups: sudo
+    shell: /bin/bash
+    lock_passwd: True
+    ssh_import_id:
+      - 'gh:andrewphilipsmith'
