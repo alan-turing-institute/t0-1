@@ -113,10 +113,20 @@ echo "Resource Group $RESOURCE_GROUP exists."
 # Now we can provision the VM etc
 #####
 
+# Get list of available sizes using:
+# az vm list-sizes --location uksouth
+# or:
+# az vm list-sizes --location uksouth | jq "[.[] | select(.numberOfCores == 1)]"
+
+# smallest_size=Standard_B2ts_v2 # Cheapest with x86 processor
+controler_size=D2as_v5
+massive_size=TO_BE_DECIDED
+default_size=Standard_D2s_v5 # default value of '--size' will be changed to 'Standard_D2s_v5' from 'Standard_DS1_v2' in a future release.
+
 # Check the existence of the RAG Conversational VM
-echo "Checking whether RAG Conversational VM exists..."
+echo "Checking whether Controller VM exists..."
 if ! az vm show --resource-group "$RESOURCE_GROUP" --name "$ANSIBLE_CONTROLLER_VM_NAME" &> /dev/null; then
-    echo "RAG Conversational VM '$ANSIBLE_CONTROLLER_VM_NAME' does not exist. Creating it..."
+    echo "Controller VM '$ANSIBLE_CONTROLLER_VM_NAME' does not exist. Creating it..."
     
     # echo "⛔️ VM creation is currently disabled to avoid unintended resource creation."
     # exit 0  # TEMPORARY EXIT TO AVOID UNINTENDED VM CREATION
@@ -130,15 +140,12 @@ if ! az vm show --resource-group "$RESOURCE_GROUP" --name "$ANSIBLE_CONTROLLER_V
       --name "$ANSIBLE_CONTROLLER_VM_NAME" \
       --image Ubuntu2204 \
       --custom-data controller_cloud_init.yaml \
+      --size $smallest_size \
       --verbose
-    #   --generate-ssh-keys \
-    #   --verbose 
 
-    # '--size' will be changed to 'Standard_D2s_v5' from 'Standard_DS1_v2'
-
-    echo "RAG Conversational VM '$ANSIBLE_CONTROLLER_VM_NAME' creation initiated."
+    echo "Controller VM '$ANSIBLE_CONTROLLER_VM_NAME' creation initiated."
 else
-    echo "RAG Conversational VM '$ANSIBLE_CONTROLLER_VM_NAME' already exists. Skipping creation."
+    echo "Controller VM '$ANSIBLE_CONTROLLER_VM_NAME' already exists. Skipping creation."
     echo "🚨 No checks have been made on '$ANSIBLE_CONTROLLER_VM_NAME' sizing, configuration etc. 🚨"
 fi
 

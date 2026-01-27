@@ -1,0 +1,88 @@
+# This Playbook initializes the Ansible Controller VM as per the guide at
+# https://learn.microsoft.com/en-us/azure/developer/ansible/install-on-linux-vm?source=recommendations&tabs=azure-cli#prerequisites
+#
+# Notes:
+# - The should be run locally (on the developer's machine).
+# - It does not require an Ansible hosts inventory file as it targets localhost only.
+# - The developer must have the Azure CLI installed and be logged in.
+#
+# Once complete, the Ansible Controller VM should be ready to use for further deployment tasks.
+
+# uv add --group deploy --requirements .venv/lib/python3.11/site-packages/ansible_collections/azure/azcollection/requirements.txt
+# uv add --group deploy ansible  
+
+# /Users/a.smith/.local/bin/ansible
+
+- name: Initialize Ansible Controller VM
+  hosts: localhost
+  gather_facts: false
+  connection: local
+  tasks:
+  # - name: Ensure Azure collection is installed
+  #   ansible.builtin.command: ansible-galaxy collection install azure.azcollection
+  #   changed_when: false
+  - name: Set key variables
+    set_fact:
+      resource_group: t0-dev-deploy-rg2
+      location: uksouth
+      vm_name: ansible-controller
+
+  - name: Create resource group
+    azure_rm_resourcegroup:
+      name: "{{ resource_group }}"
+      location: "{{ location }}"
+  - name: Create virtual network
+    azure_rm_virtualnetwork:
+      resource_group: "{{ resource_group }}"
+      name: myVnet
+      address_prefixes: "10.0.0.0/16"
+  - name: Add subnet
+    azure_rm_subnet:
+      resource_group: "{{ resource_group }}"
+      name: mySubnet
+      address_prefix: "10.0.1.0/24"
+      virtual_network: myVnet
+  - name: Create public IP address
+    azure_rm_publicipaddress:
+      resource_group: "{{ resource_group }}"
+      allocation_method: Static
+      name: myPublicIP
+    register: output_ip_address
+  - name: Public IP of VM
+    debug:
+      msg: "The public IP is {{ output_ip_address.state.ip_address }}."
+  - name: Create Network Security Group that allows SSH
+    azure_rm_securitygroup:
+      resource_group: "{{ resource_group }}"
+      name: myNetworkSecurityGroup
+      rules:
+        - name: SSH
+          protocol: Tcp
+          destination_port_range: 22
+          access: Allow
+          priority: 1001
+          direction: Inbound
+  - name: Create virtual network interface card
+    azure_rm_networkinterface:
+      resource_group: "{{ resource_group }}"
+      name: myNIC
+      virtual_network: myVnet
+      subnet: mySubnet
+      public_ip_name: myPublicIP
+      security_group: myNetworkSecurityGroup
+  - name: Create VM
+    azure_rm_virtualmachine:
+      resource_group: "{{ resource_group }}"
+      name: myVM
+      vm_size: Standard_DS1_v2
+      admin_username: azureuser
+      ssh_password_enabled: false
+      ssh_public_keys:
+        - path: /home/azureuser/.ssh/authorized_keys
+          key_data: "<key_data>"
+      network_interfaces: myNIC
+      image:
+        offer: 0001-com-ubuntu-server-jammy
+        publisher: Canonical
+        sku: 22_04-lts
+        version: latest
