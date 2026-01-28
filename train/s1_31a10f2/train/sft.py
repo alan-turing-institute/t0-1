@@ -10,6 +10,23 @@ import transformers
 import trl
 from peft import LoraConfig, get_peft_model
 
+TEMPLATES = {
+    "llama": {
+        "instruction": "<|start_header_id|>user<|end_header_id|>",
+        "response": "<|start_header_id|>assistant<|end_header_id|>\n\n",
+        "pad_token": "<|reserved_special_token_5|>",
+    },
+    "qwen": {
+        "instruction": "<|im_start|>user",
+        "response": "<|im_start|>assistant\n",
+        "pad_token": "<|fim_pad|>",
+    },
+    "gemma": {
+        "instruction": "<start_of_turn>user",
+        "response": "<start_of_turn>model\n",
+        "pad_token": None,
+    },
+}
 
 @dataclass
 class TrainingConfig:
@@ -20,6 +37,7 @@ class TrainingConfig:
     train_file_path: Optional[str] = field(default='simplescaling/s1K-1.1_tokenized')
     dagger: bool = field(default=False)
     lora: bool = field(default=False)
+    template_format: str = field(default=False)
 
     def __post_init__(self):
         os.environ['WANDB_PROJECT'] = self.wandb_project
@@ -44,10 +62,6 @@ def load_data(path_or_id: str):
             logging.info("Falling back to `load_dataset` for local files (JSON/CSV/Parquet)...")
 
     # Fallback: Use load_dataset
-    # This covers:
-    #   a) Hugging Face Hub IDs (e.g., "meta-llama/Llama-2-7b-hf")
-    #   b) Local folders containing raw data (json, csv) that aren't Arrow archives
-    #   c) Local Arrow archives where load_from_disk crashed (e.g., metadata mismatch)
     try:
         dataset = load_dataset(path_or_id)
         logging.info(f"Successfully loaded dataset via `load_dataset`.")
@@ -118,25 +132,24 @@ def train():
     # setting up trainer
     tokenizer = transformers.AutoTokenizer.from_pretrained(config.model_name, use_fast=True)
     
-    if "llama" in config.model_name.lower():
-        instruction_template = "<|start_header_id|>user<|end_header_id|>"
-        response_template = "<|start_header_id|>assistant<|end_header_id|>\n\n"
-        # Use a token that is never used
-        tokenizer.pad_token = "<|reserved_special_token_5|>"
-    elif "Qwen" in config.model_name:
-        instruction_template = "<|im_start|>user"
-        response_template = "<|im_start|>assistant\n"
-        # Use a token that is never used
-        tokenizer.pad_token = "<|fim_pad|>"
-    elif "gemma" in config.model_name.lower():
-        instruction_template = "<start_of_turn>user"
-        response_template = "<start_of_turn>model\n"
-        tokenizer.pad_token = tokenizer.pad_token or "<pad>"
+    template_format = (config.template_format or config.model_name).lower()
+
+    for key, cfg in TEMPLATES.items():
+        if key in template_format:
+            instruction_template = cfg["instruction"]
+            response_template = cfg["response"]
+            tokenizer.pad_token = cfg["pad_token"] or tokenizer.pad_token or "<pad>"
+            break
     else:
         raise ValueError(
-            f"Unsupported model: {config.model_name}. "
+            f"Unsupported model: {template_format}. "
             "Supported models: Llama, Qwen, Gemma"
         )
+
+    logging.info(f"Using templates for '{template_format}':")
+    logging.info(f"Instruction template: {instruction_template}")
+    logging.info(f"Response template: {response_template}")
+    logging.info(f"Pad token: {tokenizer.pad_token}")
 
     # Only compute loss over assistant responses
     # Verified that it precisely starts where the thinking tokens start and ends with the first pad token
@@ -169,8 +182,9 @@ def train():
     )
 
     if "gemma" in config.model_name.lower():
-        # CRITICAL: Prevent evaluation loop from trying to cast HybridCache to float
+        # Prevent evaluation loop from trying to cast HybridCache to float
         trainer.args.ignore_keys_for_eval = ["past_key_values"]
+        # Need to disable use_cache in multiple places to avoid errors during evaluation
         # 1. Disable in main config
         model.config.use_cache = False
         # 2. Disable in generation_config (often the culprit during eval)
