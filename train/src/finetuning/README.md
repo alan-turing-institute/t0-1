@@ -4,7 +4,9 @@ Here are the job submission scripts used for the fine-tuning experiments.
 
 ## Isambard-AI
 
+- `instructions.md` - instructions for preparing conda environment for fine-tuning on Isambard-AI.
 
+- `job_submit.sh` - an example Slurm job submission script for fine-tuning on Isambard-AI using the latest `sft.py` script.
 
 ## B-H100
 
