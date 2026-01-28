@@ -131,7 +131,7 @@ def train():
 
     # setting up trainer
     tokenizer = transformers.AutoTokenizer.from_pretrained(config.model_name, use_fast=True)
-    
+
     template_format = (config.template_format or config.model_name).lower()
 
     for key, cfg in TEMPLATES.items():

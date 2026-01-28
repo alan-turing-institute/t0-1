@@ -20,8 +20,8 @@ dependencies = [
     "datasets>=3.5.0",
     "transformers>=4.51.3",
     "jinja2>=3.1.6",
-    "vllm>=0.8.3",
-    "sentence-transformers>=4.1.0",
+    "vllm>=0.8.3; sys_platform == 'linux'",
+    "sentence-transformers>=4.1.0"
 ]
 
 [project.optional-dependencies]
@@ -42,7 +42,9 @@ rag = [
     "langchain-azure-ai>=0.1.2",
 ]
 dev = [
-    "pre-commit>=4.2.0"
+    "pre-commit>=4.2.0",
+    "pytest>=8.3.4",
+    "trl>=0.19.1,<0.20.0",
 ]
 
 [project.scripts]
@@ -51,3 +53,9 @@ t0-1 = "t0_1.cli:cli"
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# -v: verbose output (show individual test names instead of dots)
+# --tb=short: shorter tracebacks (just the assertion line + error)
+addopts = "-v --tb=short"
