@@ -17,50 +17,68 @@
 # https://github.com/Azure/azure-cli/issues/31419#issuecomment-2858720156
 
 
-- name: Initialize Ansible Controller VM
+- name: Initialize Static Azure Resources (vNetwork, IP address etc)
   hosts: localhost
   gather_facts: false
   connection: local
+  vars_files:
+    - vars_common.yaml
   tasks:
   # - name: Ensure Azure collection is installed
   #   ansible.builtin.command: ansible-galaxy collection install azure.azcollection
   #   changed_when: false
-  - name: Set key variables
-    set_fact:
-      resource_group: t0-dev-deploy-rg2
-      location: uksouth
-      vm_name: myVM
-      vm_size: Standard_ND96amsr_A100_v4
-      # vm_size: Standard_DS1_v2 # Basic VM size for testing
+  # - name: Set key variables
+  #   set_fact:
+  #     static_resource_group: t0-dev-deploy-static
+  #     gpu_resource_group: t0-dev-deploy-gpus
+  #     location: uksouth
+  #     vm_name: myVM
+  #     # vm_size: Standard_ND96amsr_A100_v4
+  #     vm_size: Standard_DS1_v2 # Basic VM size for testing
+  #     vnet_name: myVnet
+  #     subnet_name: mySubnet
+  #     public_ip_name: myPublicIP
+  #     nsg_name: myNetworkSecurityGroup
+  #     nic_name: myNIC
+  #     ansible_user_id: ansible
+  #     ssh_key_file: "ssh_keys/id_ed25519_t0_ansible"
+
+  - name: Create SSH key pair
+    ansible.builtin.user:
+      name: "{{ lookup('env', 'USER') }}"
+      generate_ssh_key: true
+      ssh_key_comment: "For use with Ansible on t0 resources"
+      ssh_key_file: "{{ ssh_key_file }}"
+      ssh_key_type: ed25519
 
   - name: Create resource group
     azure_rm_resourcegroup:
-      name: "{{ resource_group }}"
+      name: "{{ static_resource_group }}"
       location: "{{ location }}"
   - name: Create virtual network
     azure_rm_virtualnetwork:
-      resource_group: "{{ resource_group }}"
-      name: myVnet
+      resource_group: "{{ static_resource_group }}"
+      name: "{{ vnet_name }}"
       address_prefixes: "10.0.0.0/16"
   - name: Add subnet
     azure_rm_subnet:
-      resource_group: "{{ resource_group }}"
-      name: mySubnet
+      resource_group: "{{ static_resource_group }}"
+      name: "{{ subnet_name }}"
       address_prefix: "10.0.1.0/24"
-      virtual_network: myVnet
+      virtual_network: "{{ vnet_name }}"
   - name: Create public IP address
     azure_rm_publicipaddress:
-      resource_group: "{{ resource_group }}"
+      resource_group: "{{ static_resource_group }}"
       allocation_method: Static
-      name: myPublicIP
+      name: "{{ public_ip_name }}"
     register: output_ip_address
   - name: Public IP of VM
     debug:
       msg: "The public IP is {{ output_ip_address.state.ip_address }}."
   - name: Create Network Security Group that allows SSH
     azure_rm_securitygroup:
-      resource_group: "{{ resource_group }}"
-      name: myNetworkSecurityGroup
+      resource_group: "{{ static_resource_group }}"
+      name: "{{ nsg_name }}"
       rules:
         - name: SSH
           protocol: Tcp
@@ -70,34 +88,19 @@
           direction: Inbound
   - name: Create virtual network interface card
     azure_rm_networkinterface:
-      resource_group: "{{ resource_group }}"
-      name: myNIC
-      virtual_network: myVnet
-      subnet: mySubnet
+      resource_group: "{{ static_resource_group }}"
+      name: "{{ nic_name }}"
+      virtual_network: "{{ vnet_name }}"
+      subnet: "{{ subnet_name }}"
       ip_configurations:
         - name: ipconfig1
-          public_ip_address_name: myPublicIP
+          public_ip_address_name: "{{ public_ip_name }}"
           primary: true
-      security_group: myNetworkSecurityGroup
-  - name: debug cloud_init_users.yaml
-    debug:
-      msg: "{{ lookup('file', 'cloud_init_users.yaml') }}"
-  - name: Create VM
-    azure_rm_virtualmachine:
-      resource_group: "{{ resource_group }}"
+      security_group: "{{ nsg_name }}"
+  - name: Add new VM to inventory
+    ansible.builtin.add_host:
       name: "{{ vm_name }}"
-      vm_size: "{{ vm_size }}"
-      admin_username: azureuser
-      ssh_password_enabled: false
-      ssh_public_keys:
-        - path: /home/azureuser/.ssh/authorized_keys
-          key_data: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICIT1k20OJ0jzRc2U2yHaDExbqGThEm0bWBRAeXeAJjq a.smith_t0_root
-      custom_data: "{{ lookup('file', 'cloud_init_users.yaml') }}"
-      managed_disk_type: Standard_LRS
-      network_interfaces: myNIC
-      image:
-        offer: 0001-com-ubuntu-server-jammy
-        publisher: Canonical
-        sku: 22_04-lts-gen2
-        version: latest
-      
+      ansible_host: "{{ output_ip_address.state.ip_address }}"
+      ansible_user: "{{ ansible_user_id }}"
+      ansible_ssh_private_key_file: "{{ ssh_key_file }}"
+      groups: ansible_controller
