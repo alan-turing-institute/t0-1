@@ -250,7 +250,7 @@ async def process_query(
             "rag_message": (
                 response["rag_input_messages"][0].content
                 if conversational
-                else response["messages"][0].content
+                else response["messages"][-2].content
             ),
             "rag_answer": response["messages"][-1].content,
             "rag_reasoning_content": response["messages"][-1].additional_kwargs.get(
