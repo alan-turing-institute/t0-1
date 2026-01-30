@@ -1,0 +1,76 @@
+# This Playbook initializes the Ansible Controller VM as per the guide at
+# https://learn.microsoft.com/en-us/azure/developer/ansible/install-on-linux-vm?source=recommendations&tabs=azure-cli#prerequisites
+#
+# Notes:
+# - The should be run locally (on the developer's machine).
+# - It does not require an Ansible hosts inventory file as it targets localhost only.
+# - The developer must have the Azure CLI installed and be logged in.
+
+- name: Initialize Static Azure Resources (vNetwork, IP address etc)
+  hosts: localhost
+  gather_facts: false
+  connection: local
+  vars_files:
+    - vars_common.yaml
+  tasks:
+  - name: Create SSH key pair
+    ansible.builtin.user:
+      name: "{{ lookup('env', 'USER') }}"
+      generate_ssh_key: true
+      ssh_key_comment: "For use with Ansible on t0 resources"
+      ssh_key_file: "{{ ssh_key_file }}"
+      ssh_key_type: ed25519
+
+  - name: Create resource group
+    azure_rm_resourcegroup:
+      name: "{{ static_resource_group }}"
+      location: "{{ location }}"
+  - name: Create virtual network
+    azure_rm_virtualnetwork:
+      resource_group: "{{ static_resource_group }}"
+      name: "{{ vnet_name }}"
+      address_prefixes: "10.0.0.0/16"
+  - name: Add subnet
+    azure_rm_subnet:
+      resource_group: "{{ static_resource_group }}"
+      name: "{{ subnet_name }}"
+      address_prefix: "10.0.1.0/24"
+      virtual_network: "{{ vnet_name }}"
+  - name: Create public IP address
+    azure_rm_publicipaddress:
+      resource_group: "{{ static_resource_group }}"
+      allocation_method: Static
+      name: "{{ public_ip_name }}"
+    register: output_ip_address
+  - name: Public IP of VM
+    debug:
+      msg: "The public IP is {{ output_ip_address.state.ip_address }}."
+  - name: Create Network Security Group that allows SSH
+    azure_rm_securitygroup:
+      resource_group: "{{ static_resource_group }}"
+      name: "{{ nsg_name }}"
+      rules:
+        - name: SSH
+          protocol: Tcp
+          destination_port_range: 22
+          access: Allow
+          priority: 1001
+          direction: Inbound
+  - name: Create virtual network interface card
+    azure_rm_networkinterface:
+      resource_group: "{{ static_resource_group }}"
+      name: "{{ nic_name }}"
+      virtual_network: "{{ vnet_name }}"
+      subnet: "{{ subnet_name }}"
+      ip_configurations:
+        - name: ipconfig1
+          public_ip_address_name: "{{ public_ip_name }}"
+          primary: true
+      security_group: "{{ nsg_name }}"
+  - name: Add new VM to inventory
+    ansible.builtin.add_host:
+      name: "{{ vm_name }}"
+      ansible_host: "{{ output_ip_address.state.ip_address }}"
+      ansible_user: "{{ ansible_user_id }}"
+      ansible_ssh_private_key_file: "{{ ssh_key_file }}"
+      groups: ansible_controller
