@@ -2,8 +2,10 @@ static_resource_group: t0-dev-deploy-static
 gpu_resource_group: t0-dev-deploy-gpus
 location: uksouth
 vm_name: myVM
-# vm_size: Standard_ND96amsr_A100_v4
-vm_size: Standard_DS1_v2 # Basic VM size for testing
+# vm_size: Standard_ND96amsr_A100_v4 # Large GPU VM size
+vm_size: Standard_DS1_v2 # Basic CPU VM size for testing
+# NV12s_v3 # Possibly the smallest GPU-enabled VM size
+
 vnet_name: myVnet
 subnet_name: mySubnet
 public_ip_name: myPublicIP
@@ -11,3 +13,4 @@ nsg_name: myNetworkSecurityGroup
 nic_name: myNIC
 ansible_user_id: ansible
 ssh_key_file: "~/ssh_keys/id_ed25519_t0_ansible"
+t0_user: t0
