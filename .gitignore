@@ -215,3 +215,8 @@ web/.vite
 /scripts/v4-summarised-lfs
 /v4-summarised-db
 /v4-summarised-lfs
+v4-summarised-db/*
+v4-summarised-lfs/*
+*.json*
+*.png
+fine_tuned_model/*
