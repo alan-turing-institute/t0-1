@@ -101,11 +101,6 @@ az vm user update -u <your-user-name> --ssh-key-value "$(curl --silent https://g
 
 The VM's public IP address should be 20.117.204.190. Confirm this, as the subsequent instructions assume it to be correct.
 
-**Via the Azure WebUI**
-
-* Details to be completed.
-
-
 **Via the Azure CLI**
 
 3.  Log in: Go back to overview, find the machine's public ip, and log
@@ -153,7 +148,7 @@ git clone git@github.com:alan-turing-institute/t0-1.git
 cd t0-1
 ```
 
-5. Install the t0-1 pack in a local virtual environment:
+5. Install the t0-1 package in a local virtual environment:
    These commands create a local virtual environment, activate it and then install required dependencies (in editable mode) using [uv](https://github.com/astral-sh/uv):
 ```bash
 uv venv --python=3.12
