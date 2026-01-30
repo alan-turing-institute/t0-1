@@ -174,8 +174,6 @@ cython_debug/
 .pypirc
 .DS_Store
 
-# Since this isn't production code, I assume we can keep lockfiles out of version control for now...
-**/uv.lock
 # Project-related ignores.
 data/*
 !data/.gitkeep
@@ -212,6 +210,11 @@ web/package-lock.json
 web/node_modules/
 !web/src/lib
 web/.vite
+/scripts/data/nhs-conditions
+/scripts/v4-summarised-db
+/scripts/v4-summarised-lfs
+/v4-summarised-db
+/v4-summarised-lfs
 v4-summarised-db/*
 v4-summarised-lfs/*
 *.json*

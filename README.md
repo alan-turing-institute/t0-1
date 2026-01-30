@@ -21,13 +21,25 @@ source .venv/bin/activate
 uv pip install -e ".[rag,dev]"
 ```
 
+## Scripts & commands
+
+> [!NOTE]
+> APS: add details here (before the 'data' section)
+
 ## Data
 
 The data used in this project is scraped from the NHS website using [this script](scripts/Makefile) and running `make download`. Once you have downloaded the data, we can either process the html directly, or we can use [pandoc](https://pandoc.org/) to convert them into plain txt files - you can do this by running `make all`. We recommend using the txt files as they are easier to process and work with.
 
+Move the downloads into the required directory:
+```
+mkdir -p data/nhs-conditions
+mv conditions data/nhs-conditions/
+```
+
 Next, you can generate a JSONL file using [this script](scripts/convert_txt_conditions_to_dataset.py) and store it in a directory called `data/nhs-conditions`. In this JSONL file each line has a JSON object with fields `"condition_title"` and `"condition_content"`.
 
 The convention is to run scripts and commands from the [scripts](scripts) directory and use relative paths to the `data/nhs-conditions` directory. For the command line interfaces (CLIs) described below, the `--conditions-file` argument is defaulted to `"./data/nhs-conditions/conditions.jsonl"`.
+
 
 ## Serving the RAG model
 
@@ -45,7 +57,11 @@ OPENAI_BASE_URL_Qwen/Qwen2.5-32B-Instruct="http://localhost:8020/v1/"
 ```
 assuming you are running the vLLM server on `localhost` and the ports are `8010` and `8020` respectively as set in the above scripts.
 
-Note the above aren't proper environment variables with illegal characters, but they can be read with `dotenv` and used in the scripts.
+> [!NOTE]
+> The general pattern for environment variables is:
+> `OPENAI_BASE_URL_{model_repo_name}`
+> The names do not need to be valid environment variables as required by the shell. The examples above are not because they include illegal characters.
+> The name must be parsable by `dotenv`. Any valid repo name should be acceptable.
 
 Some more information on the commands that these scripts use are detailed below in the [Command Line Interfaces (CLIs)](#command-line-interfaces-clis) section.
 
@@ -53,13 +69,28 @@ Some more information on the commands that these scripts use are detailed below 
 
 For `t0-1`, we have several command line interfaces (CLIs) (implemented using `typer`) to facilitate different tasks. You can run `t0-1 --help` to see the available commands.
 
-- [Serving and querying from the query vector store](#serving-and-querying-from-the-query-vector-store)
-- [Evaluating the query vector store](#evaluating-the-query-vector-store)
-- [Serving and querying from a retriever](#serving-and-querying-from-a-retriever)
-- [Serving and querying from a RAG model](#serving-and-querying-from-a-rag-model)
-- [Initialising a RAG chat interaction](#initalising-a-rag-chat-interaction)
-- [Evaluating RAG](#evaluating-RAG)
-- [Generating synthetic queries](#generating-synthetic-queries)
+- [t0-1: A demonstration of Retrieval-Augmented Reasoning with Lean Language Models](#t0-1-a-demonstration-of-retrieval-augmented-reasoning-with-lean-language-models)
+  - [Setup](#setup)
+  - [Scripts \& commands](#scripts--commands)
+  - [Data](#data)
+  - [Serving the RAG model](#serving-the-rag-model)
+  - [Command Line Interfaces (CLIs)](#command-line-interfaces-clis)
+    - [Serving and querying from the query vector store](#serving-and-querying-from-the-query-vector-store)
+      - [Serving the vector store](#serving-the-vector-store)
+      - [Querying the vector store](#querying-the-vector-store)
+      - [Evaluating the vector store](#evaluating-the-vector-store)
+    - [Serving and querying from a retriever](#serving-and-querying-from-a-retriever)
+      - [Serving the retriever](#serving-the-retriever)
+      - [Querying the retriever](#querying-the-retriever)
+    - [Serving and querying from a RAG model](#serving-and-querying-from-a-rag-model)
+      - [Serving the RAG model](#serving-the-rag-model-1)
+      - [Querying the RAG model](#querying-the-rag-model)
+    - [Initialising a RAG chat interaction](#initialising-a-rag-chat-interaction)
+    - [Evaluating RAG](#evaluating-rag)
+    - [Generating synthetic queries](#generating-synthetic-queries)
+    - [Azure AI Foundry Endpoints](#azure-ai-foundry-endpoints)
+      - [Pricing of the models](#pricing-of-the-models)
+- [Citation](#citation)
 
 Note that with using `uv`, it is useful to run scripts with `uv run`, e.g. `uv run t0-1 rag-chat ...`.
 
@@ -80,11 +111,20 @@ There are several options for the `t0-1 serve-vector-store` command:
 - `--chunk-overlap`: The character overlap between chunks.
 - `--db-choice`: The choice of database to use (either `chroma` or `faiss`).
 
+> [!NOTE]
+> APS:
+> 1. Just a comment. It seems that the name "conditions" in the `--conditions-file` argument and its default value are the only names that are specific to the NHS-111 application so far. Up until now all of the names have been generic. Is it worth attempting a PR to make this more generic?
+> 2. Question: `--main-only` - Is this the `id` of the relevant `div` block? If so it seems odd to have it as an arg to this command? Or does it mean something vector-store specific that I'm ought to know but don't?
+> 3. Question: `--chunk-overlap` is there a default value? it is reasonable? Is it necessary to review this and choose something application specific?
+
 It is possible to save and load a vector store by using the `--persist-directory` option. By default, we try to load the vector store from the provided path. If it does not exist, we will create a new vector store and save it to the provided path. You can use the `--force-create` option to force the creation of a new vector store, even if it already exists.
 
 Note for loading a `faiss` vector store: you must use the `--trust-source` option to load a `faiss` vector store - without it, you will not be able to load the vector store.
 
 Lastly, you can decide to not serve and just build the vector store by using the `--no-serve` option. This will build the vector store and save it to the provided path, but will not start the FastAPI server.
+
+> [!NOTE]
+> APS: Oh, is this a computationally intensive task?
 
 All of these options have default arguments (see `t0-1 serve-vector-store --help`), so you can just run the command as is. But to save and load the vector store, you need to provide the `--persist-directory` option:
 ```bash
