@@ -1,4 +1,4 @@
-CUDA_VISIBLE_DEVICES=2,3 vllm serve TomasLaz/t0-2.4-gemma-3-4b-it \
+CUDA_VISIBLE_DEVICES=0 vllm serve TomasLaz/t0-2.4-gemma-3-4b-it \
 --tokenizer google/gemma-3-4b-it \
 --seed 42 \
 --generation-config vllm \
