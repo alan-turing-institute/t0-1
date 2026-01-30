@@ -1,4 +1,5 @@
-CUDA_VISIBLE_DEVICES=0 vllm serve Qwen/Qwen2.5-32B-Instruct \
+CUDA_VISIBLE_DEVICES=0 vllm serve google/gemma-3-4b-it \
+--tokenizer google/gemma-3-4b-it \
 --seed 42 \
 --generation-config vllm \
 --port 8020 \
@@ -6,5 +7,6 @@ CUDA_VISIBLE_DEVICES=0 vllm serve Qwen/Qwen2.5-32B-Instruct \
 --max-model-len 131072 \
 --hf-overrides '{"rope-scaling": {"factor":4, "original_max_position_embeddings": 32768, "rope_type":"yarn"}}' \
 --enable-auto-tool-choice \
---tool-call-parser hermes \
---gpu-memory-utilization 0.6
+--tool-call-parser pythonic \
+--chat-template tool_chat_template_gemma3_pythonic.jinja \
+--gpu-memory-utilization 0.45
