@@ -83,6 +83,15 @@ def train():
         response_template = "<|im_start|>assistant\n"
         # Use a token that is never used
         tokenizer.pad_token = "<|fim_pad|>"
+    elif "gemma" in config.model_name.lower():
+        instruction_template = "<start_of_turn>user"
+        response_template = "<start_of_turn>model\n"
+        tokenizer.pad_token = tokenizer.pad_token or "<pad>"
+    else:
+        raise ValueError(
+            f"Unsupported model: {config.model_name}. "
+            "Supported models: Llama, Qwen, Gemma"
+        )
 
     # Only compute loss over assistant responses
     # Verified that it precisely starts where the thinking tokens start and ends with the first pad token
