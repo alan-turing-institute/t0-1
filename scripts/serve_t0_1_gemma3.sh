@@ -6,4 +6,5 @@ CUDA_VISIBLE_DEVICES=0 vllm serve google/gemma-3-4b-it \
 --tensor-parallel-size 2 \
 --max-model-len 131072 \
 --trust-remote-code \
---rope-scaling '{"factor":4, "original_max_position_embeddings": 32768, "rope_type":"yarn"}'
+--rope-scaling '{"factor":4, "original_max_position_embeddings": 32768, "rope_type":"yarn"}' \
+--gpu-memory-utilization 0.45

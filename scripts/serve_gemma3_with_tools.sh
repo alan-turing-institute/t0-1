@@ -8,4 +8,5 @@ CUDA_VISIBLE_DEVICES=0 vllm serve google/gemma-3-4b-it \
 --rope-scaling '{"factor":4, "original_max_position_embeddings": 32768, "rope_type":"yarn"}' \
 --enable-auto-tool-choice \
 --tool-call-parser pythonic \
---chat-template tool_chat_template_gemma3_pythonic.jinja
+--chat-template tool_chat_template_gemma3_pythonic.jinja \
+--gpu-memory-utilization 0.45
