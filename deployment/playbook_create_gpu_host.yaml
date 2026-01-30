@@ -25,18 +25,6 @@
   vars_files:
   - vars_common.yaml
   tasks:
-  # - name: Ensure Azure collection is installed
-  #   ansible.builtin.command: ansible-galaxy collection install azure.azcollection
-  #   changed_when: false
-  # - name: Set key variables
-  #   set_fact:
-  #     resource_group: t0-dev-deploy-gpus
-  #     location: uksouth
-  #     vm_name: myVM
-  #     # vm_size: Standard_ND96amsr_A100_v4
-  #     vm_size: Standard_DS1_v2 # Basic VM size for testing
-
-
   - name: Create resource group
     azure_rm_resourcegroup:
       name: "{{ gpu_resource_group }}"
@@ -45,6 +33,7 @@
   - name: debug cloud_init_users.yaml
     debug:
       msg: "{{ lookup('file', 'cloud_init_users.yaml') }}"
+
   - name: Create VM
     azure_rm_virtualmachine:
       resource_group: "{{ gpu_resource_group }}"
@@ -60,14 +49,19 @@
       network_interfaces: 
         - resource_group: "{{ static_resource_group }}"
           name: "{{ nic_name }}"
+      started: true
+      state: present
+      # # Standard Ubuntu 22.04 LTS image
+      # image:
+      #   offer: 0001-com-ubuntu-server-jammy
+      #   publisher: Canonical
+      #   sku: 22_04-lts-gen2
+      #   version: latest
+      # # No plan required for standard Ubuntu image
+      
+      # NVIDIA GPU Optimized VM Image - A10
+      # as per https://azuremarketplace.microsoft.com/en-us/marketplace/apps/nvidia
       image:
-        # # Standard Ubuntu 22.04 LTS image
-        # # offer: 0001-com-ubuntu-server-jammy
-        # publisher: Canonical
-        # sku: 22_04-lts-gen2
-        # version: latest
-        # # NVIDIA GPU Optimized VM Image - A10
-        # # as per https://azuremarketplace.microsoft.com/en-us/marketplace/apps/nvidia
         publisher: nvidia
         offer: nvidia-gpu-optimized-vmi-a10
         sku: nvidia_base_a10_vmi_22_08_gen2
@@ -76,8 +70,6 @@
         name: nvidia_base_a10_vmi_22_08_gen2
         publisher: nvidia
         product: nvidia-gpu-optimized-vmi-a10
-      started: true
-      state: present
       accept_terms: true
     register: vm_creation
 
@@ -93,6 +85,14 @@
       set_fact:
         gpu_vm_public_ip: "{{ gpu_vm_public_ip_info.publicipaddresses[0].ip_address }}"
 
+    - name: Wait for SSH to become available on GPU VM
+      ansible.builtin.wait_for:
+        host: "{{ gpu_vm_public_ip }}"
+        port: 22
+        delay: 10
+        timeout: 300
+        state: started
+
     - name: Remove old known_hosts entry for GPU VM IP
       ansible.builtin.known_hosts:
         name: "{{ gpu_vm_public_ip }}"
@@ -101,6 +101,16 @@
     - name: Add to new key to known_hosts for GPU VM IP
       ansible.builtin.known_hosts:
         name: "{{ gpu_vm_public_ip }}"
-        key: "{{ lookup('pipe', 'ssh-keyscan -H ' + gpu_vm_public_ip) }}"
-    
+        # `-T 60` sets a timeout of 60 seconds, which allows for the new VM to finish booting up.
+        key: "{{ lookup('pipe', 'ssh-keyscan -T 60 -H ' + gpu_vm_public_ip) }}"
+
+    # The nvidia_base_a10_vmi_22_08_gen2 image seems to need a reboot immediately after creation
+    - name: Reboot GPU VM to complete setup
+      azure_rm_virtualmachine:
+        resource_group: "{{ gpu_resource_group }}"
+        name: "{{ vm_name }}"
+        restarted: true
+
     when: vm_creation.changed
+
+

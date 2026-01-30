@@ -2,9 +2,9 @@ static_resource_group: t0-dev-deploy-static
 gpu_resource_group: t0-dev-deploy-gpus
 location: uksouth
 vm_name: myVM
-# vm_size: Standard_ND96amsr_A100_v4 # Large GPU VM size
-vm_size: Standard_DS1_v2 # Basic CPU VM size for testing
-# NV12s_v3 # Possibly the smallest GPU-enabled VM size
+vm_size: Standard_ND96amsr_A100_v4 # Large GPU VM size
+# vm_size: Standard_DS1_v2 # Basic CPU VM size for testing
+# vm_size: Standard_NV12s_v3 # Possibly the smallest GPU-enabled VM size
 
 vnet_name: myVnet
 subnet_name: mySubnet
