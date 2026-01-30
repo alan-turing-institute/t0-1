@@ -18,18 +18,12 @@
     - name: Set facts
       set_fact:
         target_dir: "/home/{{ t0_user }}/t0-1"
-    # - name: Update apt cache
-    #   ansible.builtin.apt:
-    #   become: true
 
-
-    - name: Ensure git and pipx are installed
+    - name: Ensure git and pip are installed
       ansible.builtin.apt:
         name:
           - git
-          # - python3.9 # This is the newest python available on this Ubuntu version
           - python3-pip
-          # - python3-venv
         state: present
         update_cache: yes
       become: true
@@ -46,10 +40,9 @@
         shell: /bin/bash
         create_home: true
         group: "{{ t0_user }}"
-        # groups: "{{ ansible_user_id }}"
-        # append: yes
       become: true
 
+    # Required to allow this playbook to switch to the unprivaged t0 user later
     - name: Add ansible user to t0 group
       ansible.builtin.user:
         name: "{{ ansible_user_id }}"
@@ -57,11 +50,9 @@
         append: yes
       become: true
       register: user_group_change
-    
 
     - name: Reset SSH connection to allow new group membership to take effect
       ansible.builtin.meta: reset_connection
-      # when: user_group_change.changed
     
     - name: Debug t0 user home
       ansible.builtin.command: whoami
@@ -73,11 +64,8 @@
       become: true
       become_user: "{{ t0_user }}"
 
-    # # Fail here for debugging
-    # - name: Fail for debugging
-    #   ansible.builtin.fail:
-    #     msg: "Debugging stop"
-
+    # TODO: Check if this is still required, now that we swtich to the t0 user 
+    # properly to clone the repo
     # Because we change the ownership of the cloned repo, this messes the 
     # git task's inherant idempotency. So we do an explicit check first.
     - name: Check if repository exists
@@ -95,35 +83,6 @@
       become: true
       become_user: "{{ t0_user }}"
       when: not git_repo_check.stat.exists
-    # - name: Change ownership of {{ target_dir }} to t0 user
-    #   ansible.builtin.file:
-    #     path: "{{ target_dir }}"
-    #     state: directory
-    #     owner: "{{ t0_user }}"
-    #     group: "{{ t0_user }}"
-    #     recurse: true
-    #   become: true
-
-    - name: Install pipx via pip
-      ansible.builtin.pip:
-        name: pipx
-        # executable: pip3
-      become: true
-      # become_user: "{{ t0_user }}"
-    # - name: Ensure pipx is in PATH
-    #   ansible.builtin.shell: |
-    #     pipx ensurepath
-    #   args:
-    #     executable: /bin/bash
-    #   become: true
-    #   become_user: "{{ t0_user }}"
-
-    # - name: Install uv via pipx
-    #   community.general.pipx:
-    #     name: uv
-    #     state: present
-    #   become: true
-    #   become_user: "{{ t0_user }}"
 
     - name: Download uv installer
       ansible.builtin.get_url:
@@ -162,9 +121,3 @@
     #     chdir: "{{ target_dir }}"
     #   become: true
       # become_user: "{{ t0_user }}"
-
-# To run this playbook:
-
-# uv venv --python=3.12
-# source .venv/bin/activate
-# uv sync --all-extras

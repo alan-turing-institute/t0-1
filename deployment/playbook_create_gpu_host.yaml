@@ -2,16 +2,16 @@
 # https://learn.microsoft.com/en-us/azure/developer/ansible/install-on-linux-vm?source=recommendations&tabs=azure-cli#prerequisites
 #
 # Notes:
-# - The should be run locally (on the developer's machine).
+# - The should be run on the control node (eg on the developer's machine, or a seperate VM).
 # - It does not require an Ansible hosts inventory file as it targets localhost only.
 # - The developer must have the Azure CLI installed and be logged in.
 #
 # Once complete, the Ansible Controller VM should be ready to use for further deployment tasks.
-
-# uv add --group deploy --requirements .venv/lib/python3.11/site-packages/ansible_collections/azure/azcollection/requirements.txt
-# uv add --group deploy ansible  
-
-# /Users/a.smith/.local/bin/ansible
+#
+# Ensure that the Ansible Azure Collection is installed:
+# ansible-galaxy collection install azure.azcollection
+# After this, it may be necessary to install some dependencies using pip.
+# from somewhere like .venv/lib/python3.11/site-packages/ansible_collections/azure/azcollection/requirements.txt
 #
 # See this comment if there are problems with the `az` CLI
 # https://github.com/Azure/azure-cli/issues/31419#issuecomment-2858720156

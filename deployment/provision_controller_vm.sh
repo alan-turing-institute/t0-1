@@ -1,29 +1,17 @@
 #!/bin/bash
 #
-# This script deploys the `t0-1` across three Azure VMs, with a private network between them.
-# It is predominantly a wrapper around the Azure CLI commands.
-#
-
-# The following resources will be not be created, but their presence will be checked:
-# - The Azure subscription to deploy to "5ae9b3e6-8784-437f-8725-9c05f55ba9b5"
-# - A resource group named `s1-reproducing`
-# - A reverse proxy
-# - The web frontend
+# This script creates a Ansible Control Node VM on Azure.
+# It is predominantly a wrapper around the Azure CLI commands, and party
+# exists becuase of problems installing Ansible Gallaxy Azure Collection
+# on macOS.
 
 # Assume these exist:
 LOCATION="uksouth" # Check this exists in output to `az account list-locations`
-REVERSE_PROXY_NAME="t0-reverse-proxy"
 SUBSCRIPTION_ID="5ae9b3e6-8784-437f-8725-9c05f55ba9b5"
-
-# TODO: Check that the $VM_PASSWORD env variable exists
-
 
 # The following resources will be created if they do not already exist:
 # - A Resource Group
-# - A VM for the RAG Conversational service
-# - A VM for the t0-1 service
-# - A VM for the Qwen with Tools service
-# - A private Virtual Network to connect the VMs
+# - A VM to use as an Ansible Control Node
 
 # Define Resource Group name
 RESOURCE_GROUP="t0-dev-deploy-rg"
@@ -95,20 +83,6 @@ then
 fi
 echo "Resource Group $RESOURCE_GROUP exists."
 
-# NOT REQUIRED AT THIS STAGE
-# Assert Reverse Proxy exists
-# echo "Checking Reverse Proxy..."
-# if ! az network vnet list --resource-group "$RESOURCE_GROUP" | jq ".[].name | contains('$REVERSE_PROXY_NAME')" | grep -q true;
-# then
-#   echo "⛔️ Reverse Proxy '$REVERSE_PROXY_NAME' does not exist."
-#   exit $MISSING_REVERSE_PROXY
-# fi
-# echo "Reverse Proxy '$REVERSE_PROXY_NAME' exists."
-
-# Assert that the web frontend exists
-# TODO - How to do this given it resides on GitHub Pages?
-
-
 ##### 
 # Now we can provision the VM etc
 #####
@@ -117,10 +91,6 @@ echo "Resource Group $RESOURCE_GROUP exists."
 # az vm list-sizes --location uksouth
 # or:
 # az vm list-sizes --location uksouth | jq "[.[] | select(.numberOfCores == 1)]"
-
-# smallest_size=Standard_B2ts_v2 # Cheapest with x86 processor
-controler_size=D2as_v5
-massive_size=TO_BE_DECIDED
 default_size=Standard_D2s_v5 # default value of '--size' will be changed to 'Standard_D2s_v5' from 'Standard_DS1_v2' in a future release.
 
 # Check the existence of the RAG Conversational VM
@@ -133,14 +103,12 @@ if ! az vm show --resource-group "$RESOURCE_GROUP" --name "$ANSIBLE_CONTROLLER_V
     
     # TODO - Review all of the parameters here
     # Create the VM
-    echo $VM_PASSWORD
-
     az vm create \
       --resource-group "$RESOURCE_GROUP" \
       --name "$ANSIBLE_CONTROLLER_VM_NAME" \
       --image Ubuntu2204 \
       --custom-data controller_cloud_init.yaml \
-      --size $smallest_size \
+      --size $default_size \
       --verbose
 
     echo "Controller VM '$ANSIBLE_CONTROLLER_VM_NAME' creation initiated."
@@ -148,5 +116,3 @@ else
     echo "Controller VM '$ANSIBLE_CONTROLLER_VM_NAME' already exists. Skipping creation."
     echo "🚨 No checks have been made on '$ANSIBLE_CONTROLLER_VM_NAME' sizing, configuration etc. 🚨"
 fi
-
-# 51.105.24.107

@@ -5,17 +5,6 @@
 # - The should be run locally (on the developer's machine).
 # - It does not require an Ansible hosts inventory file as it targets localhost only.
 # - The developer must have the Azure CLI installed and be logged in.
-#
-# Once complete, the Ansible Controller VM should be ready to use for further deployment tasks.
-
-# uv add --group deploy --requirements .venv/lib/python3.11/site-packages/ansible_collections/azure/azcollection/requirements.txt
-# uv add --group deploy ansible  
-
-# /Users/a.smith/.local/bin/ansible
-#
-# See this comment if there are problems with the `az` CLI
-# https://github.com/Azure/azure-cli/issues/31419#issuecomment-2858720156
-
 
 - name: Initialize Static Azure Resources (vNetwork, IP address etc)
   hosts: localhost
@@ -24,25 +13,6 @@
   vars_files:
     - vars_common.yaml
   tasks:
-  # - name: Ensure Azure collection is installed
-  #   ansible.builtin.command: ansible-galaxy collection install azure.azcollection
-  #   changed_when: false
-  # - name: Set key variables
-  #   set_fact:
-  #     static_resource_group: t0-dev-deploy-static
-  #     gpu_resource_group: t0-dev-deploy-gpus
-  #     location: uksouth
-  #     vm_name: myVM
-  #     # vm_size: Standard_ND96amsr_A100_v4
-  #     vm_size: Standard_DS1_v2 # Basic VM size for testing
-  #     vnet_name: myVnet
-  #     subnet_name: mySubnet
-  #     public_ip_name: myPublicIP
-  #     nsg_name: myNetworkSecurityGroup
-  #     nic_name: myNIC
-  #     ansible_user_id: ansible
-  #     ssh_key_file: "ssh_keys/id_ed25519_t0_ansible"
-
   - name: Create SSH key pair
     ansible.builtin.user:
       name: "{{ lookup('env', 'USER') }}"
