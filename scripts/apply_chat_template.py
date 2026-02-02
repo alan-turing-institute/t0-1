@@ -169,9 +169,9 @@ def process_cot_example(
         messages,
         tokenize=False,
     )
-    # Strip leading <bos> — the training tokenizer adds it automatically
-    if text.startswith("<bos>"):
-        text = text[len("<bos>"):]
+    # Strip leading BOS token — the training tokenizer adds it automatically
+    if tokenizer.bos_token and text.startswith(tokenizer.bos_token):
+        text = text[len(tokenizer.bos_token):]
     return dict(text=text)
 
 

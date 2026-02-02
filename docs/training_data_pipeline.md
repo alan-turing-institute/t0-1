@@ -48,7 +48,7 @@ python scripts/apply_chat_template.py \
     --model-name Qwen/Qwen2.5-32B-Instruct
 ```
 
-For Gemma models:
+For Gemma models (e.g., Gemma 3 27B):
 
 ```bash
 python scripts/apply_chat_template.py \
