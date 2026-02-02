@@ -6,8 +6,8 @@
 #SBATCH --gpus-per-node 4
 #SBATCH --cpus-per-gpu 72
 #SBATCH --mem 0
-#SBATCH --job-name gemma2.4_gemma
-#SBATCH --output gemma2.4_gemma.log
+#SBATCH --job-name gemma_gemma2.5-27b
+#SBATCH --output gemma_gemma-27b.log
 
 echo "--------------------------------------"
 echo 
@@ -31,8 +31,12 @@ cd ..
 source .venv/bin/activate
 echo $(which python)
 
+MODEL="t0-2.5-gemma-3-27b-it"
+
+export VLLM_ALLOW_LONG_MAX_MODEL_LEN=1
+
 ./scripts/serve_gemma3_with_tools.sh > serve_gemma3_with_tools_out.log 2>&1 &
-./scripts/serve_t0_1_gemma2.4.sh > serve_t0_1_gemma2.4_out.log 2>&1 &
+./scripts/serve_t0_1_${MODEL}.sh > serve_t0_1_gemma_${MODEL}_out.log 2>&1 &
 
 # Wait for the REST API to be available
 until curl -s http://localhost:8010/v1/models >/dev/null 2>&1; do
@@ -46,7 +50,7 @@ until curl -s http://localhost:8020/v1/models >/dev/null 2>&1; do
     echo "Waiting for vLLM to start..."
 done
 
-t0-1 evaluate-rag ./data/synthetic_queries/5147cd8_gpt-4o_1000_synthetic_queries.jsonl --k 5 --db-choice chroma --llm-provider openai_completion --llm-model-name TomasLaz/t0-2.4-gemma-3-4b-it --budget-forcing --budget-forcing-kwargs '{"max_tokens_thinking": 256, "num_stop_skips": 3}' --extra-body '{"max_tokens": 256}' --prompt-template-path ./templates/rag_evaluation_prompt_deepseek_r1.txt --system-prompt-path ./templates/rag_evaluation_system_prompt_deepseek_r1.txt --output-file ./evaluate-rag-t0-2.4-gemma-router-k5-32B-thinking256-k5-chroma.jsonl --conditions-file ./data/nhs-conditions/v4/qwen_summarised_conditions.jsonl --persist-directory ./v4-summarised-db --local-file-store ./v4-summarised-lfs
+t0-1 evaluate-rag ./data/synthetic_queries/5147cd8_gpt-4o_1000_synthetic_queries.jsonl --k 5 --db-choice chroma --llm-provider openai_completion --llm-model-name TomasLaz/${MODEL} --budget-forcing --budget-forcing-kwargs '{"max_tokens_thinking": 256, "num_stop_skips": 3}' --extra-body '{"max_tokens": 256}' --prompt-template-path ./templates/rag_evaluation_prompt_deepseek_r1.txt --system-prompt-path ./templates/rag_evaluation_system_prompt_deepseek_r1.txt --output-file ./evaluate-rag-t0-${MODEL}-gemma-router-k5-32B-thinking256-k5-chroma.jsonl --conditions-file ./data/nhs-conditions/v4/qwen_summarised_conditions.jsonl --persist-directory ./v4-summarised-db --local-file-store ./v4-summarised-lfs
 
 wait
 
