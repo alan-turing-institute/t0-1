@@ -92,6 +92,9 @@ def preprocess(text):
     return text
 
 
+_warned_model_families: set[str] = set()
+
+
 def _format_thinking_content(reasoning_trace: str, answer: str, model_name: str) -> str:
     """Format the assistant's thinking and answer content for a given model family."""
     model_lower = model_name.lower()
@@ -106,6 +109,12 @@ def _format_thinking_content(reasoning_trace: str, answer: str, model_name: str)
         return "<think>\n" + reasoning_trace + "\n</think>\n" + answer
     else:
         # Default: use generic <think> tags (works for most models)
+        if model_name not in _warned_model_families:
+            _warned_model_families.add(model_name)
+            logger.warning(
+                f"Unknown model family '{model_name}'. Using generic <think> tags. "
+                "If this model requires specific thinking tokens, please add support."
+            )
         return "<think>\n" + reasoning_trace + "\n</think>\n" + answer
 
 
