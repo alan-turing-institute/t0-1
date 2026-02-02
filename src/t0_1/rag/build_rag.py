@@ -176,6 +176,7 @@ class RAG:
         self.rerank_llm: LLM | None = rerank_llm
         self.rerank_k: int = rerank_k
         self.seed: int | None = seed
+        self._tokenizer = None
         self.memory: InMemorySaver = InMemorySaver()
         self.reset_graph()
 
@@ -389,16 +390,19 @@ class RAG:
         }
 
     def set_up_tokenizer(self):
-        from transformers import AutoTokenizer
+        if self._tokenizer is None:
+            from transformers import AutoTokenizer
 
-        if self.budget_forcing_tokenizer is not None:
-            tokenizer = AutoTokenizer.from_pretrained(self.budget_forcing_tokenizer)
-        else:
-            tokenizer = AutoTokenizer.from_pretrained(
-                self.budget_forcing_kwargs["model_name"]
-            )
+            if self.budget_forcing_tokenizer is not None:
+                self._tokenizer = AutoTokenizer.from_pretrained(
+                    self.budget_forcing_tokenizer
+                )
+            else:
+                self._tokenizer = AutoTokenizer.from_pretrained(
+                    self.budget_forcing_kwargs["model_name"]
+                )
 
-        return tokenizer
+        return self._tokenizer
 
     def _budget_forcing_invoke(
         self, messages: list, config: RunnableConfig
