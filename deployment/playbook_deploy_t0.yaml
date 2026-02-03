@@ -19,6 +19,27 @@
       set_fact:
         target_dir: "/home/{{ t0_user }}/t0-1"
 
+    # Disable the Docker all-users-in-docker-group check nonsense, which is built into the nVidia image
+    - name: Rename Docker user check script
+      ansible.builtin.command:
+        cmd: mv --no-clobber /usr/bin/check_docker_user.sh /usr/bin/check_docker_user.sh.blocked
+      become: true
+      register: mv_result
+      failed_when:
+        - mv_result.rc != 0
+        - '"not replacing" not in mv_result.stderr'
+
+    # Create an empty Docker user check script to prevent errors in the various default user profile 
+    # scripts, which are built into the Nvidia image
+    - name: Create empty Docker user check script
+      ansible.builtin.file:
+        path: /usr/bin/check_docker_user.sh
+        state: touch
+        owner: root
+        group: root
+        mode: '0644'
+      become: true
+
     - name: Ensure git and pip are installed
       ansible.builtin.apt:
         name:
@@ -64,10 +85,40 @@
       become: true
       become_user: "{{ t0_user }}"
 
-    # TODO: Check if this is still required, now that we swtich to the t0 user 
-    # properly to clone the repo
-    # Because we change the ownership of the cloned repo, this messes the 
-    # git task's inherant idempotency. So we do an explicit check first.
+    # By default the NVIDIA image set all user profiles to load conda on login
+    # This is not required here, so we disable it for the t0 user
+    - name: Disable conda auto-initialization for t0 user (part 1/2)
+      # This only comments out the lines starting with "conda" which 
+      # precede the conda initialize block
+      ansible.builtin.replace:
+        path: "/home/{{ t0_user }}/.bashrc"
+        regexp: '^conda(.*)$'
+        replace: '# \1'
+        before: "# >>> conda initialize >>>"
+        backup: no
+        owner: "{{ t0_user }}"
+        group: "{{ t0_user }}"
+      become: true
+      become_user: "{{ t0_user }}"
+    - name: Disable conda auto-initialization for t0 user (part 2/2)
+      # This comments out all lines in the conda initialize block
+      ansible.builtin.replace:
+        path: "/home/{{ t0_user }}/.bashrc"
+        regexp: '^[^#\n](.+)$'
+        replace: '# \1'
+        after: "# >>> conda initialize >>>"
+        before: "# <<< conda initialize <<<"
+        # backup: yes
+        owner: "{{ t0_user }}"
+        group: "{{ t0_user }}"
+      become: true
+      become_user: "{{ t0_user }}"
+
+    # Git will refuse to attempt to fetch/clone to the target directory
+    # after there have been changes (which happens with the creation of
+    # the `.venv` below). For now we just check if the repo exists first.
+    # TODO: Decide on how to handle updates to the repo (eg latest version
+    # on main, tagged commits etc).
     - name: Check if repository exists
       ansible.builtin.stat:
         path: "{{ target_dir }}/.git"
@@ -79,7 +130,7 @@
         # This is OK for read-only access to a public repo
         repo: https://github.com/alan-turing-institute/t0-1.git
         dest: "{{ target_dir }}"
-        version: aps/docs-review # Add specific branch, tag (or commit hash) as required
+        version: main # Add specific branch, tag (or commit hash) as required
       become: true
       become_user: "{{ t0_user }}"
       when: not git_repo_check.stat.exists

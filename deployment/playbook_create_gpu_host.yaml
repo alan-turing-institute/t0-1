@@ -45,7 +45,10 @@
         - path: "/home/{{ ansible_user_id }}/.ssh/authorized_keys"
           key_data: "{{ lookup('file', ssh_key_file + '.pub') }}"
       custom_data: "{{ lookup('file', 'cloud_init_users.yaml') }}"
-      managed_disk_type: Standard_LRS
+      # data_disks:
+      #   - lun: 0
+      os_disk_size_gb: 512
+      managed_disk_type: Premium_LRS
       network_interfaces: 
         - resource_group: "{{ static_resource_group }}"
           name: "{{ nic_name }}"
@@ -61,16 +64,27 @@
       
       # NVIDIA GPU Optimized VM Image - A10
       # as per https://azuremarketplace.microsoft.com/en-us/marketplace/apps/nvidia
-      image:
+      # image:
+      #   publisher: nvidia
+      #   offer: nvidia-gpu-optimized-vmi-a10
+      #   sku: nvidia_base_a10_vmi_22_08_gen2
+      #   version: latest
+      # plan:
+      #   name: nvidia_base_a10_vmi_22_08_gen2
+      #   publisher: nvidia
+      #   product: nvidia-gpu-optimized-vmi-a10
+      # accept_terms: true
+
+      # NVIDIA GPU Optimized VM Image (without "with vGPU driver" in the name)
+      image: 
         publisher: nvidia
-        offer: nvidia-gpu-optimized-vmi-a10
-        sku: nvidia_base_a10_vmi_22_08_gen2
+        offer: ngc_azure_17_11
+        sku: ngc-base-version-25_9_1_gen2
         version: latest
-      plan:
-        name: nvidia_base_a10_vmi_22_08_gen2
+      plan: 
+        name: ngc-base-version-25_9_1_gen2
         publisher: nvidia
-        product: nvidia-gpu-optimized-vmi-a10
-      accept_terms: true
+        product: ngc_azure_17_11
     register: vm_creation
 
   # If creating the VM succeeds, update the known_keys
@@ -111,6 +125,5 @@
         name: "{{ vm_name }}"
         restarted: true
 
+    # End of VM creation block
     when: vm_creation.changed
-
-

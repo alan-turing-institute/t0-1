@@ -11,6 +11,8 @@ To run the programmatic deployment of t0 you will need the following on your con
 * Azure CLI (Install instructions) https://learn.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest
 * Ansible (Control node install) https://docs.ansible.com/projects/ansible/latest/installation_guide/intro_installation.html
 * Ansible Azure Collection https://galaxy.ansible.com/ui/repo/published/azure/azcollection/
+* `make` and `pandoc` on the. control node (to run the data download script)
+
 
 I was not able to get the "Ansible Azure Collection" to run correctly on my Mac. Instead, I created a small Azure VM to serve as my control node. The control node can be recreated using the script `deployment/provision_controller_vm.sh`.
 
