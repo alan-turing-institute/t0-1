@@ -25,7 +25,7 @@ export PRIMARY_IP=$(srun --nodes=1 --ntasks=1 -w $PRIMARY_HOST hostname -i | tr 
 echo "Primary IP: $PRIMARY_IP"
 
 # set working dir
-cd ..
+cd ../..
 
 # source venv
 source .venv/bin/activate
