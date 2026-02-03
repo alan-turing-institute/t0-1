@@ -13,3 +13,10 @@ users:
     lock_passwd: True
     ssh_import_id:
       - 'gh:andrewphilipsmith'
+
+write_files:
+- path: /home/andy/testfile.txt
+  content: |
+    This is a test file created by cloud-init
+  owner: andy:andy
+  defer: true

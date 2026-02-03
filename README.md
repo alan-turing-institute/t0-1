@@ -40,12 +40,6 @@ Next, you can generate a JSONL file using [this script](scripts/convert_txt_cond
 
 The convention is to run scripts and commands from the [scripts](scripts) directory and use relative paths to the `data/nhs-conditions` directory. For the command line interfaces (CLIs) described below, the `--conditions-file` argument is defaulted to `"./data/nhs-conditions/conditions.jsonl"`.
 
-> [!NOTE]
-> APS: Questions
->  - is `data/nhs-conditions` relative to `scripts` dir or repo root?
->  - is this the default dir in the makefile
->  - should the empty dir be included in the repo with a .gitignore file?
-
 
 ## Serving the RAG model
 
@@ -63,12 +57,11 @@ OPENAI_BASE_URL_Qwen/Qwen2.5-32B-Instruct="http://localhost:8020/v1/"
 ```
 assuming you are running the vLLM server on `localhost` and the ports are `8010` and `8020` respectively as set in the above scripts.
 
-Note the above aren't proper environment variables with illegal characters, but they can be read with `dotenv` and used in the scripts.
-
 > [!NOTE]
-> APS - Question:
-> What's the general pattern here? What happens when we want another model?
-> Is there a reference to say what characters are and aren't legal in this context, even if they're not legal as environment variables?
+> The general pattern for environment variables is:
+> `OPENAI_BASE_URL_{model_repo_name}`
+> The names do not need to be valid environment variables as required by the shell. The examples above are not because they include illegal characters.
+> The name must be parsable by `dotenv`. Any valid repo name should be acceptable.
 
 Some more information on the commands that these scripts use are detailed below in the [Command Line Interfaces (CLIs)](#command-line-interfaces-clis) section.
 
@@ -76,13 +69,28 @@ Some more information on the commands that these scripts use are detailed below 
 
 For `t0-1`, we have several command line interfaces (CLIs) (implemented using `typer`) to facilitate different tasks. You can run `t0-1 --help` to see the available commands.
 
-- [Serving and querying from the query vector store](#serving-and-querying-from-the-query-vector-store)
-- [Evaluating the query vector store](#evaluating-the-query-vector-store)
-- [Serving and querying from a retriever](#serving-and-querying-from-a-retriever)
-- [Serving and querying from a RAG model](#serving-and-querying-from-a-rag-model)
-- [Initialising a RAG chat interaction](#initalising-a-rag-chat-interaction)
-- [Evaluating RAG](#evaluating-RAG)
-- [Generating synthetic queries](#generating-synthetic-queries)
+- [t0-1: A demonstration of Retrieval-Augmented Reasoning with Lean Language Models](#t0-1-a-demonstration-of-retrieval-augmented-reasoning-with-lean-language-models)
+  - [Setup](#setup)
+  - [Scripts \& commands](#scripts--commands)
+  - [Data](#data)
+  - [Serving the RAG model](#serving-the-rag-model)
+  - [Command Line Interfaces (CLIs)](#command-line-interfaces-clis)
+    - [Serving and querying from the query vector store](#serving-and-querying-from-the-query-vector-store)
+      - [Serving the vector store](#serving-the-vector-store)
+      - [Querying the vector store](#querying-the-vector-store)
+      - [Evaluating the vector store](#evaluating-the-vector-store)
+    - [Serving and querying from a retriever](#serving-and-querying-from-a-retriever)
+      - [Serving the retriever](#serving-the-retriever)
+      - [Querying the retriever](#querying-the-retriever)
+    - [Serving and querying from a RAG model](#serving-and-querying-from-a-rag-model)
+      - [Serving the RAG model](#serving-the-rag-model-1)
+      - [Querying the RAG model](#querying-the-rag-model)
+    - [Initialising a RAG chat interaction](#initialising-a-rag-chat-interaction)
+    - [Evaluating RAG](#evaluating-rag)
+    - [Generating synthetic queries](#generating-synthetic-queries)
+    - [Azure AI Foundry Endpoints](#azure-ai-foundry-endpoints)
+      - [Pricing of the models](#pricing-of-the-models)
+- [Citation](#citation)
 
 Note that with using `uv`, it is useful to run scripts with `uv run`, e.g. `uv run t0-1 rag-chat ...`.
 
