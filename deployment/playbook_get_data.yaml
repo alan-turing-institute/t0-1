@@ -1,0 +1,78 @@
+
+- name: Download the data from the NHS website
+  hosts: localhost
+  gather_facts: true
+  vars_files:
+  - vars_common.yaml
+
+  tasks:
+    - name: Set data directory fact
+      set_fact:
+        data_dir: "{{ playbook_dir }}/../{{ relative_data_dir }}"
+
+    - name: Ensure destination directory exists
+      ansible.builtin.file:
+        path: "{{ data_dir }}"
+        state: directory
+
+
+    # For now, we don't have sudo access on the control node.
+    # So we 
+    # - name: Ensure make is installed
+    #   ansible.builtin.apt:
+    #     name:
+    #       - make
+    #       - pandoc
+    #     state: present
+    #     update_cache: yes
+    #   become: true
+
+    # For now, just redownload the data each time    
+    - name: Download the data
+      ansible.builtin.command:
+        cmd: make -C ../scripts download
+        creates: "{{ playbook_dir }}/../scripts/conditions/zika/index.html"
+      # async: 1800 # 30 mins
+      # poll: 0
+      register: download_job
+      ignore_errors: yes
+      # Use the alphbetically last file to mark completion
+
+    - name: Convert downloaded html to text files
+      ansible.builtin.command:
+        cmd: make -C ../scripts all
+        creates: "{{ playbook_dir }}/../scripts/conditions/zika/index.txt"
+      # async: 1800 # 30 mins
+      # poll: 0
+      register: download_job
+      # Use the alphbetically last file to mark completion
+
+    # - name: Move data to target directory
+    #   ansible.builtin.command:
+    #     cmd: mv ../scripts/conditions "{{ data_dir }}"
+    #     removes: "{{ playbook_dir }}/../scripts/conditions/zika/index.txt"
+    #     creates: "{{ data_dir }}/zika/index.txt"
+
+    - name: Combine text files into single JSONL
+      ansible.builtin.command:
+        cmd: python3 ../scripts/convert_txt_conditions_to_dataset.py --conditions-dir "{{ playbook_dir }}/../scripts/conditions" --output-file "{{ data_dir }}/conditions.jsonl"
+        creates: "{{ data_dir }}/conditions.jsonl"
+
+    # - name: Wait for data download to complete
+    #   ansible.builtin.async_status:
+    #     jid: "{{ download_job.ansible_job_id }}"
+    #   register: download_result
+    #   until: download_result.finished
+    #   retries: 30
+      
+# The data used in this project is scraped from the NHS website using [this script](scripts/Makefile) and running `make download`. Once you have downloaded the data, we can either process the html directly, or we can use [pandoc](https://pandoc.org/) to convert them into plain txt files - you can do this by running `make all`. We recommend using the txt files as they are easier to process and work with.
+
+# Move the downloads into the required directory:
+# ```
+# mkdir -p data/nhs-conditions
+# mv conditions data/nhs-conditions/
+# ```
+
+# Next, you can generate a JSONL file using [this script](scripts/convert_txt_conditions_to_dataset.py) and store it in a directory called `data/nhs-conditions`. In this JSONL file each line has a JSON object with fields `"condition_title"` and `"condition_content"`.
+
+# The convention is to run scripts and commands from the [scripts](scripts) directory and use relative paths to the `data/nhs-conditions` directory. For the command line interfaces (CLIs) described below, the `--conditions-file` argument is defaulted to `"./data/nhs-conditions/conditions.jsonl"`.
