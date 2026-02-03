@@ -31,8 +31,8 @@ cd ..
 source .venv/bin/activate
 echo $(which python)
 
-./scripts/serve_gemma3_with_tools.sh > serve_gemma3_with_tools_out.log 2>&1 &
-./scripts/serve_t0_1_gemma2.4.sh > serve_t0_1_gemma2.4_out.log 2>&1 &
+./scripts/isambard-ai/serve_gemma3_with_tools.sh > serve_gemma3_with_tools_out.log 2>&1 &
+./scripts/isambard-ai/serve_t0_1_gemma2.4.sh > serve_t0_1_gemma2.4_out.log 2>&1 &
 
 # Wait for the REST API to be available
 until curl -s http://localhost:8010/v1/models >/dev/null 2>&1; do

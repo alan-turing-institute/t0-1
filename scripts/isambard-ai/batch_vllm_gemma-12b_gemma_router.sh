@@ -35,8 +35,8 @@ MODEL="t0-2.5-gemma-3-12b-it"
 
 export VLLM_ALLOW_LONG_MAX_MODEL_LEN=1
 
-./scripts/serve_gemma3_with_tools.sh > serve_gemma3_with_tools_out.log 2>&1 &
-./scripts/serve_t0_1_${MODEL}.sh > serve_t0_1_gemma_${MODEL}_out.log 2>&1 &
+./scripts/isambard-ai/serve_gemma3_with_tools.sh > serve_gemma3_with_tools_out.log 2>&1 &
+./scripts/isambard-ai/serve_t0_1_${MODEL}.sh > serve_t0_1_gemma_${MODEL}_out.log 2>&1 &
 
 # Wait for the REST API to be available
 until curl -s http://localhost:8010/v1/models >/dev/null 2>&1; do
