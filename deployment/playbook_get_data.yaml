@@ -8,12 +8,12 @@
   tasks:
     - name: Set data directory fact
       set_fact:
-        data_dir: "{{ playbook_dir }}/../{{ relative_data_dir }}"
+        # data_dir: "{{ playbook_dir }}/../{{ relative_data_dir }}"
 
-    - name: Ensure destination directory exists
-      ansible.builtin.file:
-        path: "{{ data_dir }}"
-        state: directory
+    # - name: Ensure destination directory exists
+    #   ansible.builtin.file:
+    #     path: "{{ data_dir }}"
+    #     state: directory
 
 
     # For now, we don't have sudo access on the control node.
@@ -47,16 +47,10 @@
       register: download_job
       # Use the alphbetically last file to mark completion
 
-    # - name: Move data to target directory
-    #   ansible.builtin.command:
-    #     cmd: mv ../scripts/conditions "{{ data_dir }}"
-    #     removes: "{{ playbook_dir }}/../scripts/conditions/zika/index.txt"
-    #     creates: "{{ data_dir }}/zika/index.txt"
-
     - name: Combine text files into single JSONL
       ansible.builtin.command:
-        cmd: python3 ../scripts/convert_txt_conditions_to_dataset.py --conditions-dir "{{ playbook_dir }}/../scripts/conditions" --output-file "{{ data_dir }}/conditions.jsonl"
-        creates: "{{ data_dir }}/conditions.jsonl"
+        cmd: python3 ../scripts/convert_txt_conditions_to_dataset.py --conditions-dir "{{ playbook_dir }}/../scripts/conditions" --output-file "{{ data_file_path }}"
+        creates: "{{ data_file_path }}"
 
     # - name: Wait for data download to complete
     #   ansible.builtin.async_status:

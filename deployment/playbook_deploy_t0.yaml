@@ -164,11 +164,42 @@
       become: true
       become_user: "{{ t0_user }}"        
 
-    # For now, just redownload the data each time
-    # 
-    # - name: Download the data
-    #   ansible.builtin.command:
-    #     cmd: make -C scripts
-    #     chdir: "{{ target_dir }}"
-    #   become: true
+    - name: Create an env file for t0
+      ansible.builtin.copy:
+        dest: "{{ target_dir }}/.env"
+        src: ../.env.default
+        owner: "{{ t0_user }}"
+        group: "{{ t0_user }}"
+        mode: '0644'
+      become: true
       # become_user: "{{ t0_user }}"
+
+    - name: Wait for data file to be ready
+      delegate_to: localhost
+      ansible.builtin.wait_for:
+        path: "../{{ data_file_path }}"
+
+    - name: Create parent directory for data file
+      ansible.builtin.file:
+        path: "/home/{{ t0_user }}/t0-1/{{ data_file_path | dirname }}"
+        state: directory
+        owner: "{{ t0_user }}"
+        group: "{{ t0_user }}"
+        mode: '0755'
+      become: true
+      become_user: "{{ t0_user }}"
+
+    - name: Copy data file to target VM
+      ansible.builtin.copy:
+        src: "../{{ data_file_path }}"
+        dest: "/home/{{ t0_user }}/t0-1/{{ data_file_path }}"
+      become: true
+
+    - name: Set ownership of data file
+      ansible.builtin.file:
+        path: "/home/{{ t0_user }}/t0-1/{{ data_file_path }}"
+        owner: "{{ t0_user }}"
+        group: "{{ t0_user }}"
+        mode: '0644'
+      become: true
+
