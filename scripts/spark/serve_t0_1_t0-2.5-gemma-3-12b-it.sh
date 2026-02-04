@@ -7,4 +7,4 @@ CUDA_VISIBLE_DEVICES=0 vllm serve TomasLaz/t0-2.5-gemma-3-12b-it \
 --max-model-len 131072 \
 --trust-remote-code \
 --hf-overrides '{"rope-scaling": {"factor":4, "original_max_position_embeddings": 32768, "rope_type":"yarn"}}' \
---gpu-memory-utilization 0.8
+--gpu-memory-utilization 0.65
