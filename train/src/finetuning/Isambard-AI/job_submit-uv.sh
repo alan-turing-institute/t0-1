@@ -28,7 +28,7 @@
 # 2. SYSTEM & ENVIRONMENT
 # ==============================================================================
 
-FORGE_ENV_PATH="<<replace_with_your_forge_env_path>>"
+UV_PATH="<<replace_with_your_uv_env_path>>"
 SCRIPT_PATH="<<replace_with_your_script_path>>/t0-1/train/s1_31a10f2/train/sft.py"
 export HF_HOME="/projects/u5gf/t0/tomas/hf_cache"
 
@@ -42,7 +42,7 @@ set -euo pipefail
 export PYTHONUNBUFFERED=1
 
 # Activate Environment
-mamba activate "${FORGE_ENV_PATH}"
+source "${UV_PATH}/bin/activate"
 
 # Offline/Online Logic
 export HF_CACHE_DIR="${HF_HOME}/huggingface"
