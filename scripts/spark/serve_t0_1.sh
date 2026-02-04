@@ -1,0 +1,8 @@
+CUDA_VISIBLE_DEVICES=0 vllm serve TomasLaz/t0-1.1-k5-32B \
+--seed 42 \
+--generation-config vllm \
+--port 8010 \
+--tensor-parallel-size 1 \
+--max-model-len 131072 \
+--hf-overrides '{"rope-scaling": {"factor":4, "original_max_position_embeddings": 32768, "rope_type":"yarn"}}' \
+--gpu-memory-utilization 0.45
