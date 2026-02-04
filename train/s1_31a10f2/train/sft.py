@@ -93,6 +93,7 @@ def train():
         logging.info("Forcing Eager attention and BF16 for Gemma.")
         model_config.attn_implementation = "eager"
         kwargs.update({
+            "device_map": "auto", 
             "torch_dtype": "auto",
         })
     else:
