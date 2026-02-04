@@ -144,7 +144,7 @@ def train():
     else:
         raise ValueError(
             f"Unsupported model: {template_format}. "
-            "Supported models: Llama, Qwen, Gemma"
+            f"Supported models: {', '.join(TEMPLATES.keys())}"
         )
 
     logging.info(f"Using templates for '{template_format}':")
