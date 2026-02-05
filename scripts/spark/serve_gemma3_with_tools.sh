@@ -9,4 +9,4 @@ vllm serve google/gemma-3-4b-it \
 --enable-auto-tool-choice \
 --tool-call-parser pythonic \
 --chat-template tool_chat_template_gemma3_pythonic.jinja \
---gpu-memory-utilization 0.20
+--gpu-memory-utilization 0.25
