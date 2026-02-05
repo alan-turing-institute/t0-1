@@ -8,7 +8,7 @@ source .venv/bin/activate
 echo $(which python)
 
 ./scripts/spark/serve_gemma3_with_tools.sh > serve_gemma3_with_tools_out.log 2>&1 &
-./scripts/spark/serve_t0_1_gemma2.5.sh > serve_t0_1_gemma2.5_out.log 2>&1 &
+./scripts/spark/serve_t0.sh TomasLaz/t0-2.5-gemma-3-4b-it > serve_t0_gemma2.5_out.log 2>&1 &
 
 # Wait for the REST API to be available
 until curl -s http://localhost:8010/v1/models >/dev/null 2>&1; do
