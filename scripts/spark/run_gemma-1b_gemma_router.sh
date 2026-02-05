@@ -12,6 +12,7 @@ MODEL="t0-2.5-gemma-3-1b-it"
 export VLLM_ALLOW_LONG_MAX_MODEL_LEN=1
 
 ./scripts/spark/serve_gemma3_with_tools.sh > serve_gemma3_with_tools_out.log 2>&1 &
+sleep 60
 ./scripts/spark/serve_t0.sh TomasLaz/${MODEL} > serve_t0_${MODEL}_out.log 2>&1 &
 
 # Wait for the REST API to be available

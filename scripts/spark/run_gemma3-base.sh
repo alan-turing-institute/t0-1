@@ -8,6 +8,7 @@ source .venv/bin/activate
 echo $(which python)
 
 ./scripts/spark/serve_qwen_with_tools.sh > serve_qwen_with_tools_out.log 2>&1 &
+sleep 60
 ./scripts/spark/serve_t0.sh google/gemma-3-4b-it > serve_t0_gemma3_out.log 2>&1 &
 
 # Wait for the REST API to be available
