@@ -20,8 +20,7 @@ dependencies = [
     "datasets>=3.5.0",
     "transformers>=4.51.3",
     "jinja2>=3.1.6",
-    "vllm>=0.8.3; sys_platform == 'linux'",
-    "sentence-transformers>=4.1.0"
+    "sentence-transformers>=4.1.0",
 ]
 
 [project.optional-dependencies]
@@ -45,6 +44,9 @@ dev = [
     "pre-commit>=4.2.0",
     "pytest>=8.3.4",
     "trl>=0.19.1,<0.20.0",
+]
+vllm = [
+    "vllm>=0.8.3"
 ]
 
 [project.scripts]

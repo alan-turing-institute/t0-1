@@ -1,0 +1,11 @@
+vllm serve google/gemma-3-4b-it \
+--tokenizer google/gemma-3-4b-it \
+--seed 42 \
+--generation-config vllm \
+--port 8020 \
+--tensor-parallel-size 2 \
+--max-model-len 131072 \
+--rope-scaling '{"factor":4, "original_max_position_embeddings": 32768, "rope_type":"yarn"}' \
+--enable-auto-tool-choice \
+--tool-call-parser pythonic \
+--chat-template tool_chat_template_gemma3_pythonic.jinja
