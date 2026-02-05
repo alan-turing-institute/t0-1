@@ -9,7 +9,7 @@ else
     MODEL="$1"
 fi
 
-CUDA_VISIBLE_DEVICES=2,3 vllm serve "$MODEL" \
+vllm serve "$MODEL" \
     --tokenizer google/gemma-3-4b-it \
     --seed 42 \
     --generation-config vllm \

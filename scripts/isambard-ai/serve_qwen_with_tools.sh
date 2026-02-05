@@ -1,4 +1,4 @@
-CUDA_VISIBLE_DEVICES=0,1 vllm serve Qwen/Qwen2.5-32B-Instruct \
+vllm serve Qwen/Qwen2.5-32B-Instruct \
 --seed 42 \
 --generation-config vllm \
 --port 8020 \

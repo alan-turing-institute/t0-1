@@ -1,4 +1,4 @@
-CUDA_VISIBLE_DEVICES=0,1 vllm serve google/gemma-3-4b-it \
+vllm serve google/gemma-3-4b-it \
 --tokenizer google/gemma-3-4b-it \
 --seed 42 \
 --generation-config vllm \
