@@ -7,7 +7,7 @@
 #SBATCH --cpus-per-gpu 72
 #SBATCH --mem 0
 #SBATCH --job-name gemma_gemma2.5-270m
-#SBATCH --output gemma_gemma-270m.log
+#SBATCH --output gemma_gemma2.5-270m.log
 
 echo "--------------------------------------"
 echo 
