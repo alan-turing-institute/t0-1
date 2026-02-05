@@ -24,7 +24,7 @@ vllm serve "$MODEL" \
     --seed 42 \
     --generation-config vllm \
     --port 8010 \
-    --tensor-parallel-size 2 \
+    --tensor-parallel-size 1 \
     --max-model-len 131072 \
     --trust-remote-code \
     --hf-overrides '{"rope-scaling": {"factor":4, "original_max_position_embeddings": 32768, "rope_type":"yarn"}}' \
