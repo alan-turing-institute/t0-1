@@ -9,6 +9,12 @@
 #SBATCH --job-name gemma_gemma2.5-12b
 #SBATCH --output gemma_gemma-12b.log
 
+cleanup() {
+    echo "Cleaning up background processes..."
+    kill $(jobs -p) 2>/dev/null
+}
+trap cleanup EXIT
+
 echo "--------------------------------------"
 echo 
 echo 
