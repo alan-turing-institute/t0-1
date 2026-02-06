@@ -39,6 +39,10 @@ docker build --push -t t0acr.azurecr.io/t0-reverse-proxy:latest .
 
 The web app should then update itself.
 
+> **APS: NOTE:**
+> It appears that the Web App does not automatically update when a new image is pushed to the registry. If this is the case, you can trigger an update from the Azure Portal by going to the Web App, then "Deployment" -> "Deployment Center" -> "Containers" and then find a "Sync" or "Refresh" button to trigger a new deployment using the latest image.
+
+
 ## Allowing the proxy to access the t0 VM
 
 Inbound traffic to the t0 VM is restricted, so to allow the proxy to function, you will need to add the IP address of the proxy VM to the list of allowed addresses.

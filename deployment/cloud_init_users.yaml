@@ -1,0 +1,22 @@
+users:
+  - default
+  - name: ansible
+    gecos: 'Ansible'
+    groups: sudo
+    shell: /bin/bash
+    lock_passwd: True
+    sudo: "ALL=(ALL) NOPASSWD:ALL"
+  - name: andy
+    gecos: 'Andy Smith'
+    groups: sudo
+    shell: /bin/bash
+    lock_passwd: True
+    ssh_import_id:
+      - 'gh:andrewphilipsmith'
+
+write_files:
+- path: /home/andy/testfile.txt
+  content: |
+    This is a test file created by cloud-init
+  owner: andy:andy
+  defer: true
