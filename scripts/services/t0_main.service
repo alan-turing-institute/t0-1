@@ -1,0 +1,19 @@
+[Unit]
+Description=T0 Main Service
+After=network.target
+
+[Service]
+Type=simple
+User=t0
+WorkingDirectory=/home/t0/t0-1
+ExecStart=source .venv/bin/activate && /bin/bash /home/t0/t0-1/scripts/serve_rag_conversational.sh
+# ExecStart=/bin/bash /home/t0/t0-1/scripts/dummy_service.sh
+# wait for the string "Application startup complete." in logs
+ExecStartPost=/bin/bash -c 'timeout 300 /bin/bash /home/t0/t0-1/scripts/is_rag_conversation_ready.sh'
+Restart=on-failure
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
