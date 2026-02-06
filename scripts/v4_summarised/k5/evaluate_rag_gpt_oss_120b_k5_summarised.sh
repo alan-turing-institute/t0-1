@@ -1,0 +1,12 @@
+uv run t0-1 evaluate-rag ./data/synthetic_queries/b971c41_gpt-4o_2000_synthetic_queries.jsonl \
+    --k 5 \
+    --db-choice chroma \
+    --llm-provider azure \
+    --llm-model-name gpt-oss-120b \
+    --prompt-template-path ./templates/rag_evaluation_prompt_gpt_oss_native_reasoning.txt \
+    --system-prompt-path ./templates/rag_evaluation_system_prompt_gpt_oss_native_reasoning.txt \
+    --output-file ./evaluate-rag-gpt-oss-120b-k5-chroma-native.jsonl \
+    --conditions-file ./data/nhs-conditions/v4/qwen_summarised_conditions.jsonl \
+    --deepseek-r1 \
+    --persist-directory ./v4-summarised-db \
+    --local-file-store ./v4-summarised-lfs
