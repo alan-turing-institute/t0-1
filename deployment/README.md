@@ -21,6 +21,10 @@ A complete solution would allow for authentication using an Azure Service Princi
 
 This process has been tested by manually authenticating the Azure CLI (using `az login`) on the control node before running the Ansible Playbooks.
 
+## Connecting to the Ansible Control Node
+
+
+
 ## Deploying t0 (software, but not data)
 
 The process of deploying t0 requires two playbooks. Run these, on the control node, from the root of the repository, in order:
@@ -31,14 +35,22 @@ $ ansible-playbook deployment/playbook_deploy_t0.yaml
 
 ## Launching the app:
 
-Either:
-* Login to the GPU VM using SSH, and follow the instructions in serve_t0.md. You should only have to complete steps:
-  * 6 & 7. Obtain the data and place it in the correct directories
-  * "8. Set up an `.env` file"
-  * Serving the models / Default options (running the `launch-all-in-tmux.sh` script)
+Login to the GPU VM using SSH, and follow the instructions in file 'serve_t0.md' under the headings "Serving the models / Default options". 
 
-OR:
-* Wait until those steps are automated in the deployment playbook.
+* First, ssh to the control node (see above for details).
+* Then from the control node, ssh to the GPU VM using the command:
+```
+$ ssh ssh ansible@40.120.36.97 -i ~/ssh_keys/id_ed25519_t0_ansible
+```
+* Then switch to user `t0` to launch the app:
+```
+$ sudo -i -u t0
+$ cd ~./t0-1
+$ ./scripts/lanch-all-in-tmux.sh
+```
+
+* Wait for all three panes to show "Application startup complete". You should then be able to access the app at: https://alan-turing-institute.github.io/t0-1/
+
 
 ## Destroying the deployed resources
 

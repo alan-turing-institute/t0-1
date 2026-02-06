@@ -1,5 +1,5 @@
 #!/bin/sh
-uv run t0-1 serve-rag \
+t0-1 serve-rag \
 --k 5 \
 --db-choice chroma \
 --llm-provider openai_completion \

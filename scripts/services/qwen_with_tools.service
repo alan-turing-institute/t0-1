@@ -7,7 +7,7 @@ Type=simple
 User=t0
 WorkingDirectory=/home/t0/t0-1
 # ExecStart=whoami
-ExecStart=/home/t0/.local/bin/uv run /home/t0/t0-1/scripts/serve_qwen_with_tools.sh
+ExecStart=/home/t0/.local/bin/uv run --directory /home/t0/t0-1/ /home/t0/t0-1/scripts/serve_qwen_with_tools.sh
 # ExecStart=/bin/bash /home/t0/t0-1/scripts/dummy_service.sh 
 # wait for the string "Application startup complete." in logs
 ExecStartPost=/bin/bash -c 'timeout 900 /bin/bash /home/t0/t0-1/scripts/is_qwen_with_tools_ready.sh'
