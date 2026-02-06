@@ -7,10 +7,10 @@ Requires=t0_main.service qwen_with_tools.service
 Type=simple
 User=t0
 WorkingDirectory=/home/t0/t0-1
-ExecStart=/bin/bash uv run /home/t0/t0-1/scripts/serve_rag_conversational.sh
+ExecStart=/home/t0/.local/bin/uv run /home/t0/t0-1/scripts/serve_rag_conversational.sh
 # ExecStart=/bin/bash -c 'ping 8.8.8.8'
 # wait for the string "Application startup complete." in logs
-# ExecStartPost=/bin/bash -c 'timeout 300 /bin/bash /home/t0/t0-1/scripts/is_rag_conversation_ready.sh'
+# ExecStartPost=/bin/bash -c 'timeout 900 /bin/bash /home/t0/t0-1/scripts/is_rag_conversation_ready.sh'
 Restart=on-failure
 RestartSec=10
 StandardOutput=journal

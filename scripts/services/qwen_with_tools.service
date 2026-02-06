@@ -6,10 +6,11 @@ After=network.target
 Type=simple
 User=t0
 WorkingDirectory=/home/t0/t0-1
-ExecStart=/bin/bash uv run /home/t0/t0-1/scripts/serve_qwen_with_tools.sh
+# ExecStart=whoami
+ExecStart=/home/t0/.local/bin/uv run /home/t0/t0-1/scripts/serve_qwen_with_tools.sh
 # ExecStart=/bin/bash /home/t0/t0-1/scripts/dummy_service.sh 
 # wait for the string "Application startup complete." in logs
-ExecStartPost=/bin/bash -c 'timeout 300 /bin/bash /home/t0/t0-1/scripts/is_qwen_with_tools_ready.sh'
+ExecStartPost=/bin/bash -c 'timeout 900 /bin/bash /home/t0/t0-1/scripts/is_qwen_with_tools_ready.sh'
 Restart=on-failure
 RestartSec=10
 StandardOutput=journal
