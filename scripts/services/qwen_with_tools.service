@@ -6,7 +6,7 @@ After=network.target
 Type=simple
 User=t0
 WorkingDirectory=/home/t0/t0-1
-ExecStart=source .venv/bin/activate && /bin/bash /home/t0/t0-1/scripts/serve_qwen_with_tools.sh
+ExecStart=/bin/bash uv run /home/t0/t0-1/scripts/serve_qwen_with_tools.sh
 # ExecStart=/bin/bash /home/t0/t0-1/scripts/dummy_service.sh 
 # wait for the string "Application startup complete." in logs
 ExecStartPost=/bin/bash -c 'timeout 300 /bin/bash /home/t0/t0-1/scripts/is_qwen_with_tools_ready.sh'

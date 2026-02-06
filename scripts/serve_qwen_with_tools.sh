@@ -1,3 +1,4 @@
+#!/bin/sh
 CUDA_VISIBLE_DEVICES=0,1,2,3 vllm serve Qwen/Qwen2.5-32B-Instruct \
 --seed 42 \
 --generation-config vllm \

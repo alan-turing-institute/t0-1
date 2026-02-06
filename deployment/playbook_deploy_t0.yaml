@@ -130,7 +130,7 @@
         # This is OK for read-only access to a public repo
         repo: https://github.com/alan-turing-institute/t0-1.git
         dest: "{{ target_dir }}"
-        version: main # Add specific branch, tag (or commit hash) as required
+        version: aps/split-vm # Add specific branch, tag (or commit hash) as required
       become: true
       become_user: "{{ t0_user }}"
       when: not git_repo_check.stat.exists
@@ -203,19 +203,19 @@
         mode: '0644'
       become: true
 
-    - name: Create service for each of the three main scripts
-      ansible.builtin.copy:
-        dest: "/etc/systemd/system/{{ item }}.service"
-        src: ../scripts/services/{{ item }}.service
-        owner: root
-        group: root
-        mode: '0755'
-        force: true
-      loop:
-        - rag_conversation
-        - qwen_with_tools
-        - t0_main
-      become: true
+    # - name: Create service for each of the three main scripts
+    #   ansible.builtin.copy:
+    #     dest: "/etc/systemd/system/{{ item }}.service"
+    #     src: ../scripts/services/{{ item }}.service
+    #     owner: root
+    #     group: root
+    #     mode: '0755'
+    #     force: true
+    #   loop:
+    #     - rag_conversation
+    #     - qwen_with_tools
+    #     - t0_main
+    #   become: true
 
     - name: Create helper scripts for each service
       ansible.builtin.copy:
@@ -232,18 +232,18 @@
         - scripts/is_t0_main_ready.sh
       become: true
 
-    - name: Reload systemd and start services
-      ansible.builtin.systemd:
-        daemon_reload: true
-        name: "{{ item }}"
-        enabled: true
-        state: started
-      loop:
-        # Order is important here, as rag_conversation is it depends on the other two.
-        - qwen_with_tools
-        - t0_main
-        - rag_conversation
-      become: true
+    # - name: Reload systemd and start services
+    #   ansible.builtin.systemd:
+    #     daemon_reload: true
+    #     name: "{{ item }}"
+    #     enabled: true
+    #     state: started
+    #   loop:
+    #     # Order is important here, as rag_conversation is it depends on the other two.
+    #     - qwen_with_tools
+    #     - t0_main
+    #     - rag_conversation
+    #   become: true
 
     # sudo systemctl daemon-reload
     # sudo systemctl enable rag_converation.service

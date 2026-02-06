@@ -125,5 +125,13 @@
         name: "{{ vm_name }}"
         restarted: true
 
+    - name: Wait for SSH to become available on GPU VM
+      ansible.builtin.wait_for:
+        host: "{{ gpu_vm_public_ip }}"
+        port: 22
+        delay: 10
+        timeout: 300
+        state: started
+
     # End of VM creation block
     when: vm_creation.changed
