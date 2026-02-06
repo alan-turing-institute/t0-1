@@ -1,3 +1,4 @@
+#!/bin/sh
 vllm serve google/gemma-3-4b-it \
 --tokenizer google/gemma-3-4b-it \
 --seed 42 \

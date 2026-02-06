@@ -9,7 +9,7 @@ t0-1 serve-rag \
 --extra-body '{"max_tokens": 4096, "seed": 42}' \
 --conversational \
 --conversational-agent-llm-provider openai \
---conversational-agent-llm-model-name Qwen/Qwen2.5-32B-Instruct \
+--conversational-agent-llm-model-name google/gemma-3-4b-it \
 --conversational-agent-extra-body '{"max_tokens": 4096, "seed": 42}' \
 --prompt-template-path ./templates/rag_prompt_conversational.txt \
 --system-prompt-path ./templates/rag_system_prompt_conversational.txt \
