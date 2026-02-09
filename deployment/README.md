@@ -47,7 +47,7 @@ $ ssh ssh ansible@40.120.36.97 -i ~/ssh_keys/id_ed25519_t0_ansible
 
 ```
 $ sudo -i -u t0
-$ cd ~./t0-1
+$ cd ~/t0-1
 $ ./scripts/launch-all-in-tmux.sh
 ```
 
