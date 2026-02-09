@@ -130,7 +130,7 @@
         # This is OK for read-only access to a public repo
         repo: https://github.com/alan-turing-institute/t0-1.git
         dest: "{{ target_dir }}"
-        version: aps/split-vm # Add specific branch, tag (or commit hash) as required
+        version: main # Add specific branch, tag (or commit hash) as required
       become: true
       become_user: "{{ t0_user }}"
       when: not git_repo_check.stat.exists
