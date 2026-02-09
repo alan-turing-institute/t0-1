@@ -1,11 +1,9 @@
 import json
 import os
 
-import regex as re
-import tqdm
+import re
+import argparse
 
-# path to the condition folder (download them from sharepoint or scrape them again)
-conditions_folder = "data/nhs-conditions/conditions/"
 
 
 def remove_further_information(text):
@@ -327,25 +325,60 @@ def parse_downloaded_conditions(conditions_folder, selected_condition):
     return conditions_content
 
 
-# create a pandas dataframe with condition title and converted text
-all_conditions_content = []
+if __name__ == "__main__":
 
-for condition in tqdm.tqdm(os.listdir(conditions_folder)):
-    conditions_content = parse_downloaded_conditions(conditions_folder, condition)
-    if conditions_content is not None:
-        all_conditions_content.append(
-            {
-                "condition_title": condition,
-                "condition_content": conditions_content,
-            }
+    parser = argparse.ArgumentParser(description="Convert downloaded .txt files from the NHS website into the required dataset format")
+    parser.add_argument(
+        "--conditions-dir",
+        default="data/nhs-conditions/conditions/",
+        help="Path to the download directory (default: data/nhs-conditions/conditions/)",
+    )
+    parser.add_argument(
+        "--output-file",
+        default="data/nhs-conditions/conditions.jsonl",
+        help=(
+            "Path to output file. Data will be outputed in jsonl format. (default: data/nhs-conditions/conditions.jsonl)."
+            " If the path to the output file does not exsist, then the intermediate directories will be created"
         )
+    )
+    args = parser.parse_args()
+    conditions_folder = args.conditions_dir
+    output_file = args.output_file
 
-# save the output to a jsonl file
-output_folder = "data/nhs-conditions/"
+    # create a pandas dataframe with condition title and converted text
+    all_conditions_content = []
 
-if not os.path.exists(output_folder):
-    os.makedirs(output_folder)
+    # for condition in tqdm.tqdm(os.listdir(conditions_folder)):
+    for condition in os.listdir(conditions_folder):
+        conditions_content = parse_downloaded_conditions(conditions_folder, condition)
+        if conditions_content is not None:
+            all_conditions_content.append(
+                {
+                    "condition_title": condition,
+                    "condition_content": conditions_content,
+                }
+            )
 
-with open(os.path.join(output_folder, "conditions.jsonl"), "w", encoding="utf-8") as f:
-    for condition in all_conditions_content:
-        f.write(json.dumps(condition) + "\n")
+    # save the output to a jsonl file
+    output_folder = os.path.dirname(output_file)
+    if output_folder and not os.path.exists(output_folder):
+        os.makedirs(output_folder)
+
+    with open(output_file, "w", encoding="utf-8") as f:
+        for condition in all_conditions_content:
+            f.write(json.dumps(condition) + "\n")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

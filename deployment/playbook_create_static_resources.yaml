@@ -1,0 +1,142 @@
+# This Playbook initializes the Ansible Controller VM as per the guide at
+# https://learn.microsoft.com/en-us/azure/developer/ansible/install-on-linux-vm?source=recommendations&tabs=azure-cli#prerequisites
+#
+# Notes:
+# - The should be run locally (on the developer's machine).
+# - It does not require an Ansible hosts inventory file as it targets localhost only.
+# - The developer must have the Azure CLI installed and be logged in.
+
+- name: Initialize Static Azure Resources (vNetwork, IP address etc)
+  hosts: localhost
+  gather_facts: false
+  connection: local
+  collections:
+    - azure.azcollection
+  vars_files:
+    - vars_common.yaml
+  tasks:
+  - name: Create SSH key pair
+    ansible.builtin.user:
+      name: "{{ lookup('env', 'USER') }}"
+      generate_ssh_key: true
+      ssh_key_comment: "For use with Ansible on t0 resources"
+      ssh_key_file: "{{ ssh_key_file }}"
+      ssh_key_type: ed25519
+
+  - name: Create resource group
+    azure_rm_resourcegroup:
+      name: "{{ static_resource_group }}"
+      location: "{{ location }}"
+  - name: Create virtual network
+    azure_rm_virtualnetwork:
+      resource_group: "{{ static_resource_group }}"
+      name: "{{ vnet_name }}"
+      address_prefixes: "10.0.0.0/16"
+  - name: Add subnet
+    azure_rm_subnet:
+      resource_group: "{{ static_resource_group }}"
+      name: "{{ subnet_name }}"
+      address_prefix: "10.0.1.0/24"
+      virtual_network: "{{ vnet_name }}"
+      service_endpoints:
+        - service: "Microsoft.Storage"
+          locations:
+            - "{{ location }}"
+  - name: Create public IP address
+    azure_rm_publicipaddress:
+      resource_group: "{{ static_resource_group }}"
+      allocation_method: Static
+      name: "{{ public_ip_name }}"
+    register: output_ip_address
+  - name: Public IP of VM
+    debug:
+      msg: "The public IP is {{ output_ip_address.state.ip_address }}."
+  - name: Create Network Security Group that allows SSH
+    azure_rm_securitygroup:
+      resource_group: "{{ static_resource_group }}"
+      name: "{{ nsg_name }}"
+      rules:
+        - name: SSH
+          protocol: Tcp
+          destination_port_range: 22
+          access: Allow
+          priority: 1001
+          direction: Inbound
+        - name: AllowInboundFromProxy
+          protocol: Tcp
+          destination_port_range: 8050
+          access: Allow
+          priority: 1002
+          direction: Inbound
+          # This is the IP address of the proxy server
+          # TODO: A more robust solution would be to do something like:
+          # - a private subnet
+          # - programatically retrieve the proxy servers public IP address 
+          # - etc
+          source_address_prefix: "20.108.150.6/32"
+  - name: Create virtual network interface card
+    azure_rm_networkinterface:
+      resource_group: "{{ static_resource_group }}"
+      name: "{{ nic_name }}"
+      virtual_network: "{{ vnet_name }}"
+      subnet: "{{ subnet_name }}"
+      ip_configurations:
+        - name: ipconfig1
+          public_ip_address_name: "{{ public_ip_name }}"
+          primary: true
+      security_group: "{{ nsg_name }}"
+  - name: Add new VM to inventory
+    ansible.builtin.add_host:
+      name: "{{ vm_name }}"
+      ansible_host: "{{ output_ip_address.state.ip_address }}"
+      ansible_user: "{{ ansible_user_id }}"
+      ansible_ssh_private_key_file: "{{ ssh_key_file }}"
+      groups: ansible_controller
+
+  - name: Create storage account
+    azure_rm_storageaccount:
+      resource_group: "{{ static_resource_group }}"
+      name: sourcedataaccount
+      account_type: Standard_LRS
+      kind: StorageV2
+      public_network_access: Enabled
+      access_tier: Cool
+      allow_shared_key_access: true
+    register: storage_info
+
+  - name: Create storage share
+    azure_rm_storageshare:
+      name: sourcedatashare
+      resource_group: "{{ static_resource_group }}"
+      account_name: sourcedataaccount
+      state: present
+      access_tier: Cool
+      quota: 1 # Units in Gigabytes
+      enabled_protocols: SMB
+    register: share_info
+
+  - name: Display storage share info
+    ansible.builtin.debug:
+      msg: "{{ share_info }}"
+      
+  - name: Retrive storage storage account info
+    azure_rm_storageaccount_info:
+      resource_group: "{{ static_resource_group }}"
+      name: sourcedataaccount
+      show_connection_string: true # require to get the key
+    register: storage_account_info
+
+  - name: Display storage storage account info
+    ansible.builtin.debug:
+      msg: "{{ storage_account_info }}"
+      
+
+  - name: Display storage storage account info
+    ansible.builtin.set_fact:
+      # msg: "{{ storage_account_info.storageaccounts[0].primary_endpoints.key }}"
+      share_key: "{{ (storage_account_info.storageaccounts | selectattr('name', 'equalto', 'sourcedataaccount') | map(attribute='primary_endpoints.key') | first ) }}"
+      share_url: "{{ (storage_account_info.storageaccounts | selectattr('name', 'equalto', 'sourcedataaccount') | map(attribute='primary_endpoints.file.endpoint') | first ) }}sourcedatashare"
+
+  - name: Display storage share connection info
+    ansible.builtin.debug:
+      msg: "Storage Share URL: {{ share_url }} , Key: {{ share_key }}"

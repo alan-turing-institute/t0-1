@@ -1,0 +1,253 @@
+- import_playbook: playbook_create_static_resources.yaml
+
+- name: Install and configure t0 on GPU Host VM
+  hosts: "{{ vm_name}}"
+  gather_facts: true
+  vars_files:
+  - vars_common.yaml
+  vars:
+    ansible_common_remote_group: "{{ t0_user }}"
+    #  ansible_become_flags:
+    # -H (HOME): Sets the HOME environment variable to the home directory of the target user you're becoming. Without this, HOME might still point to the original user's home directory.
+    # -S (stdin): Reads the password from standard input instead of the terminal. This allows Ansible to pass the sudo password programmatically.
+    ansible_become_flags: "-H -S"
+  tasks:
+    - name: Debug connection
+      ansible.builtin.debug:
+        msg: "Connected to {{ inventory_hostname }} as {{ ansible_user_id }}"
+    - name: Set facts
+      set_fact:
+        target_dir: "/home/{{ t0_user }}/t0-1"
+
+    # Disable the Docker all-users-in-docker-group check nonsense, which is built into the nVidia image
+    - name: Rename Docker user check script
+      ansible.builtin.command:
+        cmd: mv --no-clobber /usr/bin/check_docker_user.sh /usr/bin/check_docker_user.sh.blocked
+      become: true
+      register: mv_result
+      failed_when:
+        - mv_result.rc != 0
+        - '"not replacing" not in mv_result.stderr'
+
+    # Create an empty Docker user check script to prevent errors in the various default user profile 
+    # scripts, which are built into the Nvidia image
+    - name: Create empty Docker user check script
+      ansible.builtin.file:
+        path: /usr/bin/check_docker_user.sh
+        state: touch
+        owner: root
+        group: root
+        mode: '0644'
+      become: true
+
+    - name: Ensure git and pip are installed
+      ansible.builtin.apt:
+        name:
+          - git
+          - python3-pip
+        state: present
+        update_cache: yes
+      become: true
+  
+    - name: Create t0 group
+      ansible.builtin.group:
+        name: "{{ t0_user }}"
+      become: true
+    
+    - name: Create t0 user
+      ansible.builtin.user:
+        name: "{{ t0_user }}"
+        comment: "t0 User"
+        shell: /bin/bash
+        create_home: true
+        group: "{{ t0_user }}"
+      become: true
+
+    # Required to allow this playbook to switch to the unprivaged t0 user later
+    - name: Add ansible user to t0 group
+      ansible.builtin.user:
+        name: "{{ ansible_user_id }}"
+        groups: "{{ t0_user }}"
+        append: yes
+      become: true
+      register: user_group_change
+
+    - name: Reset SSH connection to allow new group membership to take effect
+      ansible.builtin.meta: reset_connection
+    
+    - name: Debug t0 user home
+      ansible.builtin.command: whoami
+      become: true
+      become_user: "{{ t0_user }}"
+
+    - name: test ls home
+      ansible.builtin.command: ls -la /home/{{ t0_user }}
+      become: true
+      become_user: "{{ t0_user }}"
+
+    # By default the NVIDIA image set all user profiles to load conda on login
+    # This is not required here, so we disable it for the t0 user
+    - name: Disable conda auto-initialization for t0 user (part 1/2)
+      # This only comments out the lines starting with "conda" which 
+      # precede the conda initialize block
+      ansible.builtin.replace:
+        path: "/home/{{ t0_user }}/.bashrc"
+        regexp: '^conda(.*)$'
+        replace: '# \1'
+        before: "# >>> conda initialize >>>"
+        backup: no
+        owner: "{{ t0_user }}"
+        group: "{{ t0_user }}"
+      become: true
+      become_user: "{{ t0_user }}"
+    - name: Disable conda auto-initialization for t0 user (part 2/2)
+      # This comments out all lines in the conda initialize block
+      ansible.builtin.replace:
+        path: "/home/{{ t0_user }}/.bashrc"
+        regexp: '^[^#\n](.+)$'
+        replace: '# \1'
+        after: "# >>> conda initialize >>>"
+        before: "# <<< conda initialize <<<"
+        # backup: yes
+        owner: "{{ t0_user }}"
+        group: "{{ t0_user }}"
+      become: true
+      become_user: "{{ t0_user }}"
+
+    # Git will refuse to attempt to fetch/clone to the target directory
+    # after there have been changes (which happens with the creation of
+    # the `.venv` below). For now we just check if the repo exists first.
+    # TODO: Decide on how to handle updates to the repo (eg latest version
+    # on main, tagged commits etc).
+    - name: Check if repository exists
+      ansible.builtin.stat:
+        path: "{{ target_dir }}/.git"
+      register: git_repo_check
+      become: true
+    - name: Clone t0 repository into {{ target_dir }}
+      ansible.builtin.git:
+        # In this instance, using HTTPS to avoid SSH key issues
+        # This is OK for read-only access to a public repo
+        repo: https://github.com/alan-turing-institute/t0-1.git
+        dest: "{{ target_dir }}"
+        version: main # Add specific branch, tag (or commit hash) as required
+      become: true
+      become_user: "{{ t0_user }}"
+      when: not git_repo_check.stat.exists
+
+    - name: Download uv installer
+      ansible.builtin.get_url:
+        url: https://astral.sh/uv/install.sh
+        dest: "/home/{{ t0_user }}/uv-install.py"
+        mode: 'ug+rwx'
+      become: true
+      become_user: "{{ t0_user }}"
+
+    - name: Install uv from scripts
+      ansible.builtin.shell:
+        cmd: "/home/{{ t0_user }}/uv-install.py"
+      become: true
+      become_user: "{{ t0_user }}"
+
+    - name: Ensure uv is available in PATH
+      ansible.builtin.shell:
+        cmd: |
+          /home/t0/.local/bin/uv --version
+      become: true
+      become_user: "{{ t0_user }}"
+
+    - name: Install t0 in a uv virtual environment
+      ansible.builtin.command:
+        cmd: /home/t0/.local/bin/uv sync --all-extras --python=3.12
+        chdir: "{{ target_dir }}"
+        creates: "{{ target_dir }}/.venv"
+      become: true
+      become_user: "{{ t0_user }}"        
+
+    - name: Create an env file for t0
+      ansible.builtin.copy:
+        dest: "{{ target_dir }}/.env"
+        src: ../.env.default
+        owner: "{{ t0_user }}"
+        group: "{{ t0_user }}"
+        mode: '0644'
+      become: true
+      # become_user: "{{ t0_user }}"
+
+    - name: Wait for data file to be ready
+      delegate_to: localhost
+      ansible.builtin.wait_for:
+        path: "../{{ data_file_path }}"
+
+    - name: Create parent directory for data file
+      ansible.builtin.file:
+        path: "/home/{{ t0_user }}/t0-1/{{ data_file_path | dirname }}"
+        state: directory
+        owner: "{{ t0_user }}"
+        group: "{{ t0_user }}"
+        mode: '0755'
+      become: true
+      become_user: "{{ t0_user }}"
+
+    - name: Copy data file to target VM
+      ansible.builtin.copy:
+        src: "../{{ data_file_path }}"
+        dest: "/home/{{ t0_user }}/t0-1/{{ data_file_path }}"
+      become: true
+
+    - name: Set ownership of data file
+      ansible.builtin.file:
+        path: "/home/{{ t0_user }}/t0-1/{{ data_file_path }}"
+        owner: "{{ t0_user }}"
+        group: "{{ t0_user }}"
+        mode: '0644'
+      become: true
+
+    # Disable for now as this does not work reliably.
+    # - name: Create service for each of the three main scripts
+    #   ansible.builtin.copy:
+    #     dest: "/etc/systemd/system/{{ item }}.service"
+    #     src: ../scripts/services/{{ item }}.service
+    #     owner: root
+    #     group: root
+    #     mode: '0755'
+    #     force: true
+    #   loop:
+    #     - rag_conversation
+    #     - qwen_with_tools
+    #     - t0_main
+    #   become: true
+
+    - name: Create helper scripts for each service
+      ansible.builtin.copy:
+        dest: "/home/{{ t0_user }}/t0-1/{{ item }}"
+        src: ../{{ item}}
+        owner: "{{ t0_user }}"
+        group: "{{ t0_user }}"
+        mode: '0755'
+        force: true
+      loop:
+        - scripts/is_rag_conversation_ready.sh
+        - scripts/is_qwen_with_tools_ready.sh
+        - scripts/is_t0_main_ready.sh
+      become: true
+
+    # Disable for now as this does not work reliably.
+    # - name: Reload systemd and start services
+    #   ansible.builtin.systemd:
+    #     daemon_reload: true
+    #   become: true
+
+    # Disable for now as this does not work reliably.
+    # - name: Reload systemd and start services
+    #   ansible.builtin.systemd:
+    #     daemon_reload: true
+    #     name: "{{ item }}"
+    #     enabled: true
+    #     state: started
+    #   loop:
+    #     # Order is important here, as rag_conversation is it depends on the other two.
+    #     - qwen_with_tools
+    #     - t0_main
+    #     - rag_conversation
+    #   become: true
