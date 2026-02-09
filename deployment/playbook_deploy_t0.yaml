@@ -251,3 +251,20 @@
     #     - t0_main
     #     - rag_conversation
     #   become: true
+
+    # - include_tasks: tasks_setup_huggingface.yaml
+    
+    - name: install HF CLI
+      ansible.builtin.shell: |
+        ~/.local/bin/uv tool install hf
+      become: true
+      become_user: "{{ t0_user }}"
+
+    # - name: reset ssh
+    #   ansible.builtin.meta: reset_connection
+
+    - name: install HF CLI
+      ansible.builtin.shell: |
+        ~/.local/bin/hf auth login --token {{ HF_TOKEN }}
+      become: true
+      become_user: "{{ t0_user }}"

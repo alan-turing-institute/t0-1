@@ -29,8 +29,7 @@ This process has been tested by manually authenticating the Azure CLI (using `az
 
 The process of deploying t0 requires two playbooks. Run these, on the control node, from the root of the repository, in order:
 ```
-$ ansible-playbook deployment/playbook_create_gpu_host.yaml
-$ ansible-playbook deployment/playbook_deploy_t0.yaml
+$ ansible-playbook deployment/playbook_create_gpu_host.yaml && ansible-playbook deployment/playbook_deploy_t0.yaml
 ```
 
 ## Launching the app:
@@ -43,10 +42,13 @@ Login to the GPU VM using SSH, and follow the instructions in file 'serve_t0.md'
 $ ssh ssh ansible@40.120.36.97 -i ~/ssh_keys/id_ed25519_t0_ansible
 ```
 * Then switch to user `t0` to launch the app:
+
+> **NOTE** - On the first login, you will see serveral `[sudo] password for t0: ` prompts. These should be canceled by pressing `Ctrl-C`. There is no password set for the `t0` user, and this is a result of the overly intrusive setup of the NVIDA image. Ideally this would be disabled, but we have not found the origin of this. On subsequent logins, this should not be an issue.
+
 ```
 $ sudo -i -u t0
 $ cd ~./t0-1
-$ ./scripts/lanch-all-in-tmux.sh
+$ ./scripts/launch-all-in-tmux.sh
 ```
 
 * Wait for all three panes to show "Application startup complete". You should then be able to access the app at: https://alan-turing-institute.github.io/t0-1/
