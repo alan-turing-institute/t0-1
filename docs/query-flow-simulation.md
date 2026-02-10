@@ -100,11 +100,12 @@ LangGraph automatically converts this into the `CustomMessagesState` with:
    )
    ```
 
-2. Qwen receives these messages:
+2. Messages are cleaned via `_clean_messages_for_context` (strips thinking tokens from prior AI messages), then Qwen receives:
    ```python
    [
        SystemMessage(content=NHS_RETRIEVER_TOOL_PROMPT),
        HumanMessage(content="I have fever and a cough since last week"),
+       # (on first query, cleaned_messages is just the HumanMessage)
    ]
    ```
 
@@ -116,14 +117,14 @@ You are a helpful clinical AI assistant deployed in the United Kingdom
 You are provided a tool that can retrieve context from a knowledge base taken
 from NHS condition web pages which provide information about various medical
 conditions.
-You should always use the tool to find relevant information to answer the
+You should ALWAYS use the tool to find relevant information to answer the
 patient's question rather than relying on your own knowledge.
 If you are confused or unsure about the user's question, you should use the
 tool to find relevant information or ask the user for more information or ask
 further details about their symptoms.
-For follow up questions from the user, you should always use the tool to find
-new relevant information to answer the user's question given the conversation
-history.
+If the user provides follow up information, you should ALWAYS use the tool to
+find new relevant information to answer the user's question given the
+conversation history.
 You should only not use the tool in very simple messages that do not require
 any context like "Hello" or "Thank you", or when the user is just writing
 something random.
@@ -133,8 +134,8 @@ their symptoms.
 If you are going to reply to the user, always conclude with a question to
 keep the conversation going to help the user or ask for more details about
 their symptoms.
-In your response, only reply in English and always refer to the user in the
-second person.
+In your response, only reply in English, always refer to the user in the
+second person, and do not use Markdown tables (e.g., | or --- lines).
 
 Decide to use the tool at the start. Do not use the tool after you have already
 started your response.
@@ -358,7 +359,7 @@ I have fever and a cough since last week
 In conversational mode, the code assembles messages by combining:
 
 - The **system message** from the prompt template (containing context + demographics)
-- The **conversation history** (human/system/ai messages from state, excluding tool calls)
+- The **conversation history** (human/system/ai messages from state, excluding tool calls), cleaned via `_clean_messages_for_context` (strips thinking tokens from prior AI messages)
 - Replaces the last human message with the one from the prompt template
 
 At this point the conversation history in `state["messages"]` is:
@@ -485,7 +486,7 @@ return {
 }
 ```
 
-> **Key design point:** T0's raw clinical reasoning is NOT added to `state["messages"]` — it never enters the conversation history that the user can retrieve via `/get_history`.
+> **Key design point:** T0's raw output is NOT added to `state["messages"]` by `generate` — instead, `router_respond` later recombines T0's thinking section (discarding T0's answer) with the router's response and stores that in messages (see Step 5g).
 
 ---
 
@@ -503,7 +504,7 @@ t0_output = state["t0_reasoning"][-1]
 
 ### 5b. Build conversation history (filter)
 
-The router gets the conversation history, excluding tool-call messages:
+The router gets the conversation history, excluding tool-call messages, then strips thinking tokens from prior AI messages via `_clean_messages_for_context`:
 
 ```python
 conversation_history = [
@@ -511,6 +512,7 @@ conversation_history = [
     if message.type in ("human", "ai")
     and not getattr(message, "tool_calls", None)
 ]
+conversation_history = self._clean_messages_for_context(conversation_history)
 ```
 
 At this point, the only qualifying message is:
@@ -602,15 +604,21 @@ writer((AIMessageChunk("", response_metadata={"finish_reason": "stop"}), config[
 
 ### 5g. Router return value
 
-The router's response is added to `state["messages"]` as a regular AIMessage (this IS part of conversation history):
+The router combines T0's thinking section with the router's answer into a single AIMessage. This preserves the `<|im_start|>think...<|im_start|>answer...` format so the frontend can reconstruct reasoning on history reload:
 
 ```python
+thinking_part = t0_output.split("<|im_start|>answer")[0]
+# = "<|im_start|>think\nThe patient reports fever and cough..."
+full_content = thinking_part + "<|im_start|>answer\n" + response_content
+
 return {
     "messages": [
-        AIMessage(content="I'm sorry to hear you've been feeling unwell. Based on your symptoms — a fever and cough that have lasted about a week — this sounds like it could be the flu.\n\nThe flu typically causes...\n\nCould you tell me a bit more about your symptoms?...")
+        AIMessage(content="<|im_start|>think\nThe patient reports fever and cough...\n<|im_start|>answer\nI'm sorry to hear you've been feeling unwell...")
     ]
 }
 ```
+
+> **Note:** T0's **answer section** (containing the structured prediction) is discarded — only the thinking section is kept, with the router's response replacing the answer.
 
 ---
 
@@ -694,7 +702,7 @@ const components = message.split("<|im_start|>answer");
 
 const [reasoning2, answer2] = components;
 const [_, reasoning3] = reasoning2.split("<|im_start|>think");
-const reasoning = postProcessReasoning(reasoning3); // trims, removes stray tags
+const reasoning = postProcessReasoning(reasoning3); // truncates at last sentence, removes stray im_start tags, trims
 const answer = postProcessAnswer(answer2); // trims, removes stray tags
 ```
 
@@ -727,19 +735,20 @@ After the graph completes, `state["messages"]` for thread `sunny-otter-42` conta
     HumanMessage(content="I have fever and a cough since last week"),
     AIMessage(content="", tool_calls=[{"name": "retrieve_as_tool", "args": {"query": "fever and cough for a week"}, "id": "call_abc123"}]),
     ToolMessage(content="Source: ...", tool_call_id="call_abc123", artifact={...}),
-    AIMessage(content="I'm sorry to hear you've been feeling unwell...Could you tell me a bit more about your symptoms?..."),
+    AIMessage(content="<|im_start|>think\nThe patient reports fever and cough...\n<|im_start|>answer\nI'm sorry to hear you've been feeling unwell..."),
 ]
 ```
 
-**What is NOT in messages:**
+The final AIMessage contains T0's thinking + the answer marker + the router's response (see Step 5g). This means:
 
-- T0's raw reasoning — stored only in `state["t0_reasoning"]` and not exposed via `/get_history`
-- The structured prediction `(flu, Urgent Primary Care)` — internal only
+- T0's **thinking tokens** ARE in `state["messages"]` and exposed via `/get_history` — the frontend's `makeAIEntry` splits them into the collapsible reasoning section on history reload
+- T0's **answer section** (with the structured prediction `(flu, Urgent Primary Care)`) is NOT in messages — it was discarded and replaced by the router's response
+- T0's full raw output (thinking + answer) is also stored separately in `state["t0_reasoning"]`
 
 When the user calls `GET /get_history?thread_id=sunny-otter-42`, the frontend's `parseChatEntries()` filters this to show:
 
 - The human message
-- The AI message from the router (skipping the tool-call AIMessage and ToolMessage)
+- The AI message from the router (skipping the tool-call AIMessage and ToolMessage), with reasoning extracted into the collapsible section via `makeAIEntry`
 
 ---
 
