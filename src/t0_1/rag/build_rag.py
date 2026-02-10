@@ -5,7 +5,7 @@ from typing import Iterable
 from langchain import hub
 from langchain_core.documents import Document
 from langchain_core.language_models.llms import LLM
-from langchain_core.messages import trim_messages
+from langchain_core.messages import HumanMessage, SystemMessage, trim_messages
 from langchain_core.messages.ai import AIMessage, AIMessageChunk
 from langchain_core.messages.utils import count_tokens_approximately
 from langchain_core.prompts import PromptTemplate
@@ -25,7 +25,11 @@ from t0_1.query_vector_store.build_retriever import (
 from t0_1.query_vector_store.custom_parent_document_retriever import (
     CustomParentDocumentRetriever,
 )
-from t0_1.rag.utils import NHS_RETRIEVER_TOOL_PROMPT, create_retreiver_tool
+from t0_1.rag.utils import (
+    NHS_RETRIEVER_TOOL_PROMPT,
+    ROUTER_RESPONSE_PROMPT,
+    create_retreiver_tool,
+)
 from t0_1.utils import process_arg_to_dict
 
 
@@ -93,6 +97,8 @@ class CustomMessagesState(MessagesState):
     reranker_response_processed: list[list[str] | None]
     reranker_success: list[bool | None]
     demographics: str | None
+    # T0's full output (thinking + answer), not added to conversation messages
+    t0_reasoning: list[str]
 
 
 class RAG:
@@ -405,7 +411,7 @@ class RAG:
         return self._tokenizer
 
     def _budget_forcing_invoke(
-        self, messages: list, config: RunnableConfig
+        self, messages: list, config: RunnableConfig, stream_answer: bool = True
     ) -> AIMessage:
         logging.info("Budget forcing invoked")
 
@@ -513,23 +519,26 @@ class RAG:
         answer_init = "\n<|im_start|>answer\n"
         output += answer_init
         prompt += answer_init
-        writer((AIMessageChunk(answer_init), config["metadata"]))
+        if stream_answer:
+            writer((AIMessageChunk(answer_init), config["metadata"]))
 
         for msg in self.llm.stream(prompt, extra_body=sampling_params):
-            writer((AIMessageChunk(msg), config["metadata"]))
+            if stream_answer:
+                writer((AIMessageChunk(msg), config["metadata"]))
             output += msg
 
-        writer(
-            (
-                AIMessageChunk("", response_metadata={"finish_reason": "stop"}),
-                config["metadata"],
+        if stream_answer:
+            writer(
+                (
+                    AIMessageChunk("", response_metadata={"finish_reason": "stop"}),
+                    config["metadata"],
+                )
             )
-        )
 
         return AIMessage(output)
 
     async def _budget_forcing_ainvoke(
-        self, messages: list, config: RunnableConfig
+        self, messages: list, config: RunnableConfig, stream_answer: bool = True
     ) -> AIMessage:
         logging.info("Budget forcing invoked")
 
@@ -638,18 +647,21 @@ class RAG:
         answer_init = "\n<|im_start|>answer\n"
         output += answer_init
         prompt += answer_init
-        writer((AIMessageChunk(answer_init), config["metadata"]))
+        if stream_answer:
+            writer((AIMessageChunk(answer_init), config["metadata"]))
 
         async for msg in self.llm.astream(prompt, extra_body=sampling_params):
-            writer((AIMessageChunk(msg), config["metadata"]))
+            if stream_answer:
+                writer((AIMessageChunk(msg), config["metadata"]))
             output += msg
 
-        writer(
-            (
-                AIMessageChunk("", response_metadata={"finish_reason": "stop"}),
-                config["metadata"],
+        if stream_answer:
+            writer(
+                (
+                    AIMessageChunk("", response_metadata={"finish_reason": "stop"}),
+                    config["metadata"],
+                )
             )
-        )
 
         return AIMessage(output)
 
@@ -735,6 +747,86 @@ class RAG:
             "sources": sources,
         }
 
+    def router_respond(
+        self, state: CustomMessagesState, config: RunnableConfig
+    ) -> dict:
+        """Pass T0's reasoning to the Qwen router to produce a patient-friendly response."""
+        logging.info("Router respond invoked")
+
+        writer = get_stream_writer()
+        t0_output = state["t0_reasoning"][-1]
+
+        # Build message list for the router
+        conversation_history = [
+            message
+            for message in state["messages"]
+            if message.type in ("human", "ai") and not getattr(message, "tool_calls", None)
+        ]
+        router_messages = (
+            [SystemMessage(ROUTER_RESPONSE_PROMPT)]
+            + conversation_history
+            + [HumanMessage(content="Clinical analysis:\n\n" + t0_output)]
+        )
+
+        # Write the answer marker so the UI knows where the visible answer starts
+        writer((AIMessageChunk("\n<|im_start|>answer\n"), config["metadata"]))
+
+        # Stream the router's response
+        response_content = ""
+        for chunk in self.conversational_agent_llm.stream(router_messages):
+            token = chunk if isinstance(chunk, str) else chunk.content
+            writer((AIMessageChunk(token), config["metadata"]))
+            response_content += token
+
+        # Write finish signal
+        writer(
+            (
+                AIMessageChunk("", response_metadata={"finish_reason": "stop"}),
+                config["metadata"],
+            )
+        )
+
+        return {"messages": [AIMessage(content=response_content)]}
+
+    async def arouter_respond(
+        self, state: CustomMessagesState, config: RunnableConfig
+    ) -> dict:
+        """Async version: pass T0's reasoning to the Qwen router."""
+        logging.info("Async router respond invoked")
+
+        writer = get_stream_writer()
+        t0_output = state["t0_reasoning"][-1]
+
+        # Build message list for the router
+        conversation_history = [
+            message
+            for message in state["messages"]
+            if message.type in ("human", "ai") and not getattr(message, "tool_calls", None)
+        ]
+        router_messages = (
+            [SystemMessage(ROUTER_RESPONSE_PROMPT)]
+            + conversation_history
+            + [HumanMessage(content="Clinical analysis:\n\n" + t0_output)]
+        )
+
+        # Write the answer marker
+        writer((AIMessageChunk("\n<|im_start|>answer\n"), config["metadata"]))
+
+        # Get the router's response
+        response = await self.conversational_agent_llm.ainvoke(router_messages)
+        response_content = response.content
+        writer((AIMessageChunk(response_content), config["metadata"]))
+
+        # Write finish signal
+        writer(
+            (
+                AIMessageChunk("", response_metadata={"finish_reason": "stop"}),
+                config["metadata"],
+            )
+        )
+
+        return {"messages": [AIMessage(content=response_content)]}
+
     def generate(
         self, state: State | CustomMessagesState, config: RunnableConfig
     ) -> dict[str, str]:
@@ -813,14 +905,17 @@ class RAG:
         trimmed_messages = self.trimmer.invoke(messages)
 
         if self.budget_forcing:
-            response = self._budget_forcing_invoke(trimmed_messages, config)
+            response = self._budget_forcing_invoke(
+                trimmed_messages, config,
+                stream_answer=not self.conversational,
+            )
         else:
             response = self.llm.invoke(trimmed_messages)
 
         if self.conversational:
             return {
                 "system_messages": state.get("system_messages", []) + [system_message],
-                "messages": [response],
+                "t0_reasoning": state.get("t0_reasoning", []) + [response.content],
                 "rag_input_messages": state.get("rag_input_messages", [])
                 + [trimmed_messages[-1]],
             }
@@ -858,7 +953,7 @@ class RAG:
             human_message = None
             for message in reversed(state["messages"]):
                 if message.type == "human":
-                    human_message = message
+                    human_message = message.content
                     break
 
             if human_message is None:
@@ -897,7 +992,7 @@ class RAG:
                 messages[-1] = messages_from_prompt.messages[-1]
         else:
             if messages_from_prompt.messages[-1].type == "human":
-                messages = messages_from_prompt.messages[-1]
+                messages = [messages_from_prompt.messages[-1]]
 
             if messages_from_prompt.messages[0].type == "system":
                 system_message = messages_from_prompt.messages[0]
@@ -909,14 +1004,17 @@ class RAG:
         trimmed_messages = self.trimmer.invoke(messages)
 
         if self.budget_forcing:
-            response = await self._budget_forcing_ainvoke(trimmed_messages, config)
+            response = await self._budget_forcing_ainvoke(
+                trimmed_messages, config,
+                stream_answer=not self.conversational,
+            )
         else:
             response = await self.llm.ainvoke(trimmed_messages)
 
         if self.conversational:
             return {
                 "system_messages": state.get("system_messages", []) + [system_message],
-                "messages": [response],
+                "t0_reasoning": state.get("t0_reasoning", []) + [response.content],
                 "rag_input_messages": state.get("rag_input_messages", [])
                 + [trimmed_messages[-1]],
             }
@@ -974,6 +1072,7 @@ class RAG:
         if self.rerank:
             graph_builder.add_node(self.rerank_documents)
         graph_builder.add_node(self.generate)
+        graph_builder.add_node(self.router_respond)
 
         graph_builder.add_edge(START, "query_or_respond")
         graph_builder.add_conditional_edges(
@@ -987,7 +1086,8 @@ class RAG:
             graph_builder.add_edge("rerank_documents", "generate")
         else:
             graph_builder.add_edge("process_tool_response", "generate")
-        graph_builder.add_edge("generate", END)
+        graph_builder.add_edge("generate", "router_respond")
+        graph_builder.add_edge("router_respond", END)
 
         if reset:
             logging.info("Resetting memory...")
@@ -1079,6 +1179,7 @@ class RAG:
                 finished = True
             if not finished and metadata.get("langgraph_node") in [
                 "generate",
+                "router_respond",
                 "query_or_respond",
             ]:
                 # if the message is from the generate node, yield the content
