@@ -35,33 +35,56 @@
     });
 </script>
 
-<form id="chat" onsubmit={handleSubmit}>
+<div class="form-area">
     <Demographics {changeDemographics} />
-    <div class="grow-wrap" bind:this={wrapDiv}>
-        <textarea
-            bind:value={message}
-            placeholder="Ask me anything..."
-            onkeydown={handleKeyDown}
-        ></textarea>
-    </div>
-    <button type="submit" disabled={loading} aria-label="Send">
-        <i class="fa-solid fa-paper-plane"></i>
-    </button>
-</form>
+    <form id="chat" onsubmit={handleSubmit}>
+        <div class="input-wrapper">
+            <div class="grow-wrap" bind:this={wrapDiv}>
+                <textarea
+                    bind:value={message}
+                    placeholder="Ask me anything..."
+                    onkeydown={handleKeyDown}
+                ></textarea>
+            </div>
+            <button type="submit" disabled={loading} aria-label="Send">
+                <i class="fa-solid fa-arrow-up"></i>
+            </button>
+        </div>
+    </form>
+</div>
 
 <style>
+    .form-area {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
     form {
         width: 100%;
-        display: grid;
-        grid-template-columns: 1fr max-content;
-        gap: 0 10px;
-        align-items: center;
+    }
+
+    .input-wrapper {
+        display: flex;
+        align-items: flex-end;
+        gap: 0;
+        background-color: var(--input-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 24px;
+        box-shadow: var(--shadow-md);
+        padding: 4px 6px 4px 4px;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .input-wrapper:focus-within {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 2px var(--accent-light), var(--shadow-md);
     }
 
     div.grow-wrap {
-        width: 100%;
-        max-width: 100%;
+        flex: 1 1 auto;
         display: grid;
+        min-width: 0;
     }
     div.grow-wrap::after {
         content: attr(data-replicated-value) " ";
@@ -76,44 +99,44 @@
     .grow-wrap > textarea,
     .grow-wrap::after {
         width: 100%;
-        max-width: 100%;
-        max-height: 300px;
-        border: 1px solid var(--foreground);
+        max-height: 200px;
+        border: none;
         color: var(--foreground);
-        background-color: var(--secondary-bg);
+        background: transparent;
         border-radius: 20px;
-        padding: 0.5rem 1rem;
-        font-family: "Fira Code", monospace;
+        padding: 10px 14px;
+        font-family: inherit;
         font-size: inherit;
         grid-area: 1 / 1 / 2 / 2;
         word-break: break-word;
+        outline: none;
     }
 
     button {
+        flex: 0 0 auto;
         font-family: inherit;
-        font-size: 1.5em;
-        height: 40px;
-        width: 40px;
-        background-color: transparent;
-        color: var(--foreground);
+        font-size: 0.9em;
+        height: 36px;
+        width: 36px;
+        background-color: var(--accent);
+        color: white;
         border-radius: 50%;
-        padding-right: 6px;
-        border: 1px solid var(--foreground);
+        border: none;
         cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background-color 0.15s, opacity 0.15s;
     }
 
     button:hover {
-        background-color: var(--button-disabled-bg);
-    }
-
-    button:active {
-        background-color: var(--button-disabled-bg);
-        color: var(--button-disabled-fg);
+        opacity: 0.85;
     }
 
     button:disabled {
         background-color: var(--button-disabled-bg);
         color: var(--button-disabled-fg);
         cursor: not-allowed;
+        opacity: 1;
     }
 </style>

@@ -19,18 +19,20 @@
 <style>
     div#error {
         position: fixed;
-        top: 100px;
+        top: 20px;
         left: 50%;
         transform: translateX(-50%);
-        background-color: #fceafb;
-        border-radius: 10px;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-        z-index: 4;
+        background-color: var(--input-bg);
+        border: 1px solid var(--error);
+        border-radius: 14px;
+        box-shadow: var(--shadow-lg);
+        z-index: 100;
         text-align: center;
-        padding: 10px 20px;
+        padding: 16px 24px;
         display: flex;
         flex-direction: column;
-        gap: 10px;
+        gap: 8px;
+        max-width: 480px;
     }
 
     div#error p {
@@ -40,14 +42,23 @@
 
     p.error-message {
         font-family: "Fira Code", monospace;
+        font-size: 0.85em;
+        color: var(--error);
     }
 
     button {
-        background-color: transparent;
-        border: none;
+        background: none;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
         cursor: pointer;
-        text-decoration: underline;
         font: inherit;
-        color: #a5354f;
+        font-size: 0.85em;
+        color: var(--foreground);
+        padding: 4px 16px;
+        margin: 0 auto;
+        transition: background-color 0.15s;
+    }
+    button:hover {
+        background-color: var(--sidebar-hover);
     }
 </style>

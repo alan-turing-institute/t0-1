@@ -43,30 +43,34 @@
 
 <div class="chatlog" bind:this={chatLogDiv}>
     {#each historyCombined as entry}
-        <div class={entry.role} use:scroll>
-            {#if entry.role === "ai"}
-                {#if entry.content !== ""}
-                    {@html entry.content}
-                {/if}
-                {#if nextMessageHasContent || !loading}
-                    <Reasoning reasoning={entry.reasoning} />
-                {/if}
-            {:else if entry.role === "human"}
+        {#if entry.role === "ai"}
+            <div class="ai-wrapper" use:scroll>
+                <div class="avatar">t0</div>
+                <div class="ai">
+                    {#if entry.content !== ""}
+                        {@html entry.content}
+                    {/if}
+                    {#if nextMessageHasContent || !loading}
+                        <Reasoning reasoning={entry.reasoning} />
+                    {/if}
+                </div>
+            </div>
+        {:else if entry.role === "human"}
+            <div class="human" use:scroll>
                 {@html entry.content}
-            {:else if entry.role === "tool"}
-                <p>Looked up the following sources:</p>
-                <ul>
-                    {#each entry.sources as source}
-                        <li>
-                            <a
-                                href="https://www.nhs.uk/conditions/{source}"
-                                target="_blank">{source}</a
-                            >
-                        </li>
-                    {/each}
-                </ul>
-            {/if}
-        </div>
+            </div>
+        {:else if entry.role === "tool"}
+            <div class="tool" use:scroll>
+                <span class="tool-label">Sources:</span>
+                {#each entry.sources as source}
+                    <a
+                        class="source-chip"
+                        href="https://www.nhs.uk/conditions/{source}"
+                        target="_blank">{source}</a
+                    >
+                {/each}
+            </div>
+        {/if}
     {/each}
 </div>
 <Loading show={loading && !nextMessageHasContent} />
@@ -78,9 +82,9 @@
         overflow-y: auto;
         display: flex;
         flex-direction: column;
-        gap: 30px;
-        margin: auto 0 20px 0;
-        padding: 0px 10px;
+        gap: 24px;
+        margin: auto 0 16px 0;
+        padding: 0px 4px;
         scroll-behavior: smooth;
     }
 
@@ -88,27 +92,52 @@
         margin-bottom: 100vh;
     }
 
+    .ai-wrapper {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+        width: 100%;
+    }
+
+    .avatar {
+        flex: 0 0 auto;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--linear-gradient-start), var(--linear-gradient-end));
+        color: white;
+        font-size: 0.65em;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-top: 2px;
+    }
+
     div.tool {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 6px;
+        padding-left: 44px;
+    }
+
+    .tool-label {
         font-size: 0.8em;
         color: var(--secondary-fg);
+    }
 
-        a {
-            color: var(--secondary-fg);
-        }
-        a:hover,
-        a:active,
-        a:focus {
-            color: var(--foreground);
-        }
-
-        p {
-            margin: 0;
-            padding: 0;
-        }
-        ul {
-            margin: 0;
-            padding-left: 20px;
-        }
+    .source-chip {
+        font-size: 0.75em;
+        padding: 3px 10px;
+        border-radius: 20px;
+        background-color: var(--accent-light);
+        color: var(--accent);
+        text-decoration: none;
+        transition: background-color 0.15s;
+    }
+    .source-chip:hover {
+        background-color: var(--sidebar-hover);
     }
 
     div.human :global,
@@ -149,23 +178,23 @@
 
     div.human,
     div.ai {
-        width: max-content;
         display: flex;
         flex-direction: column;
         gap: 10px;
     }
 
     div.human {
-        max-width: 60%;
+        max-width: 70%;
+        width: max-content;
         background-color: var(--user-message-bg);
-        border-radius: 15px;
-        padding: 10px 15px;
+        border-radius: 20px;
+        padding: 12px 18px;
         margin-left: auto;
     }
 
     div.ai {
         width: 100%;
         text-align: left;
-        margin-right: auto;
+        min-width: 0;
     }
 </style>

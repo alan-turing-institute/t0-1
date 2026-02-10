@@ -6,44 +6,57 @@
     let { show }: Props = $props();
 </script>
 
-<div id="loading" class={show ? "" : "hide"}>Thinking</div>
+<div id="loading" class={show ? "" : "hide"}>
+    <div class="dots">
+        <span class="dot"></span>
+        <span class="dot"></span>
+        <span class="dot"></span>
+    </div>
+</div>
 
 <style>
     div#loading {
         width: 100%;
         text-align: left;
-        margin-right: auto;
-        color: var(--secondary-fg);
-        font-size: 0.9em;
-        padding: 10px;
+        padding: 8px 4px 8px 44px;
     }
 
     div#loading.hide {
         visibility: hidden;
     }
 
-    div#loading::after {
-        content: "";
-        display: inline-block;
-        animation: dots 1s steps(4, start) infinite;
-        white-space: pre;
+    .dots {
+        display: inline-flex;
+        gap: 4px;
+        align-items: center;
     }
 
-    @keyframes dots {
-        0% {
-            content: "";
+    .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background-color: var(--secondary-fg);
+        animation: bounce 1.4s ease-in-out infinite;
+    }
+
+    .dot:nth-child(1) {
+        animation-delay: 0s;
+    }
+    .dot:nth-child(2) {
+        animation-delay: 0.16s;
+    }
+    .dot:nth-child(3) {
+        animation-delay: 0.32s;
+    }
+
+    @keyframes bounce {
+        0%, 60%, 100% {
+            transform: translateY(0);
+            opacity: 0.4;
         }
-        20% {
-            content: ".";
-        }
-        40% {
-            content: "..";
-        }
-        60% {
-            content: "...";
-        }
-        100% {
-            content: "...";
+        30% {
+            transform: translateY(-6px);
+            opacity: 1;
         }
     }
 </style>

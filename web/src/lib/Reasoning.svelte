@@ -11,44 +11,49 @@
 </script>
 
 {#if reasoning}
-    <div class="wrapper">
-        <button {onclick}>
-            {expand ? "⏷" : "⏵"}
-        </button>
-        <button {onclick}>
-            {expand ? "Hide" : "Show"} reasoning
-        </button>
-        {#if expand}
-            <div></div>
-            <div class="reasoning" transition:slide>
-                {@html reasoning}
-            </div>
-        {/if}
-    </div>
+    <button class="reasoning-toggle" {onclick}>
+        <i class="fa-solid {expand ? 'fa-chevron-down' : 'fa-chevron-right'}"></i>
+        {expand ? "Hide" : "Show"} reasoning
+    </button>
+    {#if expand}
+        <div class="reasoning" transition:slide>
+            {@html reasoning}
+        </div>
+    {/if}
 {/if}
 
 <style>
-    div.wrapper {
-        display: grid;
-        grid-template-columns: auto 1fr;
-        grid-column-gap: 10px;
-    }
-    button {
-        background-color: transparent;
+    .reasoning-toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: none;
         border: none;
         cursor: pointer;
         font: inherit;
         color: var(--secondary-fg);
-        width: max-content;
-        padding: 0;
+        padding: 4px 8px;
         margin: 0;
         font-size: 0.8em;
+        border-radius: 6px;
+        transition: color 0.15s, background-color 0.15s;
+    }
+    .reasoning-toggle:hover {
+        color: var(--foreground);
+        background-color: var(--sidebar-hover);
+    }
+
+    .reasoning-toggle i {
+        font-size: 0.7em;
     }
 
     div.reasoning {
         margin: 0;
         padding: 10px 0 0 0;
         font-size: 0.8em;
+        color: var(--secondary-fg);
+        border-left: 2px solid var(--border-color);
+        padding-left: 12px;
     }
 
     div.reasoning :global {

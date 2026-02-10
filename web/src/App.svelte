@@ -6,12 +6,17 @@
     import {
         type ChatEntry,
         makeHumanEntry,
+        makeAIEntry,
+        makeToolEntry,
         parseChatEntries,
         type Demographics,
         emptyDemographics,
         demographicsToJson,
     } from "./lib/types";
     import { onMount } from "svelte";
+
+    // Set to true to preview UI without a backend
+    const MOCK_MODE = true;
 
     // HTTPS proxy
     const HOST = "https://t0-reverse-proxy.azurewebsites.net";
@@ -59,6 +64,12 @@
         } else {
             newConversation();
         }
+    }
+
+    // Sidebar collapse
+    let sidebarOpen: boolean = $state(true);
+    function toggleSidebar() {
+        sidebarOpen = !sidebarOpen;
     }
 
     // Dark mode management
@@ -231,8 +242,24 @@
         });
     }
 
+    function startupMock() {
+        backendReady = true;
+        allIds = ["Headache advice", "Sleep issues", "Diet questions"];
+        currentId = allIds[0];
+        messages = [
+            makeHumanEntry("I've been having headaches for the past week. They're mostly in the front of my head and get worse in the afternoon."),
+            makeAIEntry("<|im_start|>think\nThe user is describing tension-type headaches based on the frontal location and afternoon worsening pattern. I should ask about stress, screen time, hydration, and sleep. Need to rule out red flags like sudden onset, fever, or vision changes.<|im_start|>answer\nI'm sorry to hear about your headaches. Based on what you've described — frontal location and worsening in the afternoon — this pattern is quite common and often associated with **tension-type headaches**.\n\nHere are a few things that might help:\n\n- **Stay hydrated** — dehydration is a very common headache trigger\n- **Take regular screen breaks** — the 20-20-20 rule (every 20 minutes, look at something 20 feet away for 20 seconds)\n- **Check your posture** — especially if you work at a desk\n\nCould you tell me more about your daily routine? For example:\n1. How much water do you drink per day?\n2. How many hours of screen time do you have?\n3. Have you been under more stress than usual?"),
+            makeHumanEntry("I probably don't drink enough water, maybe 3-4 glasses a day. And I've been working long hours at my computer lately."),
+            makeAIEntry("<|im_start|>think\nLow water intake and extended screen time are both very common triggers. I should give practical advice and mention when to see a doctor.<|im_start|>answer\nThat's really helpful context. Both of those factors are very likely contributing:\n\n**Hydration:** 3-4 glasses is below the recommended intake. Try to aim for **6-8 glasses** (about 1.5-2 litres) throughout the day. A good tip is to keep a water bottle at your desk.\n\n**Screen time:** Extended computer use causes eye strain and neck tension, both of which trigger frontal headaches. Try to:\n- Take a **5 minute break every hour**\n- Adjust your monitor to be at **eye level**\n- Reduce screen brightness if it feels harsh\n\nIf your headaches don't improve after a week of trying these changes, or if you experience any **sudden severe headaches**, **vision changes**, or **neck stiffness**, please see your GP."),
+        ];
+    }
+
     onMount(() => {
-        startup();
+        if (MOCK_MODE) {
+            startupMock();
+        } else {
+            startup();
+        }
 
         // setInterval(() => {
         //     if (backendReady) {
@@ -243,21 +270,31 @@
 </script>
 
 <div id="wrapper">
-    <Sidebar
-        {currentId}
-        {loading}
-        {allIds}
-        {changeId}
-        {newConversation}
-        {deleteConversation}
-        {darkMode}
-        {toggleTheme}
-    />
+    {#if sidebarOpen}
+        <Sidebar
+            {currentId}
+            {loading}
+            {allIds}
+            {changeId}
+            {newConversation}
+            {deleteConversation}
+            {darkMode}
+            {toggleTheme}
+            {toggleSidebar}
+        />
+    {/if}
     {#if backendReady}
         <main>
+            {#if !sidebarOpen}
+                <button class="sidebar-toggle" onclick={toggleSidebar} aria-label="Open sidebar">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+            {/if}
             <Error {error} />
-            <Messages history={messages} {loading} {nextMessage} />
-            <Form {loading} {queryLLM} {changeDemographics} />
+            <div class="chat-container">
+                <Messages history={messages} {loading} {nextMessage} />
+                <Form {loading} {queryLLM} {changeDemographics} />
+            </div>
         </main>
     {:else}
         <p id="no-backend">
@@ -276,8 +313,8 @@
 <style>
     :global(*) {
         transition:
-            background-color 0.5s ease-out,
-            color 0.5s ease-out;
+            background-color 0.3s ease,
+            color 0.3s ease;
     }
 
     div#wrapper {
@@ -291,14 +328,40 @@
     }
 
     main {
-        height: calc(100vh - 60px);
-        margin: 30px;
-        min-width: 300px;
+        height: 100vh;
         width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+    }
+
+    .chat-container {
+        width: 100%;
+        max-width: 760px;
+        height: 100%;
         display: flex;
         flex-direction: column;
         align-items: stretch;
         justify-content: end;
+        padding: 20px 20px 24px 20px;
+    }
+
+    button.sidebar-toggle {
+        position: absolute;
+        top: 16px;
+        left: 16px;
+        background: none;
+        border: none;
+        color: var(--foreground);
+        font-size: 1.2em;
+        cursor: pointer;
+        padding: 8px;
+        border-radius: 8px;
+        z-index: 10;
+    }
+    button.sidebar-toggle:hover {
+        background-color: var(--sidebar-hover);
     }
 
     p#no-backend {

@@ -3,7 +3,7 @@ html {
     font-family: "IBM Plex Sans", sans-serif;
     box-sizing: border-box;
     font-size: 16px;
-    line-height: 1.5;
+    line-height: 1.6;
 }
 
 *, *:before, *:after {
@@ -19,32 +19,50 @@ body {
 }
 
 html[data-theme="light"] {
-    --background: #f8f8f8;
-    --foreground: #151515;
-    --user-message-bg: #e2e2e2;
-    --secondary-fg: #646464;
+    --background: #f9fafb;
+    --foreground: #1a1a1a;
+    --user-message-bg: #e8e5f0;
+    --secondary-fg: #6b7280;
     --secondary-bg: #ffffff;
-    --highlight: #007acc;
-    --error: #ff0000;
-    --sidebar-bg: #d9d7ea;
-    --button-disabled-bg: #cccccc;
-    --button-disabled-fg: #888888;
-    --linear-gradient-start: rgba(186, 50, 227, 1);
-    --linear-gradient-end: rgba(124, 11, 158, 1);
+    --highlight: #7c3aed;
+    --error: #ef4444;
+    --sidebar-bg: #f3f4f6;
+    --sidebar-hover: #e5e7eb;
+    --sidebar-active: #ede9fe;
+    --border-color: #e5e7eb;
+    --input-bg: #ffffff;
+    --button-disabled-bg: #d1d5db;
+    --button-disabled-fg: #9ca3af;
+    --accent: #7c3aed;
+    --accent-light: #ede9fe;
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+    --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+    --linear-gradient-start: rgba(124, 58, 237, 1);
+    --linear-gradient-end: rgba(109, 40, 217, 1);
     background-color: var(--background);
 }
 html[data-theme="dark"] {
-    --background: #1e1e1e;
-    --foreground: #d8d8d8;
-    --user-message-bg: #484848;
-    --secondary-fg: #939393;
-    --secondary-bg: #000000;
-    --highlight: #007acc;
-    --error: #ff0000;
-    --sidebar-bg: #534f89;
-    --button-disabled-bg: #888888;
-    --button-disabled-fg: #cccccc;
-    --linear-gradient-start: rgba(197, 132, 216, 1);
-    --linear-gradient-end: rgba(207, 135, 229, 1);
+    --background: #171717;
+    --foreground: #e5e5e5;
+    --user-message-bg: #3b3554;
+    --secondary-fg: #9ca3af;
+    --secondary-bg: #1f1f1f;
+    --highlight: #a78bfa;
+    --error: #f87171;
+    --sidebar-bg: #1f1f1f;
+    --sidebar-hover: #2a2a2a;
+    --sidebar-active: #2d2545;
+    --border-color: #2e2e2e;
+    --input-bg: #1f1f1f;
+    --button-disabled-bg: #404040;
+    --button-disabled-fg: #737373;
+    --accent: #a78bfa;
+    --accent-light: #2d2545;
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.3);
+    --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.4);
+    --linear-gradient-start: rgba(167, 139, 250, 1);
+    --linear-gradient-end: rgba(139, 92, 246, 1);
     background-color: var(--background);
 }

@@ -23,80 +23,135 @@
 </script>
 
 <div id="demographics-wrapper">
+    <button class="toggle-btn" {onclick}>
+        <i class="fa-solid fa-user-gear"></i>
+        {showForm ? "Hide" : "Edit"} demographics
+        <i class="fa-solid {showForm ? 'fa-chevron-down' : 'fa-chevron-right'} chevron"></i>
+    </button>
     {#if showForm}
-        <div id="demographics" transition:slide>
-            age
-            <input
-                type="number"
-                bind:value={demographics.age}
-                oninput={() => changeDemographics(demographics)}
-                {onkeydown}
-            />
-            sex
-            <select
-                bind:value={demographics.sex}
-                onchange={() => changeDemographics(demographics)}
-                {onkeydown}
-            >
-                <option value="unspecified">(select)</option>
-                <option value="female">female</option>
-                <option value="male">male</option>
-            </select>
-            occupation
-            <input
-                type="text"
-                bind:value={demographics.occupation}
-                oninput={() => changeDemographics(demographics)}
-                {onkeydown}
-            />
-            support system
-            <input
-                type="text"
-                bind:value={demographics.supportSystem}
-                oninput={() => changeDemographics(demographics)}
-                {onkeydown}
-            />
-            medical history
-            <input
-                type="text"
-                bind:value={demographics.medicalHistory}
-                oninput={() => changeDemographics(demographics)}
-                {onkeydown}
-            />
+        <div class="demographics-card" transition:slide>
+            <label>
+                <span>Age</span>
+                <input
+                    type="number"
+                    bind:value={demographics.age}
+                    oninput={() => changeDemographics(demographics)}
+                    {onkeydown}
+                    placeholder="e.g. 30"
+                />
+            </label>
+            <label>
+                <span>Sex</span>
+                <select
+                    bind:value={demographics.sex}
+                    onchange={() => changeDemographics(demographics)}
+                    {onkeydown}
+                >
+                    <option value="unspecified">(select)</option>
+                    <option value="female">Female</option>
+                    <option value="male">Male</option>
+                </select>
+            </label>
+            <label>
+                <span>Occupation</span>
+                <input
+                    type="text"
+                    bind:value={demographics.occupation}
+                    oninput={() => changeDemographics(demographics)}
+                    {onkeydown}
+                    placeholder="e.g. Teacher"
+                />
+            </label>
+            <label>
+                <span>Support system</span>
+                <input
+                    type="text"
+                    bind:value={demographics.supportSystem}
+                    oninput={() => changeDemographics(demographics)}
+                    {onkeydown}
+                    placeholder="e.g. Family, friends"
+                />
+            </label>
+            <label>
+                <span>Medical history</span>
+                <input
+                    type="text"
+                    bind:value={demographics.medicalHistory}
+                    oninput={() => changeDemographics(demographics)}
+                    {onkeydown}
+                    placeholder="e.g. Asthma"
+                />
+            </label>
         </div>
     {/if}
-    <div id="toggle">
-        <button id="toggle" {onclick}>
-            {showForm ? "⏷ hide" : "⏶ modify"} demographics
-        </button>
-    </div>
 </div>
-<div></div>
 
 <style>
     div#demographics-wrapper {
-        margin: 0 10px;
-        border-radius: 10px;
-        border: 1px solid var(--foreground);
+        display: flex;
+        flex-direction: column;
     }
 
-    button#toggle {
-        background-color: transparent;
+    .toggle-btn {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: none;
         border: none;
         cursor: pointer;
         font: inherit;
         color: var(--secondary-fg);
-        width: 100%;
-        padding: 0;
-        margin: 0;
+        padding: 4px 8px;
         font-size: 0.8em;
+        border-radius: 8px;
+        width: max-content;
+        transition: color 0.15s;
+    }
+    .toggle-btn:hover {
+        color: var(--foreground);
+    }
+    .chevron {
+        font-size: 0.7em;
     }
 
-    div#demographics {
+    .demographics-card {
         display: grid;
-        font-size: 0.9em;
-        grid-template-columns: max-content 1fr;
+        grid-template-columns: 1fr 1fr;
         gap: 10px;
-        padding: 10px;
+        padding: 12px 14px;
+        margin-top: 4px;
+        background-color: var(--input-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .demographics-card label {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        font-size: 0.8em;
+        color: var(--secondary-fg);
+    }
+
+    .demographics-card label:last-child {
+        grid-column: 1 / -1;
+    }
+
+    .demographics-card input,
+    .demographics-card select {
+        font: inherit;
+        font-size: 1em;
+        padding: 6px 10px;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        background-color: var(--background);
+        color: var(--foreground);
+        outline: none;
+        transition: border-color 0.15s;
+    }
+    .demographics-card input:focus,
+    .demographics-card select:focus {
+        border-color: var(--accent);
     }
 </style>
