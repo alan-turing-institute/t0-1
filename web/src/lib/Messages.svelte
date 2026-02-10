@@ -78,9 +78,9 @@
         overflow-y: auto;
         display: flex;
         flex-direction: column;
-        gap: 30px;
+        gap: 24px;
         margin: auto 0 20px 0;
-        padding: 0px 10px;
+        padding: 0px 4px;
         scroll-behavior: smooth;
     }
 
@@ -93,12 +93,18 @@
         color: var(--secondary-fg);
 
         a {
-            color: var(--secondary-fg);
+            color: var(--accent);
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
+            transition:
+                color 0.15s ease,
+                border-color 0.15s ease;
         }
         a:hover,
         a:active,
         a:focus {
-            color: var(--foreground);
+            color: var(--accent-hover);
+            border-bottom-color: var(--accent);
         }
 
         p {
@@ -106,7 +112,7 @@
             padding: 0;
         }
         ul {
-            margin: 0;
+            margin: 4px 0 0 0;
             padding-left: 20px;
         }
     }
@@ -145,6 +151,19 @@
         li + li {
             margin-top: 5px;
         }
+
+        a {
+            color: var(--accent);
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
+            transition:
+                color 0.15s ease,
+                border-color 0.15s ease;
+        }
+        a:hover {
+            color: var(--accent-hover);
+            border-bottom-color: var(--accent);
+        }
     }
 
     div.human,
@@ -156,16 +175,18 @@
     }
 
     div.human {
-        max-width: 60%;
+        max-width: 70%;
         background-color: var(--user-message-bg);
-        border-radius: 15px;
-        padding: 10px 15px;
+        border-radius: 18px 18px 4px 18px;
+        padding: 10px 16px;
         margin-left: auto;
+        box-shadow: 0 1px 3px var(--user-message-shadow);
     }
 
     div.ai {
         width: 100%;
         text-align: left;
         margin-right: auto;
+        border-radius: 18px 18px 18px 4px;
     }
 </style>
