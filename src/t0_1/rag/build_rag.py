@@ -196,6 +196,23 @@ class RAG:
             end_on="human",
         )
 
+    @staticmethod
+    def _strip_thinking_tokens(content: str) -> str:
+        """Strip budget forcing thinking/answer markers, returning only the answer."""
+        if "<|im_start|>answer" in content:
+            return content.split("<|im_start|>answer", 1)[-1].strip()
+        return content
+
+    @staticmethod
+    def _clean_messages_for_context(messages):
+        """Strip thinking tokens from AI messages for use as conversation context."""
+        return [
+            AIMessage(content=RAG._strip_thinking_tokens(m.content))
+            if m.type == "ai"
+            else m
+            for m in messages
+        ]
+
     def reset_graph(self):
         """
         Reset the graph to a new instance of the compiled state graph.
@@ -675,8 +692,9 @@ class RAG:
         llm_with_retrieve_tool = self.conversational_agent_llm.bind_tools(
             [create_retreiver_tool(self.retrieve_as_tool)]
         )
+        cleaned_messages = self._clean_messages_for_context(state["messages"])
         response = llm_with_retrieve_tool.invoke(
-            [SystemMessage(NHS_RETRIEVER_TOOL_PROMPT)] + state["messages"],
+            [SystemMessage(NHS_RETRIEVER_TOOL_PROMPT)] + cleaned_messages,
         )
 
         return {"messages": [response]}
@@ -756,12 +774,13 @@ class RAG:
         writer = get_stream_writer()
         t0_output = state["t0_reasoning"][-1]
 
-        # Build message list for the router
+        # Build message list for the router (clean AI messages for context)
         conversation_history = [
             message
             for message in state["messages"]
             if message.type in ("human", "ai") and not getattr(message, "tool_calls", None)
         ]
+        conversation_history = self._clean_messages_for_context(conversation_history)
         router_messages = (
             [SystemMessage(ROUTER_RESPONSE_PROMPT)]
             + conversation_history
@@ -786,7 +805,15 @@ class RAG:
             )
         )
 
-        return {"messages": [AIMessage(content=response_content)]}
+        # Store full formatted content (thinking + answer) so the UI can
+        # display reasoning when loading from history
+        thinking_part = (
+            t0_output.split("<|im_start|>answer")[0]
+            if "<|im_start|>answer" in t0_output
+            else t0_output
+        )
+        full_content = thinking_part + "<|im_start|>answer\n" + response_content
+        return {"messages": [AIMessage(content=full_content)]}
 
     async def arouter_respond(
         self, state: CustomMessagesState, config: RunnableConfig
@@ -797,12 +824,13 @@ class RAG:
         writer = get_stream_writer()
         t0_output = state["t0_reasoning"][-1]
 
-        # Build message list for the router
+        # Build message list for the router (clean AI messages for context)
         conversation_history = [
             message
             for message in state["messages"]
             if message.type in ("human", "ai") and not getattr(message, "tool_calls", None)
         ]
+        conversation_history = self._clean_messages_for_context(conversation_history)
         router_messages = (
             [SystemMessage(ROUTER_RESPONSE_PROMPT)]
             + conversation_history
@@ -825,7 +853,14 @@ class RAG:
             )
         )
 
-        return {"messages": [AIMessage(content=response_content)]}
+        # Store full formatted content (thinking + answer) for UI history
+        thinking_part = (
+            t0_output.split("<|im_start|>answer")[0]
+            if "<|im_start|>answer" in t0_output
+            else t0_output
+        )
+        full_content = thinking_part + "<|im_start|>answer\n" + response_content
+        return {"messages": [AIMessage(content=full_content)]}
 
     def generate(
         self, state: State | CustomMessagesState, config: RunnableConfig
@@ -878,6 +913,10 @@ class RAG:
                 if message.type in ("human", "system")
                 or (message.type == "ai" and not message.tool_calls)
             ]
+            # Strip thinking tokens from AI messages for clean context
+            conversation_messages = self._clean_messages_for_context(
+                conversation_messages
+            )
             if messages_from_prompt.messages[0].type == "system":
                 system_message = messages_from_prompt.messages[0]
                 messages = [system_message] + conversation_messages
@@ -977,6 +1016,10 @@ class RAG:
                 if message.type in ("human", "system")
                 or (message.type == "ai" and not message.tool_calls)
             ]
+            # Strip thinking tokens from AI messages for clean context
+            conversation_messages = self._clean_messages_for_context(
+                conversation_messages
+            )
             if messages_from_prompt.messages[0].type == "system":
                 system_message = messages_from_prompt.messages[0]
                 messages = [system_message] + conversation_messages
