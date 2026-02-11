@@ -7,4 +7,4 @@ vllm serve openai/gpt-oss-20b \
 --hf-overrides '{"rope-scaling": {"factor":4, "original_max_position_embeddings": 32768, "rope_type":"yarn"}}' \
 --enable-auto-tool-choice \
 --tool-call-parser openai \
---gpu-memory-utilization 0.6
+--gpu-memory-utilization 0.5
