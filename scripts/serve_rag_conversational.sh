@@ -3,13 +3,13 @@ t0-1 serve-rag \
 --k 5 \
 --db-choice chroma \
 --llm-provider openai_completion \
---llm-model-name TomasLaz/t0-1.1-k5-32B \
+--llm-model-name TomasLaz/t0-2.5-gemma-3-4b-it \
 --budget-forcing \
 --budget-forcing-kwargs '{"max_tokens_thinking": 512, "num_stop_skips": 0}' \
 --extra-body '{"max_tokens": 4096, "seed": 42}' \
 --conversational \
 --conversational-agent-llm-provider openai \
---conversational-agent-llm-model-name Qwen/Qwen2.5-32B-Instruct \
+--conversational-agent-llm-model-name openai/gpt-oss-20b \
 --conversational-agent-extra-body '{"max_tokens": 4096, "seed": 42}' \
 --prompt-template-path ./templates/rag_prompt_conversational.txt \
 --system-prompt-path ./templates/rag_system_prompt_conversational.txt \
