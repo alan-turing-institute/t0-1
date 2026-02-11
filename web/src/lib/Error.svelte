@@ -22,24 +22,30 @@
         top: 100px;
         left: 50%;
         transform: translateX(-50%);
-        background-color: #fceafb;
-        border-radius: 10px;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        background-color: var(--error-bg);
+        border: 1px solid var(--error-border);
+        border-radius: 12px;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
         z-index: 4;
         text-align: center;
-        padding: 10px 20px;
+        padding: 16px 24px;
         display: flex;
         flex-direction: column;
-        gap: 10px;
+        gap: 8px;
+        max-width: 480px;
     }
 
     div#error p {
         margin: 0;
         padding: 0;
+        color: var(--error-fg);
     }
 
     p.error-message {
-        font-family: "Fira Code", monospace;
+        font-size: 0.9em;
+        word-break: break-word;
     }
 
     button {
@@ -48,6 +54,12 @@
         cursor: pointer;
         text-decoration: underline;
         font: inherit;
-        color: #a5354f;
+        font-weight: 500;
+        color: var(--error-fg);
+        padding: 4px;
+        transition: opacity 0.15s ease;
+    }
+    button:hover {
+        opacity: 0.7;
     }
 </style>

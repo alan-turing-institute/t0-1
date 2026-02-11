@@ -74,15 +74,19 @@
 <style>
     div.sidebar {
         height: 100%;
-        width: 240px;
+        width: 260px;
         display: flex;
         flex-direction: column;
         gap: 20px;
-        padding: 40px 20px;
+        padding: 32px 16px;
         align-items: stretch;
         justify-content: space-between;
         flex: 0 0 auto;
         background-color: var(--sidebar-bg);
+        border-right: 1px solid var(--sidebar-border);
+        transition:
+            background-color 0.3s ease,
+            border-color 0.3s ease;
     }
 
     div.sidebar-tophalf {
@@ -92,94 +96,102 @@
     }
 
     h1 {
-        margin: 0 0 20px 0;
+        margin: 0 0 24px 8px;
+        font-size: 1.2em;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        color: var(--accent);
     }
 
     div.sidebar-buttons {
         width: 100%;
         display: flex;
         flex-direction: column;
-        gap: 20px;
+        gap: 12px;
         min-height: 100px;
         max-height: calc(100vh - 270px);
         align-items: stretch;
+    }
+
+    div.sidebar-buttons > span {
+        font-size: 0.75em;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--secondary-fg);
+        padding-left: 8px;
     }
 
     div.conversations {
         width: 100%;
         display: flex;
         flex-direction: column;
-        gap: 10px;
+        gap: 2px;
         align-items: stretch;
-        padding-right: 10px;
+        padding-right: 4px;
         overflow-y: auto;
     }
 
     div.conversation-manager {
         width: 100%;
         display: flex;
-        gap: 10px;
+        gap: 4px;
         align-items: center;
         justify-content: space-between;
+        padding: 6px 8px;
+        border-radius: 6px;
+        transition: background-color 0.15s ease;
 
-        label,
-        input:disabled + label {
+        &:hover {
+            background-color: var(--sidebar-hover);
+        }
+
+        label {
             white-space: nowrap;
             text-overflow: ellipsis;
             overflow: hidden;
-            font-size: 0.9em;
-            margin: 0 0 0 5px;
+            font-size: 0.85em;
+            margin: 0;
             padding: 0;
             cursor: pointer;
-            transition: background-size 0.3s;
-            background: linear-gradient(
-                    to right,
-                    rgba(0, 0, 0, 0),
-                    rgba(0, 0, 0, 0)
-                ),
-                linear-gradient(
-                    to right,
-                    var(--linear-gradient-start),
-                    var(--linear-gradient-end)
-                );
-            background-size:
-                100% 2px,
-                0 2px;
-            background-position:
-                100% 100%,
-                0 100%;
-            background-repeat: no-repeat;
+            color: var(--foreground);
         }
         input:disabled + label {
-            cursor: normal;
-        }
-        label:hover,
-        label:active {
-            background-size:
-                0 2px,
-                100% 2px;
+            cursor: default;
+            opacity: 0.6;
         }
 
         input:checked + label {
-            font-weight: bold;
-            transition:
-                font-weight 0.3s,
-                background-size 0.3s;
+            font-weight: 600;
+            color: var(--accent);
         }
 
         button.delete-conversation {
             flex: 0 0 auto;
             background-color: transparent;
-            color: var(--foreground);
+            color: var(--secondary-fg);
             text-decoration: none;
             border: none;
-            margin-bottom: 2px;
-            transition: color 0.2s;
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            opacity: 0;
+            transition:
+                opacity 0.15s ease,
+                color 0.15s ease;
+        }
+        &:hover button.delete-conversation {
+            opacity: 1;
         }
         button.delete-conversation:hover {
-            color: var(--secondary-fg);
+            color: var(--error);
             cursor: pointer;
         }
+    }
+
+    /* Active conversation background */
+    div.conversation-manager:has(input:checked) {
+        background-color: var(--sidebar-active);
     }
 
     div#button-wrapper {
@@ -187,26 +199,34 @@
         width: 100%;
         display: flex;
         flex-direction: column;
-        gap: 20px;
-
-        button.sidebar-bottom.bold {
-            font-weight: bold;
-        }
+        gap: 8px;
+        padding: 0 4px;
 
         button.sidebar-bottom {
             font: inherit;
+            font-size: 0.85em;
             height: min-content;
             background-color: transparent;
-            border: none;
-            text-decoration: underline;
+            border: 1px solid var(--border-subtle);
+            border-radius: 6px;
             color: var(--foreground);
             cursor: pointer;
-            margin: 0 auto;
-            transition: font-weight 0.3s;
+            padding: 8px 12px;
+            text-align: left;
+            transition:
+                background-color 0.15s ease,
+                border-color 0.15s ease;
         }
 
         button.sidebar-bottom:hover {
-            font-weight: bold;
+            background-color: var(--sidebar-hover);
+            border-color: var(--border-color);
+        }
+
+        button.sidebar-bottom.bold {
+            font-weight: 600;
+            color: var(--accent);
+            border-color: var(--accent);
         }
     }
 </style>
