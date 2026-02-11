@@ -3,7 +3,7 @@ t0-1 serve-rag \
 --k 5 \
 --db-choice chroma \
 --llm-provider openai_completion \
---llm-model-name TomasLaz/t0-2.5-gemma-3-4b-it \
+--llm-model-name TomasLaz/t0-2.5-gemma-3-27b-it \
 --budget-forcing \
 --budget-forcing-kwargs '{"max_tokens_thinking": 512, "num_stop_skips": 0}' \
 --extra-body '{"max_tokens": 4096, "seed": 42}' \
