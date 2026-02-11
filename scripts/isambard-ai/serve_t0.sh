@@ -17,4 +17,4 @@ vllm serve "$MODEL" \
     --tensor-parallel-size 2 \
     --max-model-len 131072 \
     --trust-remote-code \
-    --rope-scaling '{"factor":4, "original_max_position_embeddings": 32768, "rope_type":"yarn"}'
+    --hf-overrides '{"rope_scaling":{"factor":4, "original_max_position_embeddings": 32768, "rope_type":"yarn"}}'
