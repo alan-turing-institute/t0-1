@@ -74,6 +74,26 @@
           # - programatically retrieve the proxy servers public IP address 
           # - etc
           source_address_prefix: "20.108.150.6/32"
+        - name: AllowInboundFromVPN
+          protocol: Tcp
+          destination_port_range: 8050
+          access: Allow
+          priority: 1003
+          direction: Inbound
+          # This is the IP address of the Turing's VPN
+          # TODO: Check that this is unique, eg Do all 
+          # VPN users share this IP address? 
+          source_address_prefix: "193.60.220.253/32"
+        - name: AllowInboundFromAndysHome
+          protocol: Tcp
+          destination_port_range: 8050
+          access: Allow
+          priority: 1004
+          direction: Inbound
+          # This is the IP address of the Turing's VPN
+          # TODO: Check that this is unique, eg Do all 
+          # VPN users share this IP address? 
+          source_address_prefix: "86.160.76.224/32"
   - name: Create virtual network interface card
     azure_rm_networkinterface:
       resource_group: "{{ static_resource_group }}"

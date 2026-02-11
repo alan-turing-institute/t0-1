@@ -1,0 +1,14 @@
+- name: Enable HF token
+  ansible.builtin.copy:
+    dest: "/home/{{ t0_user }}/.hf_token"
+    content: "{{ HF_TOKEN }}"
+    owner: "{{ t0_user }}"
+    group: "{{ t0_user }}"
+    mode: '0600'
+  become: true
+
+- name: install HF CLI
+  ansible.builtin.command: |
+    uvx hf auth login --token {{ HF_TOKEN }}
+  become: true
+  become_user: "{{ t0_user }}"

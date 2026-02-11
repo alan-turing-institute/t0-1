@@ -191,6 +191,7 @@ data/evaluation_results_*
 scripts/gpt-4o_*
 *nhs_use_case_db_notebook
 data/nhs-conditions*
+scripts/conditions/*
 
 # persistent data
 lfs/
