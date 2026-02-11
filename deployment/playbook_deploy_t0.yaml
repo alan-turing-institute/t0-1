@@ -203,6 +203,10 @@
         mode: '0644'
       become: true
 
+    - name: Setup Hugging Face CLI and token
+      ansible.builtin.import_tasks: tasks_setup_huggingface.yaml  
+
+
     # Disable for now as this does not work reliably.
     # - name: Create service for each of the three main scripts
     #   ansible.builtin.copy:
