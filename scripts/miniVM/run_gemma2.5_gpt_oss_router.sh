@@ -12,7 +12,7 @@ until curl -s http://localhost:8020/v1/models >/dev/null 2>&1; do
     echo "Waiting for vLLM to start..."
 done
 
-CUDA_VISIBLE_DEVICES=1 ./scripts/miniVM/serve_t0.sh TomasLaz/t0-2.5-gemma-3-4b-it > serve_t0_1_gemma2.5_out.log 2>&1 &
+CUDA_VISIBLE_DEVICES=1 ./scripts/miniVM/serve_t0.sh TomasLaz/t0-2.5-gemma-3-27b-it > serve_t0_1_gemma2.5_out.log 2>&1 &
 # Wait for the REST API to be available
 until curl -s http://localhost:8010/v1/models >/dev/null 2>&1; do
     sleep 20
