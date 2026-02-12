@@ -9,6 +9,6 @@
 
 - name: install HF CLI
   ansible.builtin.command: |
-    uvx hf auth login --token {{ HF_TOKEN }}
+    ~/.local/bin/uvx hf auth login --token {{ HF_TOKEN }}
   become: true
   become_user: "{{ t0_user }}"

@@ -130,7 +130,7 @@
         # This is OK for read-only access to a public repo
         repo: https://github.com/alan-turing-institute/t0-1.git
         dest: "{{ target_dir }}"
-        version: main # Add specific branch, tag (or commit hash) as required
+        version: "{{ git_branch }}" # Add specific branch, tag (or commit hash) as required
       become: true
       become_user: "{{ t0_user }}"
       when: not git_repo_check.stat.exists
@@ -158,16 +158,29 @@
 
     - name: Install t0 in a uv virtual environment
       ansible.builtin.command:
-        cmd: /home/t0/.local/bin/uv sync --all-extras --python=3.12
+        cmd: /home/t0/.local/bin/uv sync --extra rag --python=3.12
         chdir: "{{ target_dir }}"
         creates: "{{ target_dir }}/.venv"
       become: true
       become_user: "{{ t0_user }}"        
 
+    - name: Install vllm with pip in the uv virtual environment
+      ansible.builtin.command:
+        cmd: /home/t0/.local/bin/uv pip install vllm==0.15.1
+        chdir: "{{ target_dir }}"
+      become: true
+      become_user: "{{ t0_user }}"
+
+    # TODO: For debugging purposes it would be better if this
+    # was copied from the GPU VM, rather than from the control node,
+    # Currently if the control node and the GPU node are on
+    # differetn bracnhes,, then the .env.default file might not
+    # be in sync with what is required on the GPU VM.
     - name: Create an env file for t0
       ansible.builtin.copy:
         dest: "{{ target_dir }}/.env"
-        src: ../.env.default
+        src: "{{ target_dir }}/.env.default"
+        remote_src: true
         owner: "{{ t0_user }}"
         group: "{{ t0_user }}"
         mode: '0644'
@@ -205,6 +218,27 @@
 
     - name: Setup Hugging Face CLI and token
       ansible.builtin.import_tasks: tasks_setup_huggingface.yaml  
+
+    - name: Create directory for encodings files
+      ansible.builtin.file:
+        path: "/home/{{ t0_user }}/t0-1/encodings"
+        state: directory
+        owner: "{{ t0_user }}"
+        group: "{{ t0_user }}"
+        mode: '0777'
+      become: true
+      become_user: "{{ t0_user }}"
+
+    - name: Download encodings files
+      ansible.builtin.get_url:
+        url: "{{ item }}"
+        dest: "/home/{{ t0_user }}/t0-1/encodings/{{ item | basename }}"
+        mode: '0644'
+      loop:
+        - https://openaipublic.blob.core.windows.net/encodings/o200k_base.tiktoken
+        - https://openaipublic.blob.core.windows.net/encodings/cl100k_base.tiktoken
+      become: true
+      become_user: "{{ t0_user }}"
 
 
     # Disable for now as this does not work reliably.
