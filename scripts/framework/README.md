@@ -35,23 +35,32 @@ pyproject.toml.
 
 ## Changes to the launch scripts
 
-The launch scripts is in `t0-1/scripts/framework`
-
-## Supplementary notes
-
-- Run the scripts from the repo root. 
-- In a new install you might need to create t0-1/v4-summarised-db and
-  t0-1/v4-summarised-lfs
-- Don't forget the .env file
+The launch script is in `t0-1/scripts/framework`
 
 ## Running
 
+- Run the scripts from the project root. 
+- In a new install you might need to create t0-1/v4-summarised-db and
+  t0-1/v4-summarised-lfs
+- Don't forget to make the .env file in project root. Its content is:
+
+  ```
+  OPENAI_API_KEY="-"
+  OPENAI_BASE_URL_/data/t0-rcp/llama.cpp/t0-2.5-gemma-3-4B-it-F16.gguf="http://localhost:8080/v1/"
+  OPENAI_BASE_URL_/data/t0-rcp/llama.cpp/unsloth_gpt-oss-20b-GGUF_gpt-oss-20b-Q8_0.gguf="http://localhost:8090/v1/"
+  ```
+
+## Running
+
+In project root:
 ```sh
 llama-server -ngl 99 --jinja --port 8090 -m /data/t0-rcp/llama.cpp/unsloth_gpt-oss-20b-GGUF_gpt-oss-20b-Q8_0.gguf 
 llama-server -ngl 99 -m /data/t0-rcp/llama.cpp/t0-2.5-gemma-3-4B-it-F16.gguf 
-
-
 ./scripts/framework/serve_rag_conversational.sh
-pnpm dev [in /web]
+```
+
+In `web/`:
+```
+pnpm dev
 ```
 
