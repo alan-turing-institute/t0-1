@@ -1,5 +1,6 @@
 # Set up on Framework Desktop
 
+<<<<<<< HEAD
 The Framework is running Fedora and KDE. Packages are up to date;
 updates are done with `sudo dnf update`. Note that the ROCm packages
 are from a different version of Fedora, so you end up with
@@ -11,6 +12,12 @@ sync them with upstream Fedora.
 
 As of 10 February 2026, vllm is not working on the
 Framework. Specifically, after `uv install`, when running `vllm
+=======
+## llama.cpp
+
+As of 10 February 2026, vllm is not working on the
+Framework. (Specifically, after `uv install`, when running `vllm
+>>>>>>> origin/fw-desktop
 serve`, there is a error about a missing libmpi_cxx.so.40. Someone else
 posted an open issue on the vllm repo a couple of days ago and I
 assume there will be a fix soon.
