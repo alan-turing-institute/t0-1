@@ -1,4 +1,4 @@
-FROM nvcr.io/nvidia/vllm:25.10-py3
+FROM nvcr.io/nvidia/vllm:26.01-py3
 WORKDIR /
 
 # install uv
