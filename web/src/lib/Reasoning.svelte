@@ -13,9 +13,13 @@
 {#if reasoning}
     <div class="wrapper">
         <button {onclick}>
-            {expand ? "▾ Hide" : "▸ Show"} reasoning
+            {expand ? "⏷" : "⏵"}
+        </button>
+        <button {onclick}>
+            {expand ? "Hide" : "Show"} reasoning
         </button>
         {#if expand}
+            <div></div>
             <div class="reasoning" transition:slide>
                 {@html reasoning}
             </div>
@@ -25,35 +29,26 @@
 
 <style>
     div.wrapper {
-        display: flex;
-        flex-direction: column;
-        gap: 0;
+        display: grid;
+        grid-template-columns: auto 1fr;
+        grid-column-gap: 10px;
     }
     button {
         background-color: transparent;
         border: none;
         cursor: pointer;
         font: inherit;
-        color: var(--reasoning-fg);
+        color: var(--secondary-fg);
         width: max-content;
-        padding: 4px 0;
+        padding: 0;
         margin: 0;
         font-size: 0.8em;
-        font-weight: 500;
-        transition: color 0.15s ease;
-    }
-    button:hover {
-        color: var(--accent);
     }
 
     div.reasoning {
-        margin: 8px 0 0 0;
-        padding: 12px 16px;
+        margin: 0;
+        padding: 10px 0 0 0;
         font-size: 0.8em;
-        color: var(--reasoning-fg);
-        background-color: var(--reasoning-bg);
-        border-left: 3px solid var(--reasoning-border);
-        border-radius: 0 8px 8px 0;
     }
 
     div.reasoning :global {

@@ -55,7 +55,7 @@
         display: grid;
         grid-template-columns: 1fr max-content;
         gap: 0 10px;
-        align-items: end;
+        align-items: center;
     }
 
     div.grow-wrap {
@@ -78,59 +78,42 @@
         width: 100%;
         max-width: 100%;
         max-height: 300px;
-        border: 1.5px solid var(--border-color);
+        border: 1px solid var(--foreground);
         color: var(--foreground);
         background-color: var(--secondary-bg);
         border-radius: 20px;
-        padding: 10px 16px;
-        font-family: inherit;
+        padding: 0.5rem 1rem;
+        font-family: "Fira Code", monospace;
         font-size: inherit;
-        line-height: 1.5;
         grid-area: 1 / 1 / 2 / 2;
         word-break: break-word;
-        transition:
-            border-color 0.15s ease,
-            box-shadow 0.15s ease;
-    }
-
-    .grow-wrap > textarea:focus {
-        outline: none;
-        border-color: var(--accent);
-        box-shadow: 0 0 0 3px var(--focus-ring);
     }
 
     button {
         font-family: inherit;
-        font-size: 1.1em;
+        font-size: 1.5em;
         height: 40px;
         width: 40px;
-        background-color: var(--accent);
-        color: var(--accent-fg);
+        background-color: transparent;
+        color: var(--foreground);
         border-radius: 50%;
-        border: none;
+        padding-right: 6px;
+        border: 1px solid var(--foreground);
         cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-bottom: 4px;
-        transition:
-            background-color 0.15s ease,
-            transform 0.1s ease;
     }
 
     button:hover {
-        background-color: var(--accent-hover);
-        transform: scale(1.05);
+        background-color: var(--button-disabled-bg);
     }
 
     button:active {
-        transform: scale(0.95);
+        background-color: var(--button-disabled-bg);
+        color: var(--button-disabled-fg);
     }
 
     button:disabled {
         background-color: var(--button-disabled-bg);
         color: var(--button-disabled-fg);
         cursor: not-allowed;
-        transform: none;
     }
 </style>

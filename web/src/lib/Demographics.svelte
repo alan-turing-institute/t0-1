@@ -77,11 +77,7 @@
     div#demographics-wrapper {
         margin: 0 10px;
         border-radius: 10px;
-        border: 1px solid var(--border-subtle);
-        transition: border-color 0.15s ease;
-    }
-    div#demographics-wrapper:hover {
-        border-color: var(--border-color);
+        border: 1px solid var(--foreground);
     }
 
     button#toggle {
@@ -91,44 +87,16 @@
         font: inherit;
         color: var(--secondary-fg);
         width: 100%;
-        padding: 6px 0;
+        padding: 0;
         margin: 0;
-        font-size: 0.72em;
-        font-weight: 500;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        transition: color 0.15s ease;
-    }
-    button#toggle:hover {
-        color: var(--foreground);
+        font-size: 0.8em;
     }
 
     div#demographics {
         display: grid;
-        font-size: 0.85em;
+        font-size: 0.9em;
         grid-template-columns: max-content 1fr;
-        gap: 8px 12px;
-        padding: 12px;
-        align-items: center;
-        color: var(--secondary-fg);
-    }
-    div#demographics input,
-    div#demographics select {
-        font: inherit;
-        font-size: 1em;
-        padding: 4px 8px;
-        border: 1px solid var(--border-color);
-        border-radius: 6px;
-        background-color: var(--secondary-bg);
-        color: var(--foreground);
-        transition:
-            border-color 0.15s ease,
-            box-shadow 0.15s ease;
-    }
-    div#demographics input:focus,
-    div#demographics select:focus {
-        outline: none;
-        border-color: var(--accent);
-        box-shadow: 0 0 0 3px var(--focus-ring);
+        gap: 10px;
+        padding: 10px;
     }
 </style>

@@ -1,11 +1,9 @@
 /* https://css-tricks.com/box-sizing/ */
 html {
-    font-family: "Inter", system-ui, -apple-system, sans-serif;
+    font-family: "IBM Plex Sans", sans-serif;
     box-sizing: border-box;
     font-size: 16px;
-    line-height: 1.6;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+    line-height: 1.5;
 }
 
 *, *:before, *:after {
@@ -20,109 +18,33 @@ body {
     height: 100vh;
 }
 
-/* --- Light theme --- */
 html[data-theme="light"] {
-    --background: #f5f7f8;
-    --foreground: #1a1a2e;
-    --user-message-bg: #dce7ec;
-    --user-message-shadow: rgba(0, 0, 0, 0.06);
-    --secondary-fg: #5a6a72;
+    --background: #f8f8f8;
+    --foreground: #151515;
+    --user-message-bg: #e2e2e2;
+    --secondary-fg: #646464;
     --secondary-bg: #ffffff;
-    --accent: #0f7b8a;
-    --accent-hover: #0c6570;
-    --accent-subtle: rgba(15, 123, 138, 0.08);
-    --accent-fg: #ffffff;
-    --highlight: #0f7b8a;
-    --error: #d63031;
-    --error-bg: #fef2f2;
-    --error-fg: #991b1b;
-    --error-border: #fecaca;
-    --sidebar-bg: #eef1f3;
-    --sidebar-border: #dce1e4;
-    --sidebar-hover: rgba(15, 123, 138, 0.06);
-    --sidebar-active: rgba(15, 123, 138, 0.12);
-    --border-color: #d1d9de;
-    --border-subtle: #e2e8ec;
-    --button-disabled-bg: #e2e8ec;
-    --button-disabled-fg: #94a3af;
-    --focus-ring: rgba(15, 123, 138, 0.4);
-    --reasoning-bg: rgba(15, 123, 138, 0.04);
-    --reasoning-border: #0f7b8a;
-    --reasoning-fg: #5a6a72;
-    --scrollbar-thumb: rgba(0, 0, 0, 0.15);
-    --scrollbar-thumb-hover: rgba(0, 0, 0, 0.25);
+    --highlight: #007acc;
+    --error: #ff0000;
+    --sidebar-bg: #d9d7ea;
+    --button-disabled-bg: #cccccc;
+    --button-disabled-fg: #888888;
+    --linear-gradient-start: rgba(186, 50, 227, 1);
+    --linear-gradient-end: rgba(124, 11, 158, 1);
     background-color: var(--background);
 }
-
-/* --- Dark theme --- */
 html[data-theme="dark"] {
-    --background: #1a1d21;
-    --foreground: #e0e4e8;
-    --user-message-bg: #2a3038;
-    --user-message-shadow: rgba(0, 0, 0, 0.2);
-    --secondary-fg: #8a96a0;
-    --secondary-bg: #13161a;
-    --accent: #38bcc8;
-    --accent-hover: #4dd0dc;
-    --accent-subtle: rgba(56, 188, 200, 0.1);
-    --accent-fg: #1a1d21;
-    --highlight: #38bcc8;
-    --error: #f87171;
-    --error-bg: rgba(248, 113, 113, 0.1);
-    --error-fg: #fca5a5;
-    --error-border: rgba(248, 113, 113, 0.2);
-    --sidebar-bg: #1e2228;
-    --sidebar-border: #2a3038;
-    --sidebar-hover: rgba(56, 188, 200, 0.06);
-    --sidebar-active: rgba(56, 188, 200, 0.14);
-    --border-color: #2e3640;
-    --border-subtle: #252b32;
-    --button-disabled-bg: #2e3640;
-    --button-disabled-fg: #5a6a72;
-    --focus-ring: rgba(56, 188, 200, 0.4);
-    --reasoning-bg: rgba(56, 188, 200, 0.06);
-    --reasoning-border: #38bcc8;
-    --reasoning-fg: #8a96a0;
-    --scrollbar-thumb: rgba(255, 255, 255, 0.12);
-    --scrollbar-thumb-hover: rgba(255, 255, 255, 0.22);
+    --background: #1e1e1e;
+    --foreground: #d8d8d8;
+    --user-message-bg: #484848;
+    --secondary-fg: #939393;
+    --secondary-bg: #000000;
+    --highlight: #007acc;
+    --error: #ff0000;
+    --sidebar-bg: #534f89;
+    --button-disabled-bg: #888888;
+    --button-disabled-fg: #cccccc;
+    --linear-gradient-start: rgba(197, 132, 216, 1);
+    --linear-gradient-end: rgba(207, 135, 229, 1);
     background-color: var(--background);
-}
-
-/* --- Focus-visible system --- */
-*:focus-visible {
-    outline: 2px solid var(--accent);
-    outline-offset: 2px;
-}
-button:focus-visible,
-input:focus-visible,
-textarea:focus-visible,
-select:focus-visible {
-    outline: 2px solid var(--accent);
-    outline-offset: 2px;
-    box-shadow: 0 0 0 4px var(--focus-ring);
-}
-
-/* --- Custom scrollbars --- */
-* {
-    scrollbar-width: thin;
-    scrollbar-color: var(--scrollbar-thumb) transparent;
-}
-*::-webkit-scrollbar {
-    width: 6px;
-}
-*::-webkit-scrollbar-track {
-    background: transparent;
-}
-*::-webkit-scrollbar-thumb {
-    background-color: var(--scrollbar-thumb);
-    border-radius: 3px;
-}
-*::-webkit-scrollbar-thumb:hover {
-    background-color: var(--scrollbar-thumb-hover);
-}
-
-/* --- Code elements use system monospace --- */
-code, pre, kbd, samp {
-    font-family: ui-monospace, "SF Mono", "Cascadia Code", "Segoe UI Mono", Menlo, Consolas, monospace;
-    font-size: 0.9em;
 }
