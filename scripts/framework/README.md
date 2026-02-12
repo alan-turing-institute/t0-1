@@ -1,0 +1,57 @@
+# Set up on Framework Desktop
+
+## llama.cpp
+
+As of 10 February 2026, vllm is not working on the
+Framework. (Specifically, after `uv install`, when running `vllm
+serve`, there is a error about a missing libmpi_cxx.so.40. Someone else
+posted an open issue on the vllm repo a couple of days ago and I
+assume there will be a fix soon.
+
+> https://github.com/vllm-project/vllm/issues/34090
+
+However, the pre-built llama.cpp downloaded from lemonade.ai does
+work. 
+
+> https://github.com/lemonade-sdk/llamacpp-rocm
+
+These instructions assume that `llama.cpp` is in your path. (I
+unzipped the pre-built files into `~/Apps/llama-cpp` (though you can
+put them anywhere) then symlinked the binaries to `~/.local/bin` which
+happens to be in my path. You might have to `chmod +x llama-server`
+(and any other binary you'd like to run.)
+
+## Models
+
+These are in `/data/t0-rcp/llama.cpp`. There is a unix group "t0-rcp"
+to which you should belong and which should have read/write access.
+
+## Setup of t0-1
+
+I used `uv pip install -e ".[rag,dev]"` rather than `uv sync`. 
+
+NOTE: I've locked all the langchain-related module versions in
+pyproject.toml. 
+
+## Changes to the launch scripts
+
+The launch scripts is in `t0-1/scripts/framework`
+
+## Supplementary notes
+
+- Run the scripts from the repo root. 
+- In a new install you might need to create t0-1/v4-summarised-db and
+  t0-1/v4-summarised-lfs
+- Don't forget the .env file
+
+## Running
+
+```sh
+llama-server -ngl 99 --jinja --port 8090 -m /data/t0-rcp/llama.cpp/unsloth_gpt-oss-20b-GGUF_gpt-oss-20b-Q8_0.gguf 
+llama-server -ngl 99 -m /data/t0-rcp/llama.cpp/t0-2.5-gemma-3-4B-it-F16.gguf 
+
+
+./scripts/framework/serve_rag_conversational.sh
+pnpm dev [in /web]
+```
+
