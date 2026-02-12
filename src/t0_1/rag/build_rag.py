@@ -682,6 +682,17 @@ class RAG:
 
         return AIMessage(output)
 
+    @staticmethod
+    def _build_demographics_snippet(state: CustomMessagesState) -> str:
+        """Return a demographics string for inclusion in system prompts."""
+        demographics = state.get("demographics")
+        if demographics and demographics != "{}":
+            return (
+                "\n\nThis is a summary of the patient's demographics:\n"
+                + demographics
+            )
+        return ""
+
     def query_or_respond(self, state: CustomMessagesState):
         logging.info("Query or respond invoked")
 
@@ -693,8 +704,9 @@ class RAG:
             [create_retreiver_tool(self.retrieve_as_tool)]
         )
         cleaned_messages = self._clean_messages_for_context(state["messages"])
+        system_content = NHS_RETRIEVER_TOOL_PROMPT + self._build_demographics_snippet(state)
         response = llm_with_retrieve_tool.invoke(
-            [SystemMessage(NHS_RETRIEVER_TOOL_PROMPT)] + cleaned_messages,
+            [SystemMessage(system_content)] + cleaned_messages,
         )
 
         return {"messages": [response]}
@@ -781,8 +793,9 @@ class RAG:
             if message.type in ("human", "ai") and not getattr(message, "tool_calls", None)
         ]
         conversation_history = self._clean_messages_for_context(conversation_history)
+        system_content = ROUTER_RESPONSE_PROMPT + self._build_demographics_snippet(state)
         router_messages = (
-            [SystemMessage(ROUTER_RESPONSE_PROMPT)]
+            [SystemMessage(system_content)]
             + conversation_history
             + [HumanMessage(content="Clinical analysis:\n\n" + t0_output)]
         )
@@ -831,8 +844,9 @@ class RAG:
             if message.type in ("human", "ai") and not getattr(message, "tool_calls", None)
         ]
         conversation_history = self._clean_messages_for_context(conversation_history)
+        system_content = ROUTER_RESPONSE_PROMPT + self._build_demographics_snippet(state)
         router_messages = (
-            [SystemMessage(ROUTER_RESPONSE_PROMPT)]
+            [SystemMessage(system_content)]
             + conversation_history
             + [HumanMessage(content="Clinical analysis:\n\n" + t0_output)]
         )
