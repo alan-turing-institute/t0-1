@@ -274,12 +274,6 @@
 </div>
 
 <style>
-    :global(*) {
-        transition:
-            background-color 0.5s ease-out,
-            color 0.5s ease-out;
-    }
-
     div#wrapper {
         display: flex;
         align-items: stretch;
@@ -288,13 +282,18 @@
         width: 100vw;
         background-color: var(--background);
         color: var(--foreground);
+        transition:
+            background-color 0.3s ease,
+            color 0.3s ease;
     }
 
     main {
         height: calc(100vh - 60px);
-        margin: 30px;
+        margin: 30px auto;
+        padding: 0 24px;
         min-width: 300px;
         width: 100%;
+        max-width: 860px;
         display: flex;
         flex-direction: column;
         align-items: stretch;
@@ -304,10 +303,18 @@
     p#no-backend {
         display: flex;
         flex-direction: column;
-        gap: 10px;
+        gap: 12px;
         margin: auto;
         padding: 0 30px;
         text-align: center;
-        color: var(--foreground);
+        color: var(--secondary-fg);
+        line-height: 1.6;
+    }
+    p#no-backend code {
+        background-color: var(--accent-subtle);
+        color: var(--accent);
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 0.85em;
     }
 </style>

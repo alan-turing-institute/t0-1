@@ -23,13 +23,22 @@ This process has been tested by manually authenticating the Azure CLI (using `az
 
 ## Connecting to the Ansible Control Node
 
-
+Details to be added:
+* Via the Azure Web Portal
+* Via the `az` cli
 
 ## Deploying t0 (software, but not data)
 
-The process of deploying t0 requires two playbooks. Run these, on the control node, from the root of the repository, in order:
+The process of deploying t0 requires two Anaible playbooks. 
+
+The deployment process pulls "gated" models from Hugging Face. Before you can do this programmatically, you will need to login to Hugging Face, in a web browser, and accept the terms and conditions for using the gated models. Once you have done this, you can create a Hugging Face token and add it to the file `deployment/t0_secrets.enc` in the following format:
 ```
-$ ansible-playbook deployment/playbook_create_gpu_host.yaml && ansible-playbook deployment/playbook_deploy_t0.yaml
+HF_TOKEN: your_hugging_face_token_here
+```
+
+Once this is done, run these two command, on the control node, from the root of the repository, in order:
+```
+$ ansible-playbook deployment/playbook_create_gpu_host.yaml && ansible-playbook deployment/playbook_deploy_t0.yaml -e @deployment/t0_secrets.enc
 ```
 
 ## Launching the app:

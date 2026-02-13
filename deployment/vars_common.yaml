@@ -14,4 +14,5 @@ nic_name: myNIC
 ansible_user_id: ansible
 ssh_key_file: "~/ssh_keys/id_ed25519_t0_ansible"
 t0_user: t0
+git_branch: main # The specific branch, tag (or commit hash) to deploy
 data_file_path: data/nhs-conditions/v4/qwen_summarised_conditions.jsonl

@@ -6,11 +6,11 @@ t0-1 serve-rag \
 --llm-model-name TomasLaz/t0-2.5-gemma-3-27b-it \
 --budget-forcing \
 --budget-forcing-kwargs '{"max_tokens_thinking": 1024, "num_stop_skips": 0}' \
---extra-body '{"max_tokens": 4096, "seed": 42}' \
+--extra-body '{"max_tokens": 4096, "seed": 42, "temperature": 0}' \
 --conversational \
 --conversational-agent-llm-provider openai \
---conversational-agent-llm-model-name Qwen/Qwen2.5-32B-Instruct \
---conversational-agent-extra-body '{"max_tokens": 4096, "seed": 42}' \
+--conversational-agent-llm-model-name openai/gpt-oss-20b \
+--conversational-agent-extra-body '{"max_tokens": 4096, "seed": 42, "temperature": 0}' \
 --prompt-template-path ./templates/rag_prompt_conversational.txt \
 --system-prompt-path ./templates/rag_system_prompt_conversational.txt \
 --conditions-file ./data/nhs-conditions/v4/qwen_summarised_conditions.jsonl \

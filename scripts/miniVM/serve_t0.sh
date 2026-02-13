@@ -13,10 +13,8 @@ vllm serve "$MODEL" \
     --tokenizer google/gemma-3-4b-it \
     --seed 42 \
     --generation-config vllm \
-    --enable-log-outputs \
-    --enable-log-requests \
     --port 8010 \
-    --tensor-parallel-size 2 \
+    --tensor-parallel-size 1 \
     --max-model-len 131072 \
     --trust-remote-code \
     --hf-overrides '{"rope_scaling":{"factor":4, "original_max_position_embeddings": 32768, "rope_type":"yarn"}}'
