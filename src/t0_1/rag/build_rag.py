@@ -705,6 +705,7 @@ class RAG:
         )
         cleaned_messages = self._clean_messages_for_context(state["messages"])
         system_content = NHS_RETRIEVER_TOOL_PROMPT + self._build_demographics_snippet(state)
+        logging.info(f"llm_with_retrieve_tool_message={[SystemMessage(system_content)] + cleaned_messages}")
         response = llm_with_retrieve_tool.invoke(
             [SystemMessage(system_content)] + cleaned_messages,
         )
@@ -799,6 +800,7 @@ class RAG:
             + conversation_history
             + [HumanMessage(content="Clinical analysis:\n\n" + t0_output)]
         )
+        logging.info(f"{router_messages=}")
 
         # Write the answer marker so the UI knows where the visible answer starts
         writer((AIMessageChunk("\n<|im_start|>answer\n"), config["metadata"]))
@@ -919,6 +921,7 @@ class RAG:
                 "sources": retriever_response["sources"],
             },
         )
+        logging.info(f"{messages_from_prompt=}")
 
         if self.conversational:
             conversation_messages = [
