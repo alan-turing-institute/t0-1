@@ -1,6 +1,6 @@
 # tasks_mount_file_share.yaml
 #
-# Mounts the Azure SMB file share (sourcedatashare) on the GPU VM.
+# Mounts the Azure SMB file share on the GPU VM.
 #
 # Prerequisites:
 # - The t0 user must already exist on the target host.
@@ -34,7 +34,7 @@
 
 - name: Create mount point directory
   ansible.builtin.file:
-    path: "/home/{{ t0_user }}/sourcedatashare"
+    path: "/home/{{ t0_user }}/{{ file_share_name }}"
     state: directory
     owner: "{{ t0_user }}"
     group: "{{ t0_user }}"
@@ -63,7 +63,7 @@
 
 - name: Mount Azure file share and add fstab entry
   ansible.posix.mount:
-    path: "/home/{{ t0_user }}/sourcedatashare"
+    path: "/home/{{ t0_user }}/{{ file_share_name }}"
     src: "{{ cifs_share_url }}"
     fstype: cifs
     opts: "nofail,credentials=/etc/smbcredentials/sourcedataaccount.cred,dir_mode=0755,file_mode=0755,uid={{ t0_uid }},gid={{ t0_gid }},serverino"
