@@ -13,6 +13,8 @@ vllm serve "$MODEL" \
     --tokenizer google/gemma-3-4b-it \
     --seed 42 \
     --generation-config vllm \
+    --enable-log-outputs \
+    --enable-log-requests \
     --port 8010 \
     --tensor-parallel-size 2 \
     --max-model-len 131072 \

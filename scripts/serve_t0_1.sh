@@ -1,5 +1,5 @@
 #!/bin/sh
-CUDA_VISIBLE_DEVICES=4,5,6,7 vllm serve TomasLaz/t0-1.1-k5-32B \
+CUDA_VISIBLE_DEVICES=4,5,6,7 vllm serve TomasLaz/t0-2.5-gemma-3-27b-it \
 --seed 42 \
 --generation-config vllm \
 --port 8010 \

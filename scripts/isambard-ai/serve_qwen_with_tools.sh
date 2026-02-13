@@ -1,3 +1,4 @@
+#!/bin/sh
 vllm serve Qwen/Qwen2.5-32B-Instruct \
 --seed 42 \
 --generation-config vllm \
