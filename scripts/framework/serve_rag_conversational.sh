@@ -2,12 +2,12 @@
 t0-1 serve-rag \
      --k 5 \
      --db-choice chroma \
-     --conditions-file ./data/nhs-conditions/conditions.jsonl \
+     --conditions-file ./data/nhs-conditions/v4/conditions.jsonl \
      --llm-provider openai_completion \
      --llm-model-name /data/t0-rcp/llama.cpp/t0-2.5-gemma-3-4B-it-F16.gguf \
      --budget-forcing \
      --budget-forcing-kwargs '{"max_tokens_thinking": 512, "num_stop_skips": 0}' \
-     --budget-forcing-tokenizer Qwen/Qwen3-4B-Instruct-2507 \
+     --budget-forcing-tokenizer google/gemma-3-4b-it \
      --extra-body '{"max_tokens": 4096, "seed": 42}' \
      --conversational \
      --conversational-agent-llm-provider openai \
