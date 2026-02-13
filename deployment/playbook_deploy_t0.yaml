@@ -85,6 +85,9 @@
       become: true
       become_user: "{{ t0_user }}"
 
+    - name: Mount Azure file share on target VM
+      ansible.builtin.import_tasks: tasks_mount_file_share.yaml
+
     # By default the NVIDIA image set all user profiles to load conda on login
     # This is not required here, so we disable it for the t0 user
     - name: Disable conda auto-initialization for t0 user (part 1/2)
