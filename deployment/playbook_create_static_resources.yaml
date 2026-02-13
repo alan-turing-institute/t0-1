@@ -106,7 +106,7 @@
 
   - name: Create storage share
     azure_rm_storageshare:
-      name: sourcedatashare
+      name: "{{ file_share_name }}"
       resource_group: "{{ static_resource_group }}"
       account_name: sourcedataaccount
       state: present
@@ -135,7 +135,7 @@
     ansible.builtin.set_fact:
       # msg: "{{ storage_account_info.storageaccounts[0].primary_endpoints.key }}"
       share_key: "{{ (storage_account_info.storageaccounts | selectattr('name', 'equalto', 'sourcedataaccount') | map(attribute='primary_endpoints.key') | first ) }}"
-      share_url: "{{ (storage_account_info.storageaccounts | selectattr('name', 'equalto', 'sourcedataaccount') | map(attribute='primary_endpoints.file.endpoint') | first ) }}sourcedatashare"
+      share_url: "{{ (storage_account_info.storageaccounts | selectattr('name', 'equalto', 'sourcedataaccount') | map(attribute='primary_endpoints.file.endpoint') | first ) }}{{ file_share_name }}"
 
   - name: Display storage share connection info
     ansible.builtin.debug:
