@@ -1,3 +1,4 @@
+import os
 import random
 from pathlib import Path
 
@@ -13,6 +14,7 @@ from t0_1.rag.build_rag import (
     RetrieverConfig,
     build_rag,
 )
+from t0_1.rag.request_logger import logged_stream
 
 
 class QueryRequest(BaseModel):
@@ -28,6 +30,7 @@ class ClearHistoryRequest(BaseModel):
 def create_rag_app(rag: RAG) -> FastAPI:
     app = FastAPI()
     app.state.active_thread_ids = set()
+    log_dir = os.environ.get("T0_LOG_DIR", "./logs")
 
     @app.get("/")
     async def root():
@@ -137,12 +140,13 @@ def create_rag_app(rag: RAG) -> FastAPI:
     @app.post("/query_stream")
     async def query_stream_endpoint(req: QueryRequest):
         app.state.active_thread_ids.add(req.thread_id)
+        stream = rag._query_stream(
+            req.query,
+            thread_id=req.thread_id,
+            demographics=req.demographics,
+        )
         return StreamingResponse(
-            rag._query_stream(
-                req.query,
-                thread_id=req.thread_id,
-                demographics=req.demographics,
-            ),
+            logged_stream(stream, req.model_dump(), req.thread_id, log_dir),
         )
 
     # Delete history

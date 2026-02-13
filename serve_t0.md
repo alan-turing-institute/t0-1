@@ -222,6 +222,15 @@ For each script:
 - Activate your environment with `source .venv/bin/activate`
 - Run the script with `source ./scripts/<script_name>`
 
+# Logging output
+
+Per thread log files are created in the <repo>/logs directory (strictly this occurs when `/query_stream` is called).
+
+- Each thread gets its own file (e.g., logs/cheerful-panda-42.jsonl)
+- Each line is a JSON object with: timestamp, endpoint, method, request (query, thread_id, demographics), response (body, status_code), duration_seconds, error
+- To override the default location, set the environment variable `T0_LOG_DIR=/custom/logs/path`.
+
+
 # Viewing the Web Interface
 
 The web interface is available at:
