@@ -296,6 +296,25 @@
         mode: '0777'
       become: true
 
+    - name: Create readme.md in log directory with VM and timestamp info
+      ansible.builtin.copy:
+        dest: "{{ log_dir_path }}/readme.md"
+        content: |
+          # Logs for {{ inventory_hostname }}
+          
+          This directory contains per-thread logs for `t0` running on {{ inventory_hostname }}. 
+
+          The date in then directory name is the timestamp for when the directory was created, which is approximately when the VM was created. Because the VMs are effemeral and can be reprovisioned, both the VM name and the timestamp are included in the log directory path to ensure that logs from different runs do not overwrite each other.
+
+          Logs are stored one thread per file.
+          
+          This file was created on {{ ansible_date_time.iso8601 }}
+        # owner: "{{ t0_user }}"
+        # group: "{{ t0_user }}"
+        mode: '0644'
+      become: true
+      become_user: "{{ t0_user }}"
+
     - name: Set log dir path in .env file
       ansible.builtin.replace:
         path: "{{ target_dir }}/.env"
