@@ -175,6 +175,7 @@ cython_debug/
 .DS_Store
 
 # Project-related ignores.
+logs/
 data/*
 !data/.gitkeep
 use-cases/nhs-conditions/nhs-use-case/conditions/*

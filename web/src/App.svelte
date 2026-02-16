@@ -14,10 +14,9 @@
     import { onMount } from "svelte";
 
     // HTTPS proxy
-    // const HOST = "https://t0-reverse-proxy.azurewebsites.net";
+    const HOST = "https://t0-reverse-proxy.azurewebsites.net";
     // Or run locally:
-    //const HOST = "http://localhost:8050";
-    const HOST = "/api";
+    // const HOST = "http://localhost:8000";
 
     // UI state
     let loading: boolean = $state(false);
