@@ -778,6 +778,75 @@ class RAG:
             "sources": sources,
         }
 
+    def _is_malformed_router_response(self, response: str) -> bool:
+        """
+        Detect if router returned just structured output instead of a conversational response.
+
+        A malformed response is one that:
+        1. Starts with '(' and ends with ')' and is short (likely just the structured format)
+        2. Contains severity keywords but is very short (< 150 chars)
+        """
+        response_stripped = response.strip()
+
+        # Check if it's just the structured format like "(condition, severity)"
+        if response_stripped.startswith("(") and response_stripped.endswith(")"):
+            if len(response_stripped) < 150:
+                return True
+
+        # Check if it's suspiciously short and contains severity keywords
+        severity_keywords = ["Self-care", "Urgent Primary Care", "A&E", "inconclusive"]
+        if len(response_stripped) < 150:
+            for keyword in severity_keywords:
+                if keyword in response_stripped and response_stripped.count(",") <= 2:
+                    return True
+
+        return False
+
+    def _get_fallback_response(self, t0_output: str) -> str:
+        """
+        Generate a fallback response when router fails to produce a conversational response.
+        Extracts condition and severity from T0 output and creates a basic response.
+        """
+        import re
+
+        # Try to extract (condition, severity) from T0 output
+        match = re.search(r'\(([^,]+),\s*([^)]+)\)', t0_output)
+
+        if match:
+            condition = match.group(1).strip()
+            severity = match.group(2).strip()
+
+            # Generate appropriate response based on severity
+            if severity == "A&E":
+                action = "you should go to A&E or call 999 immediately for urgent medical attention"
+            elif severity == "Urgent Primary Care":
+                action = "you should see your GP or visit an urgent care centre as soon as possible"
+            else:  # Self-care
+                action = "you can likely manage this at home with self-care, but see your GP if symptoms persist or worsen"
+
+            if condition.lower() == "inconclusive":
+                return (
+                    f"Based on your symptoms, I'm unable to determine a specific condition from the information provided. "
+                    f"However, given the nature of your symptoms, {action}. "
+                    f"Please ensure you get a proper medical assessment so healthcare professionals can help you. "
+                    f"Can you tell me more about when these symptoms started and if anything makes them better or worse?"
+                )
+            else:
+                condition_friendly = condition.replace("-", " ").title()
+                return (
+                    f"Based on your symptoms, you may be experiencing {condition_friendly}. "
+                    f"Given this assessment, {action}. "
+                    f"Can you tell me more about your symptoms, such as when they started and how severe they are?"
+                )
+
+        # If we can't parse it, provide a generic response
+        return (
+            "I've analyzed your symptoms, but I'm having difficulty providing a clear response. "
+            "To be safe, I recommend seeking medical attention to get a proper assessment. "
+            "If your symptoms are severe or getting worse, please go to A&E or call 999. "
+            "Otherwise, contact your GP or NHS 111 for advice. Can you tell me more about what you're experiencing?"
+        )
+
     def router_respond(
         self, state: CustomMessagesState, config: RunnableConfig
     ) -> dict:
@@ -811,6 +880,20 @@ class RAG:
             token = chunk if isinstance(chunk, str) else chunk.content
             writer((AIMessageChunk(token), config["metadata"]))
             response_content += token
+
+        # Validate the router's response
+        if self._is_malformed_router_response(response_content):
+            logging.warning("⚠️  MALFORMED ROUTER RESPONSE DETECTED!")
+            logging.warning(f"T0 output: {t0_output}")
+            logging.warning(f"Router output: {response_content}")
+
+            # Use fallback response
+            fallback_response = self._get_fallback_response(t0_output)
+            logging.info(f"Using fallback response: {fallback_response}")
+
+            # Write the fallback response to the stream
+            writer((AIMessageChunk(fallback_response), config["metadata"]))
+            response_content = fallback_response
 
         # Write finish signal
         writer(
@@ -860,6 +943,20 @@ class RAG:
         response = await self.conversational_agent_llm.ainvoke(router_messages)
         response_content = response.content
         writer((AIMessageChunk(response_content), config["metadata"]))
+
+        # Validate the router's response
+        if self._is_malformed_router_response(response_content):
+            logging.warning("⚠️  MALFORMED ROUTER RESPONSE DETECTED (async)!")
+            logging.warning(f"T0 output: {t0_output}")
+            logging.warning(f"Router output: {response_content}")
+
+            # Use fallback response
+            fallback_response = self._get_fallback_response(t0_output)
+            logging.info(f"Using fallback response: {fallback_response}")
+
+            # Write the fallback response to the stream
+            writer((AIMessageChunk(fallback_response), config["metadata"]))
+            response_content = fallback_response
 
         # Write finish signal
         writer(
