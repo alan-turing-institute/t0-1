@@ -1,0 +1,71 @@
+# tasks_mount_file_share.yaml
+#
+# Mounts the Azure SMB file share on the GPU VM.
+#
+# Prerequisites:
+# - The t0 user must already exist on the target host.
+# - The share_key and share_url facts must be set on localhost
+#   (done by playbook_create_static_resources.yaml).
+#
+# The share_key and share_url facts live on localhost, so we access
+# them via hostvars['localhost'].
+
+- name: Install cifs-utils for SMB mount support
+  ansible.builtin.apt:
+    name: cifs-utils
+    state: present
+    update_cache: yes
+  become: true
+
+- name: Look up t0 user account details
+  ansible.builtin.getent:
+    database: passwd
+    key: "{{ t0_user }}"
+  become: true
+
+- name: Set t0 uid and gid facts
+  ansible.builtin.set_fact:
+    t0_uid: "{{ getent_passwd[t0_user][1] }}"
+    t0_gid: "{{ getent_passwd[t0_user][2] }}"
+
+- name: Convert share URL from HTTPS to CIFS format
+  ansible.builtin.set_fact:
+    cifs_share_url: "{{ hostvars['localhost'].share_url | regex_replace('^https://', '//') }}"
+
+- name: Create mount point directory
+  ansible.builtin.file:
+    path: "/home/{{ t0_user }}/{{ file_share_name }}"
+    state: directory
+    owner: "{{ t0_user }}"
+    group: "{{ t0_user }}"
+    mode: '0755'
+  become: true
+
+- name: Create SMB credentials directory
+  ansible.builtin.file:
+    path: /etc/smbcredentials
+    state: directory
+    owner: root
+    group: root
+    mode: '0700'
+  become: true
+
+- name: Create SMB credentials file
+  ansible.builtin.copy:
+    dest: /etc/smbcredentials/sourcedataaccount.cred
+    content: |
+      username=sourcedataaccount
+      password={{ hostvars['localhost'].share_key }}
+    owner: root
+    group: root
+    mode: '0600'
+  become: true
+
+- name: Mount Azure file share and add fstab entry
+  ansible.posix.mount:
+    path: "/home/{{ t0_user }}/{{ file_share_name }}"
+    src: "{{ cifs_share_url }}"
+    fstype: cifs
+    opts: "nofail,credentials=/etc/smbcredentials/sourcedataaccount.cred,dir_mode=0755,file_mode=0755,uid={{ t0_uid }},gid={{ t0_gid }},serverino"
+    state: mounted
+  become: true
