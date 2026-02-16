@@ -188,7 +188,6 @@
         group: "{{ t0_user }}"
         mode: '0644'
       become: true
-      # become_user: "{{ t0_user }}"
 
     - name: Create parent directory for data file
       ansible.builtin.file:
@@ -283,3 +282,25 @@
     #     - t0_main
     #     - rag_conversation
     #   become: true
+
+    - name: Define log dir variable
+      set_fact:
+        log_dir_path: "/home/{{ t0_user }}/{{ file_share_name }}/logs/{{ '%Y-%m-%d-%H%M' | strftime }}-{{ inventory_hostname }}"
+
+    - name: Create a directory for logs for this VM
+      ansible.builtin.file:
+        path: "{{ log_dir_path }}"
+        state: directory
+        owner: "{{ t0_user }}"
+        group: "{{ t0_user }}"
+        mode: '0777'
+      become: true
+
+    - name: Set log dir path in .env file
+      ansible.builtin.replace:
+        path: "{{ target_dir }}/.env"
+        regexp: '^#?\s*T0_LOG_DIR=.*$'
+        replace: 'T0_LOG_DIR={{ log_dir_path }}'
+        owner: "{{ t0_user }}"
+        group: "{{ t0_user }}"
+      become: true
