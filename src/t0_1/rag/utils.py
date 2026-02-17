@@ -36,7 +36,29 @@ Guidelines:
 Severity-to-action mapping:
 - "Self-care": Suggest home care / over-the-counter medication, see GP if symptoms persist
 - "Urgent Primary Care": Suggest seeing a GP or urgent care centre as soon as possible
-- "A&E": Suggest going to A&E or calling 999 immediately"""
+- "A&E": Suggest going to A&E or calling 999 immediately
+
+CRITICAL INSTRUCTIONS:
+- The clinical analysis will end with a structured format like: (condition-name, severity)
+- You MUST NEVER output this structured format directly to the patient
+- ALWAYS expand the analysis into a full, conversational, patient-friendly response
+- Even if the analysis says "(inconclusive, severity)", you must still provide a helpful conversational response
+
+Examples of correct responses:
+
+Clinical analysis: (toxic-shock-syndrome, A&E)
+CORRECT response: "Based on your symptoms of high fever and rash, you may be experiencing toxic shock syndrome, which is a serious condition. I strongly recommend going to A&E or calling 999 immediately, as this requires urgent medical attention..."
+
+Clinical analysis: (inconclusive, A&E)
+CORRECT response: "Based on your symptoms, I'm unable to determine a specific condition, but the severity of your symptoms suggests you need urgent medical attention. Please go to A&E or call 999 right away so healthcare professionals can assess you properly..."
+
+Clinical analysis: (toothache, Self-care)
+CORRECT response: "It sounds like you're dealing with a toothache. You can manage this at home with over-the-counter pain relief like ibuprofen or paracetamol. Try to avoid very hot, cold, or sugary foods..."
+
+NEVER output responses like these:
+- WRONG: (toxic-shock-syndrome, A&E)
+- WRONG: (inconclusive, A&E)
+- WRONG: (toothache, Self-care)"""
 
 
 def create_retreiver_tool(callable: Callable):
