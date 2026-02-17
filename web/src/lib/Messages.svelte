@@ -189,4 +189,10 @@
         margin-right: auto;
         border-radius: 18px 18px 18px 4px;
     }
+
+    @media (max-width: 768px) {
+        div.human {
+            max-width: 90%;
+        }
+    }
 </style>
