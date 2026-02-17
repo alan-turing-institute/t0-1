@@ -8,7 +8,7 @@ JOB_NAME="t0-2.4-270m"
 
 # Default values (override with sbatch --export=ALL,MODEL_NAME="...")
 : "${MODEL_NAME:="google/gemma-3-270m-it"}"
-: "${DATASET_PATH:="/t0/t0_1/2k-gpt-oss-120b-traces-k5_qwen_summarised_data_gemma_format"}"
+: "${DATASET_PATH:="/t0/t0_1/split_2k-gpt-oss-120b-traces-k5_qwen_summarised_data_gemma_format"}"
 : "${RUN_NAME:="t0-2.4"}"
 : "${BLOCK_SIZE:=32768}"
 : "${EPOCHS:=1}"
@@ -73,7 +73,7 @@ trap cleanup EXIT
 # Start monitoring
 stdbuf -o0 vmstat -t 1 > "logs/${JOB_NAME}-vmstat-${uid}.txt" &
 VMSTAT_PID=$!
-stdbuf -o0 nvidia-smi dmon -o TD -s puct -d 1 > "logs/${JOB_NAME}-dmon-${uid}.txt" &
+stdbuf -o0 nvidia-smi --query-gpu=timestamp,index,gpu_name,utilization.gpu,memory.used,memory.total,power.draw,temperature.gpu --format=csv -l 1 > "logs/${JOB_NAME}-dmon-${uid}.csv" &
 NVIDIA_PID=$!
 
 # THE LAUNCH COMMAND
