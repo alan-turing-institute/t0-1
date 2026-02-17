@@ -67,7 +67,7 @@
       class="qr-link"
     >
       <img
-        src="/qr-project-t0.svg"
+        src="qr-project-t0.svg"
         alt="QR code for Project t0"
         class="qr-code"
       />
