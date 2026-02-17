@@ -1,6 +1,6 @@
 #!/bin/bash
 
-JOB_NAME="t0-2.5-270m"
+JOB_NAME="t0-2.4-270m"
 
 # ==============================================================================
 # 1. USER CONFIGURATION
@@ -9,7 +9,7 @@ JOB_NAME="t0-2.5-270m"
 # Default values (override with sbatch --export=ALL,MODEL_NAME="...")
 : "${MODEL_NAME:="google/gemma-3-270m-it"}"
 : "${DATASET_PATH:="/t0/t0_1/2k-gpt-oss-120b-traces-k5_qwen_summarised_data_gemma_format"}"
-: "${RUN_NAME:="t0-2.5"}"
+: "${RUN_NAME:="t0-2.4"}"
 : "${BLOCK_SIZE:=32768}"
 : "${EPOCHS:=1}"
 : "${LR:=1e-5}"
