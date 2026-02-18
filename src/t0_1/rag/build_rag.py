@@ -1235,6 +1235,8 @@ class RAG:
             config={"configurable": {"thread_id": thread_id}},
             stream_mode=["messages", "custom"],
         ):
+            if stream_mode != "custom":
+                continue
             if message_chunk.response_metadata.get("finish_reason") == "stop":
                 finished = True
             if not finished and metadata.get("langgraph_node") in [
