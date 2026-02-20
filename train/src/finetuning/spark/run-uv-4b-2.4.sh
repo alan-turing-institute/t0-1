@@ -8,7 +8,7 @@ JOB_NAME="t0-2.4-4b"
 
 # Default values (override with sbatch --export=ALL,MODEL_NAME="...")
 : "${MODEL_NAME:="google/gemma-3-4b-it"}"
-: "${DATASET_PATH:="/t0/t0_1/split_2k-gpt-oss-120b-traces-k5_qwen_summarised_data_gemma_format"}"
+: "${DATASET_PATH:="/home/rwood/split_2k-gpt-oss-120b-traces-k5_qwen_summarised_data_gemma_format"}"
 : "${RUN_NAME:="t0-2.4-4b"}"
 : "${BLOCK_SIZE:=32768}"
 : "${EPOCHS:=1}"
@@ -19,9 +19,9 @@ JOB_NAME="t0-2.4-4b"
 # 2. SYSTEM & ENVIRONMENT
 # ==============================================================================
 
-UV_PATH="/t0/t0_1/t0-1/train/src/finetuning/venvs/t0_phase3"
-SCRIPT_PATH="/t0/t0_1/t0-1/train/s1_31a10f2/train/sft.py"
-export HF_HOME="/t0/models/.cache/huggingface"
+UV_PATH="/home/rwood/t0-1/train/src/finetuning/venvs/t0_phase3"
+SCRIPT_PATH="/home/rwood/t0-1/train/s1_31a10f2/train/sft.py"
+export HF_HOME="/home/rwood/.cache/huggingface"
 
 
 # ==============================================================================

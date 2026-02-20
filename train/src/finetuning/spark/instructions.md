@@ -55,7 +55,7 @@ uv pip install \
 ###  7. Install additional dependencies (Compilation)
 
 ```bash
-uv pip install liger-kernel
+uv pip install "liger-kernel<0.7.0"
 FLASH_ATTN_CUDA_ARCHS="120" uv pip install flash-attn --no-build-isolation -v
 ```
 
