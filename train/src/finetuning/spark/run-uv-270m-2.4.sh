@@ -28,7 +28,7 @@ export HF_HOME="/t0/models/.cache/huggingface"
 # BEYOND THIS POINT, AVOID EDITS UNLESS NECESSARY
 # ==============================================================================
 
-mkdir -p logs
+mkdir -p logs-270m
 set -euo pipefail
 export PYTHONUNBUFFERED=1
 
@@ -60,7 +60,7 @@ echo "**************************************************************************
 
 uid=$(date +%Y%m%d_%H%M%S)
 export WANDB_MODE=offline
-export WANDB_DIR="logs"
+export WANDB_DIR="logs-270m"
 
 # Clean up function
 cleanup() {
@@ -71,9 +71,9 @@ cleanup() {
 trap cleanup EXIT
 
 # Start monitoring
-stdbuf -o0 vmstat -t 1 > "logs/${JOB_NAME}-vmstat-${uid}.txt" &
+stdbuf -o0 vmstat -t 1 > "logs-270m/${JOB_NAME}-vmstat-${uid}.txt" &
 VMSTAT_PID=$!
-stdbuf -o0 nvidia-smi --query-gpu=timestamp,index,gpu_name,utilization.gpu,memory.used,memory.total,power.draw,temperature.gpu --format=csv -l 1 > "logs/${JOB_NAME}-dmon-${uid}.csv" &
+stdbuf -o0 nvidia-smi --query-gpu=timestamp,index,gpu_name,utilization.gpu,memory.used,memory.total,power.draw,temperature.gpu --format=csv -l 1 > "logs-270m/${JOB_NAME}-dmon-${uid}.csv" &
 NVIDIA_PID=$!
 
 # THE LAUNCH COMMAND
