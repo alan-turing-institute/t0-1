@@ -1,7 +1,7 @@
 #!/bin/bash
 # vim: et:ts=4:sts=4:sw=4
 # set working dir
-cd ../..
+cd /t0/t0_1/t0-1/
 
 # source venv
 source .venv/bin/activate
