@@ -94,6 +94,8 @@ Once the endpoint responds, run the `evaluate-rag` command with `--llm-model-nam
 
 Qwen conditions: `./data/nhs-conditions/v4/qwen_summarised_conditions.jsonl`
 
+Evaluation data: https://thealanturininstitute.sharepoint.com/:u:/s/t0/IQA4IUro8lZNSYJHFoGmhA-FAV9jGTIHq2HtnSdGV2qEEIc?e=4BDgCS
+
 This reproduces **t0-k5-32B**, the best-performing configuration in the paper: budget forcing with `max_tokens_thinking=256` and `num_stop_skips=3`.
 
 The fine-tuned model is served over the `openai_completion` endpoint — budget forcing is only supported on the completion API. The vector DB must exist at `./v4-summarised-db` (add `--force-create` on first run to build it from the conditions file above). `<your-model-id>` must match exactly across `vllm serve`, the `OPENAI_BASE_URL_<your-model-id>` key in `.env`, and `--llm-model-name`.
