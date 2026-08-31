@@ -62,4 +62,11 @@
     button:hover {
         opacity: 0.7;
     }
+
+    @media (max-width: 768px) {
+        div#error {
+            max-width: calc(100vw - 32px);
+            top: 60px;
+        }
+    }
 </style>

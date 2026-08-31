@@ -131,4 +131,11 @@
         border-color: var(--accent);
         box-shadow: 0 0 0 3px var(--focus-ring);
     }
+
+    @media (max-width: 768px) {
+        div#demographics {
+            grid-template-columns: 1fr;
+            gap: 4px;
+        }
+    }
 </style>

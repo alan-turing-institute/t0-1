@@ -21,6 +21,14 @@
     // UI state
     let loading: boolean = $state(false);
     let error: string | null = $state(null);
+    let sidebarOpen: boolean = $state(false);
+
+    function toggleSidebar() {
+        sidebarOpen = !sidebarOpen;
+    }
+    function closeSidebar() {
+        sidebarOpen = false;
+    }
 
     // Chat persistence and conversation management
     const NEW_CONVERSATION_ID = "__new";
@@ -216,8 +224,50 @@
     }
 
     let backendReady: boolean = $state(false);
+
+    // --- DEV MOCK: remove this block after testing mobile layout ---
+    const USE_MOCK = false;
+    function loadMockData() {
+        backendReady = true;
+        allIds = ["thread-abc-123", "thread-def-456", "thread-ghi-789"];
+        currentId = "thread-abc-123";
+        messages = [
+            {
+                role: "human",
+                content: "<p>What are the common symptoms of a cold versus the flu?</p>",
+            },
+            {
+                role: "ai",
+                content:
+                    "<p>Both colds and the flu share some symptoms, but there are key differences:</p>" +
+                    "<ul><li><strong>Common cold:</strong> runny or stuffy nose, sore throat, sneezing, mild cough, low-grade fever</li>" +
+                    "<li><strong>Flu:</strong> sudden onset of high fever, body aches, chills, fatigue, headache, dry cough</li></ul>" +
+                    "<p>The flu tends to come on quickly and feels more severe, while a cold develops gradually. If you're unsure, a GP can help determine which one you have.</p>",
+                reasoning:
+                    "<p>The user is asking about symptom differences between cold and flu. I should provide a clear comparison without making a diagnosis.</p>",
+            },
+            {
+                role: "human",
+                content: "<p>I've had a headache for 3 days and paracetamol isn't helping. Should I be worried?</p>",
+            },
+            {
+                role: "ai",
+                content:
+                    "<p>A persistent headache lasting several days that doesn't respond to over-the-counter painkillers is worth getting checked out. You should see your GP, especially if you also experience:</p>" +
+                    "<ul><li>Vision changes</li><li>Nausea or vomiting</li><li>Stiff neck</li><li>Fever</li><li>Confusion</li></ul>" +
+                    "<p>It's likely nothing serious, but a healthcare professional can properly assess your symptoms and rule out anything that needs further investigation.</p>",
+                reasoning: null,
+            },
+        ];
+    }
+    // --- END DEV MOCK ---
+
     function startup() {
         // Check if backend is running
+        if (USE_MOCK) {
+            loadMockData();
+            return;
+        }
         fetch(`${HOST}`, {
             method: "GET",
         }).then((response) => {
@@ -243,16 +293,29 @@
 </script>
 
 <div id="wrapper">
-    <Sidebar
-        {currentId}
-        {loading}
-        {allIds}
-        {changeId}
-        {newConversation}
-        {deleteConversation}
-        {darkMode}
-        {toggleTheme}
-    />
+    <button class="hamburger" onclick={toggleSidebar} aria-label="Toggle sidebar">
+        <i class="fa-solid {sidebarOpen ? 'fa-xmark' : 'fa-bars'}"></i>
+    </button>
+
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
+    <!-- svelte-ignore a11y_click_events_have_key_events -->
+    {#if sidebarOpen}
+        <div class="sidebar-overlay" onclick={closeSidebar}></div>
+    {/if}
+
+    <div class="sidebar-container" class:open={sidebarOpen}>
+        <Sidebar
+            {currentId}
+            {loading}
+            {allIds}
+            changeId={(id) => { changeId(id); closeSidebar(); }}
+            newConversation={() => { newConversation(); closeSidebar(); }}
+            {deleteConversation}
+            {darkMode}
+            {toggleTheme}
+        />
+    </div>
+
     {#if backendReady}
         <main>
             <Error {error} />
@@ -278,7 +341,6 @@
         display: flex;
         align-items: stretch;
         height: 100vh;
-        min-width: 300px;
         width: 100vw;
         background-color: var(--background);
         color: var(--foreground);
@@ -287,11 +349,43 @@
             color 0.3s ease;
     }
 
+    .hamburger {
+        display: none;
+        position: fixed;
+        top: 12px;
+        left: 12px;
+        z-index: 30;
+        background-color: var(--sidebar-bg);
+        border: 1px solid var(--border-subtle);
+        border-radius: 8px;
+        color: var(--foreground);
+        width: 44px;
+        height: 44px;
+        font-size: 1.2em;
+        cursor: pointer;
+        align-items: center;
+        justify-content: center;
+        transition:
+            background-color 0.15s ease,
+            border-color 0.15s ease;
+    }
+    .hamburger:hover {
+        background-color: var(--sidebar-hover);
+        border-color: var(--border-color);
+    }
+
+    .sidebar-overlay {
+        display: none;
+    }
+
+    .sidebar-container {
+        flex: 0 0 auto;
+    }
+
     main {
         height: calc(100vh - 60px);
         margin: 30px auto;
         padding: 0 24px;
-        min-width: 300px;
         width: 100%;
         max-width: 860px;
         display: flex;
@@ -316,5 +410,42 @@
         padding: 2px 6px;
         border-radius: 4px;
         font-size: 0.85em;
+    }
+
+    @media (max-width: 768px) {
+        .hamburger {
+            display: flex;
+        }
+
+        .sidebar-overlay {
+            display: block;
+            position: fixed;
+            inset: 0;
+            z-index: 15;
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+
+        .sidebar-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            z-index: 20;
+            transform: translateX(-100%);
+            transition: transform 0.25s ease;
+        }
+        .sidebar-container.open {
+            transform: translateX(0);
+        }
+
+        main {
+            margin: 30px auto 20px;
+            padding: 0 12px;
+            padding-top: 36px;
+        }
+
+        p#no-backend {
+            padding: 60px 16px 0;
+        }
     }
 </style>

@@ -133,4 +133,11 @@
         cursor: not-allowed;
         transform: none;
     }
+
+    @media (max-width: 768px) {
+        button {
+            height: 44px;
+            width: 44px;
+        }
+    }
 </style>
